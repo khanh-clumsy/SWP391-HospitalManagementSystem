@@ -19,13 +19,7 @@ namespace HospitalManagement.Controllers
             _context = context;
         }
 
-        // GET: Appointments
-        public async Task<IActionResult> Index()
-        {
-            var hospitalManagementContext = _context.Appointments.Include(a => a.Doctor).Include(a => a.Patient).Include(a => a.Room).Include(a => a.ServicePackage);
-            return View(await hospitalManagementContext.ToListAsync());
-        }
-
+        
         // GET: Appointments/Details/5
         public async Task<IActionResult> Details(int? id)
         {
