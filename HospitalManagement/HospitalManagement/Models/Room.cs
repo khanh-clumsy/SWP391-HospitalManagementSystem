@@ -7,7 +7,7 @@ public partial class Room
 {
     public int RoomId { get; set; }
 
-    public string? Name { get; set; }
+    public string? RoomNumber { get; set; }
 
     public virtual ICollection<AppointmentTracking> AppointmentTrackings { get; set; } = new List<AppointmentTracking>();
 

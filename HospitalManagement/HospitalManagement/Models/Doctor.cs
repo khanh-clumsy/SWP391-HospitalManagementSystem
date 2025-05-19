@@ -17,9 +17,13 @@ public partial class Doctor
 
     public int? SpecializationId { get; set; }
 
+    public int? DoctorLevel { get; set; }
+
     public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
+    public virtual ICollection<RequestConsultant> RequestConsultants { get; set; } = new List<RequestConsultant>();
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 

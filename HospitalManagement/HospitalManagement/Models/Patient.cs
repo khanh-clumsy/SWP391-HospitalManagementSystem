@@ -23,5 +23,5 @@ public partial class Patient
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
-    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+    public virtual ICollection<RequestConsultant> RequestConsultants { get; set; } = new List<RequestConsultant>();
 }

@@ -13,9 +13,9 @@ public partial class Prescription
 
     public int? Quantity { get; set; }
 
-    public string? UsageInstruction { get; set; }
+    public decimal? TotalPrice { get; set; }
 
-    public virtual MedicineList? Medicine { get; set; }
+    public virtual Medicine? Medicine { get; set; }
 
     public virtual MedicalRecord? Record { get; set; }
 }
