@@ -3,16 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\controllers\\appointmentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\controllers\\appointmentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\data\\hospitalmanagementcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\data\\hospitalmanagementcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\appsettings.local.example.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\appsettings.local.example.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\controllers\\appointmentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\controllers\\appointmentscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\controllers\\homecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -47,18 +51,6 @@
       "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\models\\role.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\views\\appointments\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\views\\appointments\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\views\\appointments\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\views\\appointments\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\data\\hospitalmanagementcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\data\\hospitalmanagementcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|c:\\users\\admin\\documents\\github\\swp391\\hospitalmanagement\\hospitalmanagement\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
       "RelativeMoniker": "D:0:0:{1F1F1FBB-CF09-4735-AA70-2762690EB59E}|HospitalManagement\\HospitalManagement.csproj|solutionrelative:hospitalmanagement\\wwwroot\\css\\site.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
     },
@@ -78,36 +70,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "appsettings.Local.example.json",
-              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\appsettings.Local.example.json",
-              "RelativeDocumentMoniker": "HospitalManagement\\appsettings.Local.example.json",
-              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\appsettings.Local.example.json",
-              "RelativeToolTip": "HospitalManagement\\appsettings.Local.example.json",
+              "DocumentIndex": 0,
+              "Title": "AppointmentsController.cs",
+              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Controllers\\AppointmentsController.cs",
+              "RelativeDocumentMoniker": "HospitalManagement\\Controllers\\AppointmentsController.cs",
+              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Controllers\\AppointmentsController.cs",
+              "RelativeToolTip": "HospitalManagement\\Controllers\\AppointmentsController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-19T16:30:34.09Z",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-19T16:40:41.411Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "Details.cshtml",
-              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Views\\Appointments\\Details.cshtml",
-              "RelativeDocumentMoniker": "HospitalManagement\\Views\\Appointments\\Details.cshtml",
-              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Views\\Appointments\\Details.cshtml",
-              "RelativeToolTip": "HospitalManagement\\Views\\Appointments\\Details.cshtml",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAABQAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-05-15T09:28:52.397Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "HomeController.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Controllers\\HomeController.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Controllers\\HomeController.cs",
@@ -120,19 +100,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "AppointmentsController.cs",
-              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Controllers\\AppointmentsController.cs",
-              "RelativeDocumentMoniker": "HospitalManagement\\Controllers\\AppointmentsController.cs",
-              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Controllers\\AppointmentsController.cs",
-              "RelativeToolTip": "HospitalManagement\\Controllers\\AppointmentsController.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-15T09:25:39.625Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\appsettings.json",
               "RelativeDocumentMoniker": "HospitalManagement\\appsettings.json",
@@ -145,7 +112,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "Appointment.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\Appointment.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\Appointment.cs",
@@ -157,7 +124,32 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 1,
+              "Title": "HospitalManagementContext.cs",
+              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Data\\HospitalManagementContext.cs",
+              "RelativeDocumentMoniker": "HospitalManagement\\Data\\HospitalManagementContext.cs",
+              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Data\\HospitalManagementContext.cs",
+              "RelativeToolTip": "HospitalManagement\\Data\\HospitalManagementContext.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAA3wBYAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-15T09:28:29.477Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.Local.example.json",
+              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\appsettings.Local.example.json",
+              "RelativeDocumentMoniker": "HospitalManagement\\appsettings.Local.example.json",
+              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\appsettings.Local.example.json",
+              "RelativeToolTip": "HospitalManagement\\appsettings.Local.example.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-19T16:30:34.09Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "Account.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\Account.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\Account.cs",
@@ -169,7 +161,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "MedicineList.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\MedicineList.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\MedicineList.cs",
@@ -181,7 +173,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Admin.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\Admin.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\Admin.cs",
@@ -193,7 +185,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "Role.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\Role.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\Role.cs",
@@ -205,7 +197,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "Prescription.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\Prescription.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\Prescription.cs",
@@ -217,7 +209,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "Patient.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\Patient.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\Patient.cs",
@@ -229,19 +221,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "HospitalManagementContext.cs",
-              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Data\\HospitalManagementContext.cs",
-              "RelativeDocumentMoniker": "HospitalManagement\\Data\\HospitalManagementContext.cs",
-              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Data\\HospitalManagementContext.cs",
-              "RelativeToolTip": "HospitalManagement\\Data\\HospitalManagementContext.cs",
-              "ViewState": "AgIAABoAAAAAAAAAAAAswBMAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-15T09:28:29.477Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 12,
               "Title": "site.css",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\wwwroot\\css\\site.css",
               "RelativeDocumentMoniker": "HospitalManagement\\wwwroot\\css\\site.css",
@@ -253,19 +233,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "Create.cshtml",
-              "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Views\\Appointments\\Create.cshtml",
-              "RelativeDocumentMoniker": "HospitalManagement\\Views\\Appointments\\Create.cshtml",
-              "ToolTip": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Views\\Appointments\\Create.cshtml",
-              "RelativeToolTip": "HospitalManagement\\Views\\Appointments\\Create.cshtml",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAABAAAAAXAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-05-15T09:27:34.139Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 13,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Program.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Program.cs",
@@ -277,7 +245,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 14,
               "Title": "ErrorViewModel.cs",
               "DocumentMoniker": "C:\\Users\\admin\\Documents\\GitHub\\SWP391\\HospitalManagement\\HospitalManagement\\Models\\ErrorViewModel.cs",
               "RelativeDocumentMoniker": "HospitalManagement\\Models\\ErrorViewModel.cs",

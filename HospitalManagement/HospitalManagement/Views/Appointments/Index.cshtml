@@ -30,9 +30,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.Room)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ServicePackage)
-            </th>
             <th></th>
         </tr>
     </thead>
@@ -56,9 +53,6 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Room.RoomId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ServicePackage.PackageId)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.AppointmentId">Edit</a> |

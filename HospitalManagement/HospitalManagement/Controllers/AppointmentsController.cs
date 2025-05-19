@@ -22,7 +22,7 @@ namespace HospitalManagement.Controllers
         // GET: Appointments
         public async Task<IActionResult> Index()
         {
-            var hospitalManagementContext = _context.Appointments.Include(a => a.Doctor).Include(a => a.Patient).Include(a => a.Room).Include(a => a.ServicePackage);
+            var hospitalManagementContext = _context.Appointments.Include(a => a.Doctor).Include(a => a.Patient).Include(a => a.Room);
             return View(await hospitalManagementContext.ToListAsync());
         }
 
@@ -38,7 +38,6 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Patient)
                 .Include(a => a.Room)
-                .Include(a => a.ServicePackage)
                 .FirstOrDefaultAsync(m => m.AppointmentId == id);
             if (appointment == null)
             {
@@ -54,7 +53,6 @@ namespace HospitalManagement.Controllers
             ViewData["DoctorId"] = new SelectList(_context.Doctors, "DoctorId", "DoctorId");
             ViewData["PatientId"] = new SelectList(_context.Patients, "PatientId", "PatientId");
             ViewData["RoomId"] = new SelectList(_context.Rooms, "RoomId", "RoomId");
-            ViewData["ServicePackageId"] = new SelectList(_context.ServicePackages, "PackageId", "PackageId");
             return View();
         }
 
@@ -63,7 +61,7 @@ namespace HospitalManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("AppointmentId,PatientId,DoctorId,RoomId,ServicePackageId,Date,Time,Status")] Appointment appointment)
+        public async Task<IActionResult> Create([Bind("AppointmentId,PatientId,DoctorId,RoomId,Date,Time,Status")] Appointment appointment)
         {
             if (ModelState.IsValid)
             {
@@ -74,7 +72,6 @@ namespace HospitalManagement.Controllers
             ViewData["DoctorId"] = new SelectList(_context.Doctors, "DoctorId", "DoctorId", appointment.DoctorId);
             ViewData["PatientId"] = new SelectList(_context.Patients, "PatientId", "PatientId", appointment.PatientId);
             ViewData["RoomId"] = new SelectList(_context.Rooms, "RoomId", "RoomId", appointment.RoomId);
-            ViewData["ServicePackageId"] = new SelectList(_context.ServicePackages, "PackageId", "PackageId", appointment.ServicePackageId);
             return View(appointment);
         }
 
@@ -94,7 +91,6 @@ namespace HospitalManagement.Controllers
             ViewData["DoctorId"] = new SelectList(_context.Doctors, "DoctorId", "DoctorId", appointment.DoctorId);
             ViewData["PatientId"] = new SelectList(_context.Patients, "PatientId", "PatientId", appointment.PatientId);
             ViewData["RoomId"] = new SelectList(_context.Rooms, "RoomId", "RoomId", appointment.RoomId);
-            ViewData["ServicePackageId"] = new SelectList(_context.ServicePackages, "PackageId", "PackageId", appointment.ServicePackageId);
             return View(appointment);
         }
 
@@ -103,7 +99,7 @@ namespace HospitalManagement.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("AppointmentId,PatientId,DoctorId,RoomId,ServicePackageId,Date,Time,Status")] Appointment appointment)
+        public async Task<IActionResult> Edit(int id, [Bind("AppointmentId,PatientId,DoctorId,RoomId,Date,Time,Status")] Appointment appointment)
         {
             if (id != appointment.AppointmentId)
             {
@@ -133,7 +129,6 @@ namespace HospitalManagement.Controllers
             ViewData["DoctorId"] = new SelectList(_context.Doctors, "DoctorId", "DoctorId", appointment.DoctorId);
             ViewData["PatientId"] = new SelectList(_context.Patients, "PatientId", "PatientId", appointment.PatientId);
             ViewData["RoomId"] = new SelectList(_context.Rooms, "RoomId", "RoomId", appointment.RoomId);
-            ViewData["ServicePackageId"] = new SelectList(_context.ServicePackages, "PackageId", "PackageId", appointment.ServicePackageId);
             return View(appointment);
         }
 
@@ -149,7 +144,6 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Patient)
                 .Include(a => a.Room)
-                .Include(a => a.ServicePackage)
                 .FirstOrDefaultAsync(m => m.AppointmentId == id);
             if (appointment == null)
             {
