@@ -1,0 +1,61 @@
+﻿## Build results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug*/
+[Rr]elease*/
+x64/
+x86/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+appsettings.Local.json
+
+## ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+## NuGet Packages
+*.nupkg
+*.snupkg
+
+## Project lock files (old .NET Core versions)
+project.lock.json
+project.fragment.lock.json
+
+## Artifacts and publish output
+artifacts/
+publish/
+
+## MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+## NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+## Code Coverage
+CodeCoverage/
+
+## MSBuild binary log
+*.binlog
+
+## Rider IDE
+.idea/
+
+## VS Code settings (nếu team có dùng VS Code)
+.vscode/
+
+## LibMan front-end libraries (nếu bạn dùng LibMan)
+wwwroot/lib/
+
+## Temp files
+~$*
+*~
