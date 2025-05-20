@@ -174,6 +174,9 @@ namespace HospitalManagement.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
+        private bool AppointmentExists(int id)
+        {
+            return _context.Appointments.Any(e => e.AppointmentId == id);
+        }
     }
 }
