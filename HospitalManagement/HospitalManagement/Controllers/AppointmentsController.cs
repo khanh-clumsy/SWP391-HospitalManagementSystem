@@ -47,15 +47,7 @@ namespace HospitalManagement.Controllers
             return View(appointment);
         }
 
-        // GET: Appointments/Create
-        public IActionResult Create()
-        {
-            ViewData["DoctorId"] = new SelectList(_context.Doctors, "DoctorId", "DoctorId");
-            ViewData["PatientId"] = new SelectList(_context.Patients, "PatientId", "PatientId");
-            ViewData["RoomId"] = new SelectList(_context.Rooms, "RoomId", "RoomId");
-            return View();
-        }
-
+        
         // POST: Appointments/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
