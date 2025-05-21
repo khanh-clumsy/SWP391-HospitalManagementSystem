@@ -11,21 +11,29 @@ public partial class Account
 
     public string PasswordHash { get; set; } = null!;
 
-    public int RoleId { get; set; }
+    public string? FullName { get; set; }
 
-    public int? PatientId { get; set; }
+    public string? Email { get; set; }
 
-    public int? DoctorId { get; set; }
+    public string? PhoneNumber { get; set; }
 
-    public int? AdminId { get; set; }
+    public DateOnly? Dob { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public bool? IsActive { get; set; }
 
-    public virtual Admin? Admin { get; set; }
+    public int? DepartmentId { get; set; }
 
-    public virtual Doctor? Doctor { get; set; }
+    public virtual ICollection<Appointment> AppointmentAccounts { get; set; } = new List<Appointment>();
 
-    public virtual Patient? Patient { get; set; }
+    public virtual ICollection<Appointment> AppointmentDoctorAccounts { get; set; } = new List<Appointment>();
 
-    public virtual Role Role { get; set; } = null!;
+    public virtual ICollection<Consultant> ConsultantAccounts { get; set; } = new List<Consultant>();
+
+    public virtual ICollection<Consultant> ConsultantDoctorAccounts { get; set; } = new List<Consultant>();
+
+    public virtual Department? Department { get; set; }
+
+    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
+    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
 }

@@ -7,11 +7,9 @@ public partial class Room
 {
     public int RoomId { get; set; }
 
-    public string? Name { get; set; }
-
-    public virtual ICollection<AppointmentTracking> AppointmentTrackings { get; set; } = new List<AppointmentTracking>();
-
-    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    public string? RoomName { get; set; }
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
+    public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
 }
