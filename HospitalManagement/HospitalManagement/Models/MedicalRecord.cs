@@ -5,7 +5,7 @@ namespace HospitalManagement.Models;
 
 public partial class MedicalRecord
 {
-    public int RecordId { get; set; }
+    public int MedicalRecordId { get; set; }
 
     public int? AppointmentId { get; set; }
 
@@ -15,9 +15,13 @@ public partial class MedicalRecord
 
     public string? Note { get; set; }
 
+    public decimal? TotalPrice { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public virtual Appointment? Appointment { get; set; }
 
-    public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
+    public virtual ICollection<MedicineList> MedicineLists { get; set; } = new List<MedicineList>();
+
+    public virtual ICollection<TestList> TestLists { get; set; } = new List<TestList>();
 }
