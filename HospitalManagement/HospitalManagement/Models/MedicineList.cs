@@ -5,15 +5,13 @@ namespace HospitalManagement.Models;
 
 public partial class MedicineList
 {
+    public int MedicalRecordId { get; set; }
+
     public int MedicineId { get; set; }
 
-    public string? Name { get; set; }
+    public int? Quantity { get; set; }
 
-    public string? Unit { get; set; }
+    public virtual MedicalRecord MedicalRecord { get; set; } = null!;
 
-    public string? Description { get; set; }
-
-    public virtual ICollection<MedicinePrice> MedicinePrices { get; set; } = new List<MedicinePrice>();
-
-    public virtual ICollection<Prescription> Prescriptions { get; set; } = new List<Prescription>();
+    public virtual Medicine Medicine { get; set; } = null!;
 }

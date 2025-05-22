@@ -7,13 +7,9 @@ public partial class Appointment
 {
     public int AppointmentId { get; set; }
 
-    public int? PatientId { get; set; }
+    public int? AccountId { get; set; }
 
-    public int? DoctorId { get; set; }
-
-    public int? RoomId { get; set; }
-
-    public int? ServicePackageId { get; set; }
+    public int? ServiceType { get; set; }
 
     public DateOnly? Date { get; set; }
 
@@ -21,11 +17,11 @@ public partial class Appointment
 
     public string? Status { get; set; }
 
-    public virtual ICollection<AppointmentTest> AppointmentTests { get; set; } = new List<AppointmentTest>();
+    public int? DoctorAccountId { get; set; }
 
-    public virtual ICollection<AppointmentTracking> AppointmentTrackings { get; set; } = new List<AppointmentTracking>();
+    public virtual Account? Account { get; set; }
 
-    public virtual Doctor? Doctor { get; set; }
+    public virtual Account? DoctorAccount { get; set; }
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 
@@ -33,9 +29,7 @@ public partial class Appointment
 
     public virtual ICollection<MedicalRecord> MedicalRecords { get; set; } = new List<MedicalRecord>();
 
-    public virtual Patient? Patient { get; set; }
+    public virtual Service? ServiceTypeNavigation { get; set; }
 
-    public virtual Room? Room { get; set; }
-
-    public virtual ServicePackage? ServicePackage { get; set; }
+    public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
 }
