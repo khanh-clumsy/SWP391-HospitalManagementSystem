@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\Appointments\**" />
+    <Content Remove="Views\Appointments\**" />
+    <EmbeddedResource Remove="Views\Appointments\**" />
+    <None Remove="Views\Appointments\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="scss\bootstrap.scss" />
     <Content Include="scss\bootstrap\scss\bootstrap-grid.scss" />
     <Content Include="scss\bootstrap\scss\bootstrap-reboot.scss" />
