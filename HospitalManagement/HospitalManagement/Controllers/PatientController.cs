@@ -12,5 +12,10 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
+
+        public IActionResult ViewAppointment()
+        {
+            return View();
+        }
     }
 }
