@@ -21,6 +21,8 @@ public partial class Account
 
     public string RoleName { get; set; } = null!;
 
+    public string? ProfileImagePath { get; set; }
+
     public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
 
     public virtual ICollection<Patient> Patients { get; set; } = new List<Patient>();

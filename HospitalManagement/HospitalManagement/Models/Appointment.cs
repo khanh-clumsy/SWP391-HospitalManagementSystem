@@ -13,9 +13,9 @@ public partial class Appointment
 
     public int ServiceId { get; set; }
 
-    public DateOnly Date { get; set; }
+    public int SlotId { get; set; }
 
-    public TimeOnly Time { get; set; }
+    public DateOnly Date { get; set; }
 
     public string Status { get; set; } = null!;
 
@@ -44,6 +44,8 @@ public partial class Appointment
     public virtual Patient Patient { get; set; } = null!;
 
     public virtual Service Service { get; set; } = null!;
+
+    public virtual Slot Slot { get; set; } = null!;
 
     public virtual ICollection<TestList> TestLists { get; set; } = new List<TestList>();
 
