@@ -7,7 +7,6 @@
     },
     "AllowedHosts": "*",
     "ConnectionStrings": {
-        "DefaultConnection": ""
+        "DefaultConnection": "Server=localhost;Database=Hospital_Management;User ID=sa;Password=123;Encrypt=False;TrustServerCertificate=True"
     }
-  }
 }

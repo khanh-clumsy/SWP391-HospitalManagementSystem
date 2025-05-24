@@ -8,12 +8,8 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
-        public IActionResult RequestConsultant()
-        {
-            return View();
-        }
 
-        public IActionResult ViewAppointment()
+        public IActionResult DoctorDetail()
         {
             return View();
         }
