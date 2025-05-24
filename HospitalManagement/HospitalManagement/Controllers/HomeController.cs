@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-//using HospitalManagement.Models;
+using HospitalManagement.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalFETemplate.Controllers
