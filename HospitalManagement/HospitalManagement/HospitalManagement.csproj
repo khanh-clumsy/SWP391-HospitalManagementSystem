@@ -105,4 +105,8 @@
     <Folder Include="Views\Appointments\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Views\Patient\Appointment.cshtml" />
+  </ItemGroup>
+
 </Project>
