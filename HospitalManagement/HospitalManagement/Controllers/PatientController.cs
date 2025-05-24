@@ -8,5 +8,9 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
+        public IActionResult DoctorDetail()
+        {
+            return View();
+        }
     }
 }
