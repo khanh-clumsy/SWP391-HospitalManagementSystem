@@ -3,29 +3,97 @@
 }
 <!DOCTYPE html>
 <html lang="en">
+<head>
+	<!-- Template Stylesheet -->
+	<link href="/css/doctorprofile.css" rel="stylesheet">
+</head>
+
 
 <body>
-	<div class="container-login100">
+	<!-- Profile Start -->
+	<div class="container-xxl doctor-profile py-5">
+		<div class="container">
 
-		<div class="wrap-login100 p-5 bg-white rounded shadow">
-
-			<div>
-				<h3 class="text-center mb-4">Your Profile</h3>
+			<div class="row mb-4">
+				<div class="col-12">
+					<a asp-controller="Patient" asp-action="ViewDoctors" class="back-to-list">
+						<i class="fas fa-arrow-left"></i>
+						Back to Doctor List
+					</a>
+				</div>
 			</div>
-			<div class="mb-4">
-				<img src="~/img/team-1.jpg" alt="Profile Picture"
-					 class="shadow"
-					 style="width: 140px; height: 180px; object-fit: cover;" />
-			</div>
 
-			<p><strong>Name:</strong> John Doe</p>
-			<p><strong>Email:</strong> john@example.com</p>
-			<p><strong>Phone:</strong> 0123456789</p>
+			<div class="row g-4 align-items-stretch">
+				<!-- Image and Update Buttons -->
+				<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
+					<div class="profile-card text-center">
+						<div class="profile-image">
+							<img src="/img/team-2.jpg" alt="User's Photo">
+						</div>
+						<div class="profile-buttons">
+							<div class="d-flex gap-2 justify-content-center flex-wrap">
+								<a class="btn btn-primary flex-fill text-center" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
+								<a class="btn btn-primary flex-fill text-center" asp-controller="User" asp-action="ChangePassword">Change Password</a>
+								<a class="btn btn-outline-primary flex-fill text-center" asp-controller="Patient" asp-action="ViewDoctors">Logout</a>
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<!-- Doctor Information -->
+				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
+					<div class="profile-card">
+						<div class="profile-info">
+							<h2> Profile Details</h2>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-user"></i>
+								</div>
+								<div class="info-content">
+									<h5>Full Name</h5>
+									<p>Tran Viet Hai</p>
+								</div>
+							</div>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-venus-mars"></i>
+								</div>
+								<div class="info-content">
+									<h5>Gender</h5>
+									<p>Male</p>
+								</div>
+							</div>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-envelope"></i>
+								</div>
+								<div class="info-content">
+									<h5>Email</h5>
+									<p>haitv1709@gmail.com</p>
+								</div>
+							</div>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-phone"></i>
+								</div>
+								<div class="info-content">
+									<h5>Phone</h5>
+									<p>0123456789</p>
+								</div>
+							</div>
+
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
-	<!-- Back to Top -->
-	<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 
 
 	<!-- JavaScript Libraries -->

@@ -11,7 +11,6 @@
 </head>
 <body>
 
-	
 	<!-- Page Header Start -->
 	<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
 		<div class="container py-5">
@@ -31,9 +30,13 @@
 	<!-- Appointment Start -->
 	<div class="container-xxl doctor-profile py-5">
 		<div class="container">
+
 			<div class="row mb-4">
 				<div class="col-12">
-					<a href="team.html" class="back-to-list"><i class="fas fa-arrow-left"></i> Back to Doctor List</a>
+					<a asp-controller="Patient" asp-action="ViewDoctors"  class="back-to-list">
+						<i class="fas fa-arrow-left"></i>
+						Back to Doctor List
+					</a>
 				</div>
 			</div>
 
@@ -114,12 +117,6 @@
 			</div>
 		</div>
 	</div>
-
-
-	<!-- Back to Top -->
-	<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top">
-		<i class="bi bi-arrow-up"></i>
-	</a>
 
 
 	<!-- JavaScript Libraries -->

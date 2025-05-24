@@ -4,55 +4,94 @@
 
 <!DOCTYPE html>
 <html lang="en">
+<head>
+	<!-- Template Stylesheet -->
+	<link href="/css/doctorprofile.css" rel="stylesheet">
+</head>
 
 <body>
+	<!-- Profile Start -->
+	<div class="container-xxl doctor-profile py-5">
+		<div class="container">
 
-	<div class="container-login100">
-
-		<div class="wrap-login100 p-5 bg-white rounded shadow">
-			<div>
-				<h3 class="text-center mb-4">Update Profile</h3>
+			<div class="row mb-4">
+				<div class="col-12">
+					<a asp-controller="Patient" asp-action="ViewDoctors" class="back-to-list">
+						<i class="fas fa-arrow-left"></i>
+						Back to Doctor List
+					</a>
+				</div>
 			</div>
-			<form>
-				<!-- Ảnh hiện tại -->
-				<div class="mb-3">
-					<label class="form-label fw-bold">Current Photo:</label><br />
-					<img src="~/img/team-1.jpg" alt="Current Photo"
-						 class="shadow mb-2"
-						 style="width: 140px; height: 180px; object-fit: cover;" />
-				</div>
 
-				<!-- Chọn file + nút Upload nhỏ gọn -->
-				<div style="width: 240px; margin-bottom:30px">
-					<div class="mb-2">
-						<label for="photo" class="form-label fw-bold">Upload new photo:</label>
-						<input type="file" class="form-control form-control-sm" id="photo" name="photo" />
+			<div class="row g-4 align-items-stretch">
+				<!-- Image and Upload Buttons -->
+				<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
+					<div class="profile-card text-center">
+
+						<!-- Ảnh hiện tại -->
+						<div class="profile-image">
+							<img src="~/img/team-2.jpg" alt="Current Photo"
+								 class="shadow mb-2" />
+						</div>
+
+						<!-- Chọn file + nút Upload nhỏ gọn -->
+						<div class="profile-buttons">
+							<div class="d-flex gap-2 justify-content-center flex-wrap">
+								<form>
+									<div style="width: 240px; margin-bottom:30px">
+										<div class="mb-2">
+											<label for="photo" class="form-label fw-bold">Upload new photo:</label>
+											<input type="file" class="form-control form-control-sm" id="photo" name="photo" />
+										</div>
+										<button type="submit" class="btn btn-primary w-100 btn-sm" 
+										style="padding-top: 3px; padding-bottom: 3px; font-size: 1rem;">
+											Upload
+										</button>
+
+									</div>
+								</form>
+							</div>
+						</div>
+
+
 					</div>
-					<button type="submit" class="btn btn-sm btn-primary w-100">Upload</button>
 				</div>
-			</form>
+
+				
+				<!-- Update Information -->
+				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
+					<div class="profile-card">
+						<div class="profile-info">
+							<h2> Update Details</h2>
+
+							<form>
+								<div class="form-group">
+									<label>Full Name</label>
+									<input class="form-control" value="Tran Viet Hai" />
+								</div>
+								<div class="form-group">
+									<label>Gender</label>
+									<select class="form-select">
+										<option selected value="M">Male</option>
+										<option value="F">Female</option>
+										<option value="O">Other</option>
+									</select>
+								</div>
+								<div class="form-group">
+									<label>Phone</label>
+									<input class="form-control" value="0123456789" />
+								</div>
+								<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
+							</form>
+						</div>
+					</div>
+				</div>
 
 
-
-			<form>
-				<div class="form-group">
-					<label>Full Name</label>
-					<input class="form-control" value="John Doe" />
-				</div>
-				<div class="form-group">
-					<label>Email</label>
-					<input class="form-control" value="john@example.com" />
-				</div>
-				<div class="form-group">
-					<label>Phone</label>
-					<input class="form-control" value="0123456789" />
-				</div>
-				<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
-			</form>
+				
+			</div>
 		</div>
 	</div>
-	<!-- Back to Top -->
-	<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 
 
 	<!-- JavaScript Libraries -->
