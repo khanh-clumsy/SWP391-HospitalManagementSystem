@@ -5,11 +5,13 @@ namespace HospitalManagement.Models;
 
 public partial class Tracking
 {
+    public int TrackingId { get; set; }
+
     public int AppointmentId { get; set; }
 
     public int RoomId { get; set; }
 
-    public DateTime? Time { get; set; }
+    public DateTime Time { get; set; }
 
     public virtual Appointment Appointment { get; set; } = null!;
 

@@ -7,9 +7,11 @@ public partial class Consultant
 {
     public int ConsultantId { get; set; }
 
-    public int? AccountId { get; set; }
+    public int PatientId { get; set; }
 
-    public int? ServiceType { get; set; }
+    public int DoctorId { get; set; }
+
+    public int ServiceId { get; set; }
 
     public string? PhoneNumber { get; set; }
 
@@ -19,13 +21,15 @@ public partial class Consultant
 
     public string? Status { get; set; }
 
-    public int? DoctorAccountId { get; set; }
+    public int? Method { get; set; }
 
-    public virtual Account? Account { get; set; }
+    public int? PaymentStatus { get; set; }
 
-    public virtual Account? DoctorAccount { get; set; }
+    public int? TransactionCode { get; set; }
 
-    public virtual ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public virtual Doctor Doctor { get; set; } = null!;
 
-    public virtual Service? ServiceTypeNavigation { get; set; }
+    public virtual Patient Patient { get; set; } = null!;
+
+    public virtual Service Service { get; set; } = null!;
 }

@@ -3,13 +3,21 @@ using System.Collections.Generic;
 
 namespace HospitalManagement.Models;
 
-public partial class Service
+public partial class Patient
 {
-    public int ServiceId { get; set; }
+    public int PatientId { get; set; }
 
-    public string ServiceType { get; set; } = null!;
+    public int AccountId { get; set; }
 
-    public decimal ServicePrice { get; set; }
+    public DateOnly? Dob { get; set; }
+
+    public string? Address { get; set; }
+
+    public string? HealthInsurance { get; set; }
+
+    public string? BloodGroup { get; set; }
+
+    public virtual Account Account { get; set; } = null!;
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
