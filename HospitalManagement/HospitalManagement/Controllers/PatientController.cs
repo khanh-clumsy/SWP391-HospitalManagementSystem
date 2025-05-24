@@ -13,5 +13,10 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
+
+        public IActionResult RequestConsultant()
+        {
+            return View();
+        }
     }
 }
