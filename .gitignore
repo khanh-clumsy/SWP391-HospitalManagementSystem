@@ -60,3 +60,4 @@ wwwroot/lib/
 ~$*
 *~
 HospitalManagement/HospitalManagement/appsettings.json
+/HospitalManagement/HospitalManagement/obj

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace HospitalManagement.Models;
 
@@ -20,6 +21,8 @@ public partial class Account
     public int? ExternalId { get; set; }
 
     public string RoleName { get; set; } = null!;
+
+    public string? ProfileImagePath { get; set; }
 
     public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
 
