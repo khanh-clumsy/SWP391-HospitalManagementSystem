@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace HospitalManagement.Models
+namespace HospitalManagement.Controllers
 {
-    public class User : Controller
+    public class UserController : Controller
     {
         public IActionResult ViewProfile()
         {

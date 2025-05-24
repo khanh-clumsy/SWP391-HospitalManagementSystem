@@ -1,4 +1,4 @@
-﻿@model HospitalManagement.Models.LoginViewModel
+﻿@model HospitalManagement.Models.Account
 @{
 	Layout = null;
 }
@@ -38,7 +38,7 @@
 					</div>
 
 					<div class="p-t-31 p-b-9">
-						<span class="txt1">Username/Email</span>
+						<span class="txt1">Email</span>
 					</div>
 					<div class="wrap-input100 validate-input" data-validate="Username is required">
 						<input asp-for="Username" class="input100" />
@@ -51,9 +51,9 @@
 						<a asp-action="ForgotPassword" asp-controller="Auth" class="txt2 bo1 m-l-5">Forgot?</a>
 					</div>
 					<div class="wrap-input100 validate-input" data-validate="Password is required">
-						<input asp-for="Password" class="input100" type="password" />
+						<input asp-for="PasswordHash" class="input100" type="password" />
 						<span class="focus-input100"></span>
-						<span asp-validation-for="Password" class="text-danger"></span>
+						<span asp-validation-for="PasswordHash" class="text-danger"></span>
 					</div>
 
 					<div class="container-login100-form-btn m-t-17">
