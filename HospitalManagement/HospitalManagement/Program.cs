@@ -11,7 +11,26 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<HospitalManagementContext>();
 
+    try
+    {
+        if (context.Database.CanConnect())
+        {
+            Console.WriteLine("YES SQL Server connection successful!");
+        }
+        else
+        {
+            Console.WriteLine("NO SQL Server connection failed.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
+    }
+}
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

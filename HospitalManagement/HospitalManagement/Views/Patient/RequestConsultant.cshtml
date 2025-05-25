@@ -19,14 +19,14 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav ms-auto p-4 p-lg-0">
-                <a href="index.html" class="nav-item nav-link">Home</a>
-                <a href="about.html" class="nav-item nav-link">About</a>
-                <a href="service.html" class="nav-item nav-link">Service</a>
-                <a href="team.html" class="nav-item nav-link">Our Doctor</a>
-                <a href="contact.html" class="nav-item nav-link">Contact</a>
-                <a href="login.html" class="nav-item nav-link" style="color: blue;">Login | Register</a>
+                <a asp-controller="Home" asp-action="Index" class="nav-item nav-link">Home</a>
+                <a asp-controller="Home" asp-action="About" class="nav-item nav-link">About</a>
+                <a asp-controller="Home" asp-action="Service" class="nav-item nav-link">Service</a>
+                <a asp-controller="Home" asp-action="ViewDoctors" class="nav-item nav-link">Our Doctor</a>
+                <a asp-controller="Home" asp-action="Contact" class="nav-item nav-link">Contact</a>
+                <a asp-controller="Auth" asp-action="Login" class="nav-item nav-link" style="color: blue;">Login | Register</a>
             </div>
-            <a href="appointment.html" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+            <a asp-controller="Patient" asp-action="BookAppointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
         </div>
     </nav>
     <!-- Navbar End -->
@@ -48,8 +48,6 @@
     <div class="container-xxl py-5">
         <div class="container">
             <div class="row g-5">
-
-                
                 <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
                     <p class="d-inline-block border rounded-pill py-1 px-4">Consultant</p>
                     <h1 class="mb-4">Request an consultant</h1>
@@ -80,15 +78,15 @@
                             <div class="row g-3">
                                 <!-- Name field - Full width -->
                                 <div class="col-12">
-                                    <input type="text" class="form-control" placeholder="Your Name" style="height: 55px;">
+                                    <input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;">
                                 </div>
 
                                 <!-- Email and SDT (Phone) on same row -->
                                 <div class="col-12 col-sm-6">
-                                    <input type="email" class="form-control" placeholder="Your email" style="height: 55px;">
+                                    <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;">
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <input type="text" class="form-control" placeholder="Your mobile" style="height: 55px;">
+                                    <input asp-for="Phone" class="form-control" placeholder="Your mobile" style="height: 55px;">
                                 </div>
 
                                 <!-- Consultant Selection field - Full width -->
