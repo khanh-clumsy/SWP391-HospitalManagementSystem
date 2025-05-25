@@ -3,6 +3,7 @@
 *@
 @{
 }
+@model HospitalManagement.Models.Doctor
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +20,7 @@
 			<nav aria-label="breadcrumb animated slideInDown">
 				<ol class="breadcrumb text-uppercase mb-0">
 					<li class="breadcrumb-item"><a class="text-white" href="index.html">Home</a></li>
-					<li class="breadcrumb-item"><a class="text-white" href="ViewDoctors">Doctors</a></li>
+					<li class="breadcrumb-item"><a asp-action="ViewDoctors" asp-controller="Patient" class="text-white">Doctors</a></li>
 					<li class="breadcrumb-item text-primary active" aria-current="page">Doctor Details</li>
 
 				</ol>
@@ -32,7 +33,9 @@
 		<div class="container">
 			<div class="row mb-4">
 				<div class="col-12">
-					<a href="ViewDoctors" class="back-to-list"><i class="fas fa-arrow-left"></i> Back to Doctor List</a>
+					<a asp-action="ViewDoctors" asp-controller="Patient" class="back-to-list">
+						<i class="fas fa-arrow-left"></i> Back to Doctor List
+					</a>
 				</div>
 			</div>
 
@@ -41,7 +44,7 @@
 				<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
 					<div class="profile-card text-center">
 						<div class="profile-image">
-							<img src="/img/team-1.jpg" alt="Doctor's Photo">
+							<img src="@Model.Account.ProfileImagePath" alt="Doctor's Photo">
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
@@ -64,7 +67,7 @@
 								</div>
 								<div class="info-content">
 									<h5>Full Name</h5>
-									<p>Dr. John Smith</p>
+									<p>@Model.Account.FullName (@Model.ExperienceYear Experience Years)</p>
 								</div>
 							</div>
 
@@ -84,7 +87,7 @@
 								</div>
 								<div class="info-content">
 									<h5>Email</h5>
-									<p>dr.johnsmith@klinik.com</p>
+									<p>@Model.Account.Email</p>
 								</div>
 							</div>
 
@@ -94,7 +97,7 @@
 								</div>
 								<div class="info-content">
 									<h5>Specialization</h5>
-									<p>Cardiology</p>
+									<p>@Model.DepartmentName</p>
 								</div>
 							</div>
 
@@ -104,7 +107,7 @@
 								</div>
 								<div class="info-content">
 									<h5>Doctor Level</h5>
-									<p>Senior Specialist</p>
+									<p>@Model.Degree</p>
 								</div>
 							</div>
 						</div>
