@@ -16,7 +16,18 @@ namespace HospitalManagement.Controllers
 
         public IActionResult RequestConsultant()
         {
+
+        }
+
+        public IActionResult Appointment()
+
+        {
+            return View();
+        }
+        public IActionResult AppointmentList()
+        {
             return View();
         }
     }
+    
 }
