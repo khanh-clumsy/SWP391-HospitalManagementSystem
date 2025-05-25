@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Data;
+using HospitalManagement.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,23 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public IActionResult RequestConsultant()
         {
-            
+            var userJson = HttpContext.Session.GetString("UserSession");
+
+            if (!string.IsNullOrEmpty(userJson))
+            {
+                var user = JsonConvert.DeserializeObject<Account>(userJson);
+                if (user == null)
+                {
+                    return RedirectToAction("Login", "Auth");
+                }
+                var model = new RequestConsultantViewModel
+                {
+                    Name = user.FullName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber
+                };
+                return View(model);
+            }
             return View();
         }
 
