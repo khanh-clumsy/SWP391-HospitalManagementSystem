@@ -32,6 +32,15 @@
 
 	<!-- Template Stylesheet -->
 	<link href="/css/style.css" rel="stylesheet">
+
+	<style>
+		.popup-alert {
+			position: fixed;
+			text-align: center;
+			top: 5px;
+			right: 5px;
+		}
+	</style>
 </head>
 
 
@@ -72,6 +81,25 @@
 			</div>
 		</div>
 		<!-- Topbar End -->
+
+		<!-- Notifications-->
+		@if (TempData["error"] != null)
+		{
+			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
+				 role="alert" style="z-index: 1055; border-radius: 8px;">
+				<div>@TempData["error"]</div>
+			</div>
+		}
+		@if (TempData["success"] != null)
+		{
+			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
+				 role="alert" style="z-index: 1055; border-radius: 8px;">
+				<div>@TempData["success"]</div>
+			</div>
+		}
+
+
+
 		<!-- Navbar Start -->
 		<nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn" data-wow-delay="0.1s">
 			<a href="index.html" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
@@ -186,6 +214,17 @@
 	<!-- Back to Top -->
 	<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 
+	<script>
+		window.setTimeout(function () {
+			const alertBox = document.getElementById('popup-alert');
+			if (alertBox) {
+				alertBox.classList.remove('show');
+				alertBox.classList.add('hide');
+				setTimeout(() => alertBox.remove(), 500);
+				// popup animation
+			}
+		}, 3000);
+	</script>
 </body>
 </html>
 

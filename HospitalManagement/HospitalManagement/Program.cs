@@ -1,8 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -16,9 +24,37 @@ builder.Services.AddSession(options =>
 });
 builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
+//Configuration Login Google Account
+try
+{
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    }).AddCookie().AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
+        options.ClientSecret = builder.Configuration.GetSection("GoogleKeys:ClientSecret").Value;
+
+        // luôn hỏi để chọn gmail
+        options.Events.OnRedirectToAuthorizationEndpoint = context =>
+        {
+            var redirectUri = context.RedirectUri;
+            redirectUri += (redirectUri.Contains("?") ? "&" : "?") + "prompt=select_account";
+            context.Response.Redirect(redirectUri);
+            return Task.CompletedTask;
+        };
+    });
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
+    Console.WriteLine("Google Client ID: " + builder.Configuration["GoogleKeys:ClientId"]);
+
+}
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

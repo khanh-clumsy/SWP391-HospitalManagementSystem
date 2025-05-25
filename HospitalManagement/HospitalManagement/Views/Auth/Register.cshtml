@@ -20,6 +20,14 @@
 	<link rel="stylesheet" type="text/css" href="~/vendor/daterangepicker/daterangepicker.css">
 	<link rel="stylesheet" type="text/css" href="~/css/util.css">
 	<link rel="stylesheet" type="text/css" href="~/css/login.css">
+	<style>
+		.popup-alert {
+			position: fixed;
+			text-align: center;
+			top: 5px;
+			right: 5px;
+		}
+	</style>
 </head>
 
 <body>
@@ -27,7 +35,24 @@
 	<div class="limiter">
 		<div class="container-login100" style="background-image: url('@Url.Content("~/img/bg.jpg")');">
 			<div class="wrap-login100 p-l-110 p-r-110 p-t-62 p-b-33">
+				<div>
+					<!-- Notifications-->
+					@if (TempData["error"] != null)
+					{
+						<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
+							 role="alert" style="z-index: 1055; border-radius: 8px;">
+							<div>@TempData["error"]</div>
+						</div>
+					}
+					@if (TempData["success"] != null)
+					{
+						<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
+							 role="alert" style="z-index: 1055; border-radius: 8px;">
+							<div>@TempData["success"]</div>
+						</div>
+					}
 
+				</div>
 				<form asp-action="Register" method="post" class="login100-form validate-form flex-sb flex-w">
 					<span class="login100-form-title p-b-53">
 						Sign Up
@@ -144,7 +169,17 @@
 	<script src="~/js/login.js"></script>
 	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
-
+	<script>
+		window.setTimeout(function () {
+			const alertBox = document.getElementById('popup-alert');
+			if (alertBox) {
+				alertBox.classList.remove('show');
+				alertBox.classList.add('hide');
+				setTimeout(() => alertBox.remove(), 500);
+				// popup animation
+			}
+		}, 3000);
+	</script>
 </body>
 
 </html>
