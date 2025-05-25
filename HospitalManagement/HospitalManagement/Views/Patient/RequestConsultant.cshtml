@@ -1,6 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model RequestConsultantViewModel;
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -74,7 +72,7 @@
                 <!-- Form Request Consultant -->
                 <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
                     <div class="bg-light rounded h-100 d-flex align-items-center p-5">
-                        <form style="width: 100%;">
+                        <form asp-action="RequestConsultant" method="post" style="width: 100%;">
                             <div class="row g-3">
                                 <!-- Name field - Full width -->
                                 <div class="col-12">
@@ -86,7 +84,7 @@
                                     <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;">
                                 </div>
                                 <div class="col-12 col-sm-6">
-                                    <input asp-for="Phone" class="form-control" placeholder="Your mobile" style="height: 55px;">
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;">
                                 </div>
 
                                 <!-- Consultant Selection field - Full width -->
@@ -106,13 +104,13 @@
 
                                         <div class="d-flex align-items-center gap-4">
                                             <div class="form-check mb-0">
-                                                <input class="form-check-input" type="radio" name="serviceLevel" id="basic" value="basic" checked>
-                                                <label class="form-check-label" for="basic">
-                                                    Basic
+                                                <input asp-for="Service" class="form-check-input" type="radio" name="serviceLevel" id="common" value="common" checked>
+                                                <label class="form-check-label" for="common">
+                                                    Common
                                                 </label>
                                             </div>
                                             <div class="form-check mb-0">
-                                                <input class="form-check-input" type="radio" name="serviceLevel" id="advance" value="advance">
+                                                <input asp-for="Service" class="form-check-input" type="radio" name="serviceLevel" id="advance" value="advance">
                                                 <label class="form-check-label" for="advance">
                                                     Advanced
                                                 </label>
@@ -123,7 +121,7 @@
 
                                 <!-- Large text area -->
                                 <div class="col-12">
-                                    <textarea class="form-control" rows="8" placeholder="Describe your problem"></textarea>
+                                    <textarea asp-for="Note" class="form-control" rows="8" placeholder="Describe your problem"></textarea>
                                 </div>
 
                                 <!-- Submit button -->
