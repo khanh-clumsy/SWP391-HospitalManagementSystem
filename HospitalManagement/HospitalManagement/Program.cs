@@ -1,11 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Data;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDistributedMemoryCache(); // Bộ nhớ tạm cho session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // thời gian sống của session
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddControllersWithViews().AddNewtonsoftJson();
 
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -46,6 +55,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseSession(); // Thêm middleware này trước UseEndpoints hoặc UseRouting
 
 app.UseRouting();
 

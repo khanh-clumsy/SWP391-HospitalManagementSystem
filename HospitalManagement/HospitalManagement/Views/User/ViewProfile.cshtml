@@ -1,6 +1,8 @@
-﻿@{
+﻿@model HospitalManagement.Models.Account
+@{
 	ViewData["Title"] = "View Profile";
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,24 +26,28 @@
 			</div>
 
 			<div class="row g-4 align-items-stretch">
-				<!-- Image and Update Buttons -->
+				<!-- Image -->
 				<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
 					<div class="profile-card text-center">
+						<!-- Ảnh hiện tại -->
 						<div class="profile-image">
-							<img src="/img/team-2.jpg" alt="User's Photo">
+							<img src="@(Model.ProfileImagePath != null
+									 ? $"data:image/png;base64,{Model.ProfileImagePath}"
+									 : Url.Content("~/img/logo.jpg"))"
+								 alt="Current Photo" class="shadow mb-2" />
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
 								<a class="btn btn-primary flex-fill text-center" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
 								<a class="btn btn-primary flex-fill text-center" asp-controller="User" asp-action="ChangePassword">Change Password</a>
-								<a class="btn btn-outline-primary flex-fill text-center" asp-controller="Patient" asp-action="ViewDoctors">Logout</a>
+								<a class="btn btn-outline-primary flex-fill text-center" asp-controller="User" asp-action="Logout">Logout</a>
 							</div>
 						</div>
 
 					</div>
 				</div>
 
-				<!-- Doctor Information -->
+				<!--  Information -->
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
 					<div class="profile-card">
 						<div class="profile-info">
@@ -53,7 +59,7 @@
 								</div>
 								<div class="info-content">
 									<h5>Full Name</h5>
-									<p>Tran Viet Hai</p>
+									<p>@Model.FullName</p>
 								</div>
 							</div>
 
@@ -63,7 +69,18 @@
 								</div>
 								<div class="info-content">
 									<h5>Gender</h5>
-									<p>Male</p>
+									@if(Model.Gender[0]=='M'){
+										<p>Male</p>
+									}
+									else if (Model.Gender[0] == 'F')
+									{
+										<p>Female</p>
+									}
+									else
+									{
+										<p>Other</p>
+
+									}
 								</div>
 							</div>
 
@@ -73,7 +90,7 @@
 								</div>
 								<div class="info-content">
 									<h5>Email</h5>
-									<p>haitv1709@gmail.com</p>
+									<p>@Model.Email</p>
 								</div>
 							</div>
 
@@ -83,7 +100,7 @@
 								</div>
 								<div class="info-content">
 									<h5>Phone</h5>
-									<p>0123456789</p>
+									<p>@Model.PhoneNumber</p>
 								</div>
 							</div>
 

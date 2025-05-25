@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
 
 namespace HospitalManagement.Controllers
 {
@@ -53,6 +55,8 @@ namespace HospitalManagement.Controllers
                 ModelState.AddModelError(string.Empty, "!Email or password is invalid.");
                 return View(LogInfo);
             }
+            var userJson = JsonConvert.SerializeObject(user); // convert Account object to JSON string
+            HttpContext.Session.SetString("UserSession", userJson);
 
             // Đăng nhập thành công
             return RedirectToAction("ViewDoctors", "Patient");

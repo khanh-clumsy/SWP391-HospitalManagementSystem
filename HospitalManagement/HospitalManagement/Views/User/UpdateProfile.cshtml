@@ -1,4 +1,5 @@
-﻿@{
+﻿@model HospitalManagement.Models.Account
+@{
 	ViewData["Title"] = "Update Profile";
 }
 
@@ -30,26 +31,24 @@
 
 						<!-- Ảnh hiện tại -->
 						<div class="profile-image">
-							<img src="~/img/team-2.jpg" alt="Current Photo"
-								 class="shadow mb-2" />
+							<img src="@(Model.ProfileImagePath != null
+									 ? $"data:image/png;base64,{Model.ProfileImagePath}"
+									 : Url.Content("~/img/logo.jpg"))"
+								 alt="Current Photo" class="shadow mb-2" />
 						</div>
 
-						<!-- Chọn file + nút Upload nhỏ gọn -->
+						<!-- Chọn file + nút Upload  -->
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
-								<form>
 									<div style="width: 240px; margin-bottom:30px">
-										<div class="mb-2">
-											<label for="photo" class="form-label fw-bold">Upload new photo:</label>
-											<input type="file" class="form-control form-control-sm" id="photo" name="photo" />
-										</div>
-										<button type="submit" class="btn btn-primary w-100 btn-sm" 
-										style="padding-top: 3px; padding-bottom: 3px; font-size: 1rem;">
-											Upload
-										</button>
+				
+										<form asp-action="UploadPhoto" asp-controller="User" method="post" enctype="multipart/form-data">
+											<input type="file" class="form-control form-control-sm" name="photo" />
+											<button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Upload</button>
+										</form>
+
 
 									</div>
-								</form>
 							</div>
 						</div>
 
@@ -57,29 +56,29 @@
 					</div>
 				</div>
 
-				
+
 				<!-- Update Information -->
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
 					<div class="profile-card">
 						<div class="profile-info">
 							<h2> Update Details</h2>
 
-							<form>
+							<form asp-action="UpdateProfile" asp-controller="User" method="post" enctype="multipart/form-data">
 								<div class="form-group">
 									<label>Full Name</label>
-									<input class="form-control" value="Tran Viet Hai" />
+									<input asp-for="FullName" class="form-control" />
 								</div>
 								<div class="form-group">
 									<label>Gender</label>
-									<select class="form-select">
-										<option selected value="M">Male</option>
+									<select asp-for="Gender" class="form-select">
+										<option value="M">Male</option>
 										<option value="F">Female</option>
 										<option value="O">Other</option>
 									</select>
 								</div>
 								<div class="form-group">
 									<label>Phone</label>
-									<input class="form-control" value="0123456789" />
+									<input asp-for="PhoneNumber" class="form-control" />
 								</div>
 								<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
 							</form>
@@ -88,7 +87,7 @@
 				</div>
 
 
-				
+
 			</div>
 		</div>
 	</div>
