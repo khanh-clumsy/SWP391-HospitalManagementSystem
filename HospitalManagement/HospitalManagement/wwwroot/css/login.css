@@ -178,7 +178,7 @@ iframe {
   
   background-position: center;
   background-size: cover;
-  background-repeat: no-repeat;;
+  background-repeat: no-repeat;
 }
 
 
@@ -504,6 +504,20 @@ iframe {
     visibility: visible;
     opacity: 1;
   }
+}
+
+
+
+@keyframes fadeInDown {
+	from {
+		opacity: 0;
+		transform: translateX(-50%) translateY(-20px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateX(-50%) translateY(0);
+	}
 }
 
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Data;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,10 +12,23 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Auth/Login"; 
     options.AccessDeniedPath = "/Auth/AccessDenied"; 
 });
+builder.Services.AddDistributedMemoryCache(); // Bộ nhớ tạm cho session
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // thời gian sống của session
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+builder.Services.AddControllersWithViews().AddNewtonsoftJson();
+
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<HospitalManagementContext>();
+
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HospitalManagementContext>();
@@ -35,6 +49,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
     }
 }
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -45,6 +60,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseSession(); // Thêm middleware này trước UseEndpoints hoặc UseRouting
 
 app.UseRouting();
 
