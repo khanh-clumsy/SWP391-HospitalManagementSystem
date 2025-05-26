@@ -17,8 +17,9 @@ public partial class Account
 
     public string? Gender { get; set; }
 
-
     public bool IsActive { get; set; }
+
+    public int? ExternalId { get; set; }
 
     public string RoleName { get; set; } = null!;
 
@@ -29,10 +30,11 @@ public partial class Account
     public virtual ICollection<Patient> Patients { get; set; } = new List<Patient>();
     public string GetFullGender()
     {
-        if(this.Gender=="M")
+        if (this.Gender == "M")
         {
             return "Male";
-        } else if(this.Gender=="F")
+        }
+        else if (this.Gender == "F")
         {
             return "Female";
         }
