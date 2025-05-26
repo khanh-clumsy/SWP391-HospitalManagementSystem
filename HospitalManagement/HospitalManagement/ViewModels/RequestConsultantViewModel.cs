@@ -19,20 +19,24 @@ public class RequestConsultantViewModel
         Note = note ?? throw new ArgumentNullException(nameof(note));
     }
 
+    [Required(ErrorMessage = "Name is required")]
     public string Name { get; set; }
 
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Email format is invalid")]
     public string Email { get; set; }
 
+    [Required(ErrorMessage = "Phone number is required")]
     public string PhoneNumber { get; set; }
 
+    [Required(ErrorMessage = "Consultant Type is required")]
     public string ConsultantType { get; set; }
 
     public List<SelectListItem> ConsultantTypes { get; set; }
 
-
+    [Required(ErrorMessage = "Please select a service")]
     public int SelectedServiceId { get; set; }
 
-    //public string Service { get; set; }
     public string Note { get; set; }
 
 

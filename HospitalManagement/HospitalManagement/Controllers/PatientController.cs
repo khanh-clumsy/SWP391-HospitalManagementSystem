@@ -63,17 +63,12 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
-
-
         [HttpPost]
         public IActionResult RequestConsultant(RequestConsultantViewModel model)
         {
-
+            Console.WriteLine("HI");
             model.ConsultantTypes = GetConsultantTypeList();
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            
             var userJson = HttpContext.Session.GetString("UserSession");
             if (string.IsNullOrEmpty(userJson))
             {
@@ -96,6 +91,7 @@ namespace HospitalManagement.Controllers
                 Status = "Pending",
                 ServiceId = model.SelectedServiceId
             };
+            Console.WriteLine(consultant.ServiceId);
             _context.Consultants.Add(consultant);
             _context.SaveChanges();
             int affected = _context.SaveChanges();
