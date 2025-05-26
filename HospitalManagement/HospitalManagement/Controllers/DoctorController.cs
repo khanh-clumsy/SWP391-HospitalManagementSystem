@@ -1,5 +1,7 @@
 ﻿using HospitalManagement.Data;
+using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -61,5 +63,65 @@ namespace HospitalManagement.Controllers
 
             return RedirectToAction("AppointmentList");
         }
+
+        [HttpGet]
+        public IActionResult ConsultationList(string searchName, string statusFilter, string timeFilter, DateTime? dateFilter)
+        {
+            var statusOptions = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "All Status" },
+                new SelectListItem { Value = "Confirmed", Text = "Confirmed" },
+                new SelectListItem { Value = "Pending", Text = "Pending" },
+                new SelectListItem { Value = "Cancelled", Text = "Cancelled" }
+            };
+
+            ViewBag.StatusOptions = new SelectList(statusOptions, "Value", "Text", statusFilter);
+            var query = _context.Consultants
+            .Include(c => c.Patient).ThenInclude(p => p.Account)
+            .Include(c => c.Doctor).ThenInclude(d => d.Account)
+            .Include(c => c.Service)
+            .AsQueryable();
+
+            if (dateFilter.HasValue)
+            {
+                var dateOnlyFilter = DateOnly.FromDateTime(dateFilter.Value);
+
+                query = query.Where(c => c.RequestedDate.HasValue && c.RequestedDate.Value == dateOnlyFilter);
+            }
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                query = query.Where(c => c.Status == statusFilter);
+            }
+
+            var model = new ViewConsultationsViewModel
+            {
+                DateFilter = dateFilter,
+                StatusFilter = statusFilter,
+                Consultants = query.ToList()
+            };
+            return View(model);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatusConsultation(int consultantId, string newStatus)
+        {
+            var consultant = await _context.Consultants.FindAsync(consultantId);
+            if (consultant == null)
+            {
+                TempData["ErrorMessage"] = "Consultation not found.";
+                return RedirectToAction("ConsultationList");
+            }
+
+            consultant.Status = newStatus;
+            _context.Consultants.Update(consultant);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Update successfully!";
+            return RedirectToAction("ConsultationList");
+        }
+
     }
 }

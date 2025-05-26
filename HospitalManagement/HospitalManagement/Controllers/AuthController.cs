@@ -68,26 +68,13 @@ namespace HospitalManagement.Controllers
 
                 return View(LogInfo);
             }
-            var roleName = user.RoleName;  // Có thể là "Patient", "Doctor", "Admin", ...
-
-            // Tạo claims với role thực tế
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.FullName ?? ""),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, roleName)
-            };
-
-            // Tạo identity và principal
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-            // Đăng nhập
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
+            var userJson = JsonConvert.SerializeObject(user); // convert Account object to JSON string
+            HttpContext.Session.SetString("UserSession", userJson);
 
             // Đăng nhập thành công
             TempData["success"] = "Login successful!";
-            return RedirectToAction("Index", "Home");
+
+            return RedirectToAction("ViewDoctors", "Patient");
 
         }
 
@@ -181,21 +168,15 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.Remove("PendingRegister");
             HttpContext.Session.Remove("VerificationCode");
 
-            var claims = new List<Claim>
+            var accJson = JsonConvert.SerializeObject(account, new JsonSerializerSettings
             {
-                new Claim(ClaimTypes.Name, account.FullName ?? ""),
-                new Claim(ClaimTypes.Email, account.Email),
-                new Claim(ClaimTypes.Role, account.RoleName)
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
+            HttpContext.Session.SetString("UserSession", accJson);
 
 
             TempData["success"] = "Register successful!";
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("RequestConsultant", "Patient");
         }
         public async Task LoginGoogle()
         {

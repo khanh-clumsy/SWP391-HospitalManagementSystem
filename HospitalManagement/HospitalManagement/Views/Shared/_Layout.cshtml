@@ -135,6 +135,7 @@
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 								<a class="dropdown-item" asp-controller="User" asp-action="ViewProfile">View Profile</a>
 								<a class="dropdown-item" asp-controller="Patient" asp-action="ViewConsultations">View Consultations</a>
+								<a class="dropdown-item" asp-controller="Patient" asp-action="RequestConsultant">Request A Consultations</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="ChangePassword">Change Password</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
@@ -142,7 +143,7 @@
 						</div>
 					}
 				</div>
-				<a href="" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+				<a asp-action="BookingAppointment" asp-controller="Patient" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
 			</div>
 		</nav>
 		<!-- Navbar End -->
