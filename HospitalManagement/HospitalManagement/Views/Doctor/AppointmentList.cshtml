@@ -1,9 +1,10 @@
 ﻿@{
-    var startTime = new TimeSpan(7, 0, 0); // 7:00 AM
-    var endTime = new TimeSpan(17, 0, 0);  // 5:00 PM
-    var slotDuration = new TimeSpan(0, 30, 0); // 30 phút
+    var startTime = new TimeSpan(7, 0, 0); 
+    var endTime = new TimeSpan(17, 0, 0);  
+    var slotDuration = new TimeSpan(1, 0, 0); 
 }
-@model List<Appointment>
+@model List<Appointment>  
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,9 +64,9 @@
 
                 <select name="statusFilter" class="form-select" style="width: 150px;">
                     <option value="">All Status</option>
-                    <option value="Confirmed">Confirmed</option>
+                    <option value="Confirmed">Accepted</option>
                     <option value="Pending">Pending</option>
-                    <option value="Cancelled">Cancelled</option>
+                    <option value="Cancelled">Rejected</option>
                 </select>
 
                 <button type="submit" class="btn btn-primary">Filter</button>
@@ -96,7 +97,7 @@
                                     <td>@item.Patient.Account.Email</td>
                                     <td>@item.Patient.Account.PhoneNumber</td>
                                     <td>@item.SlotId</td>
-                                    <td>@item.StartTime</td>
+                                    <td>@item.Slot.StartTime.ToString("hh\\:mm")</td>
                                     <td>
                                     @if (item.Status == "Pending")
                                     {
