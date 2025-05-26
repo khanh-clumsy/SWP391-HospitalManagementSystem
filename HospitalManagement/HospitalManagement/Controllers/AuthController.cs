@@ -59,7 +59,7 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.SetString("UserSession", userJson);
 
             // Đăng nhập thành công
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("RequestConsultant", "Patient");
         }
 
         [HttpPost]
