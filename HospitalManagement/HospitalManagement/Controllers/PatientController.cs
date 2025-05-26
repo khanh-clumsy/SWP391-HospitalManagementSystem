@@ -27,15 +27,6 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
-        private List<SelectListItem> GetConsultantTypeList()
-        {
-            return new List<SelectListItem>
-    {
-        new SelectListItem { Value = "doctor", Text = "Doctor" },
-        new SelectListItem { Value = "department_head", Text = "Department Head" }
-    };
-        }
-
         [HttpGet]
         public IActionResult RequestConsultant()
         {
@@ -54,7 +45,6 @@ namespace HospitalManagement.Controllers
 
             var model = new RequestConsultantViewModel
             {
-                ConsultantTypes = GetConsultantTypeList(),
                 Name = user.FullName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber
@@ -66,9 +56,10 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public IActionResult RequestConsultant(RequestConsultantViewModel model)
         {
-            Console.WriteLine("HI");
-            model.ConsultantTypes = GetConsultantTypeList();
-            
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
             var userJson = HttpContext.Session.GetString("UserSession");
             if (string.IsNullOrEmpty(userJson))
             {
@@ -86,12 +77,12 @@ namespace HospitalManagement.Controllers
             var consultant = new Consultant
             {
                 PatientId = patient.PatientId,
+                RequestedPersonType = model.ConsultantType,
                 Description = model.Note,
                 RequestedDate = DateOnly.FromDateTime(DateTime.Now),
                 Status = "Pending",
                 ServiceId = model.SelectedServiceId
             };
-            Console.WriteLine(consultant.ServiceId);
             _context.Consultants.Add(consultant);
             _context.SaveChanges();
             int affected = _context.SaveChanges();

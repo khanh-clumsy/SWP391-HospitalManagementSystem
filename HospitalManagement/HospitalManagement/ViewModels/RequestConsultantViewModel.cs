@@ -8,15 +8,14 @@ public class RequestConsultantViewModel
     {
     }
 
-    public RequestConsultantViewModel(string name, string email, string phoneNumber, string consultantType, List<SelectListItem> consultantTypes, int selectedServiceId, string note)
+    public RequestConsultantViewModel(string name, string email, string phoneNumber, string consultantType, int selectedServiceId, string note)
     {
-        Name = name ?? throw new ArgumentNullException(nameof(name));
-        Email = email ?? throw new ArgumentNullException(nameof(email));
-        PhoneNumber = phoneNumber ?? throw new ArgumentNullException(nameof(phoneNumber));
-        ConsultantType = consultantType ?? throw new ArgumentNullException(nameof(consultantType));
-        ConsultantTypes = consultantTypes ?? throw new ArgumentNullException(nameof(consultantTypes));
+        Name = name;
+        Email = email;
+        PhoneNumber = phoneNumber;
+        ConsultantType = consultantType;
         SelectedServiceId = selectedServiceId;
-        Note = note ?? throw new ArgumentNullException(nameof(note));
+        Note = note;
     }
 
     [Required(ErrorMessage = "Name is required")]
@@ -31,8 +30,6 @@ public class RequestConsultantViewModel
 
     [Required(ErrorMessage = "Consultant Type is required")]
     public string ConsultantType { get; set; }
-
-    public List<SelectListItem> ConsultantTypes { get; set; }
 
     [Required(ErrorMessage = "Please select a service")]
     public int SelectedServiceId { get; set; }

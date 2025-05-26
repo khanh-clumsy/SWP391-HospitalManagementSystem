@@ -108,11 +108,23 @@
 									}
 								</div>
 
-								<!-- Consultant Selection field - Full width -->
+								<!-- Radio buttons for Basic/Advance -->
 								<div class="col-12">
-									<select asp-for="ConsultantType" class="form-select" asp-items="Model.ConsultantTypes" style="height: 55px;">
-										<option value="">Choose Consultant</option>
-									</select>
+									<div class="d-flex align-items-center justify-content-between" style="height: 55px; border: 2px solid #ddd; border-radius: 4px; padding: 0 15px;">
+										<label class="form-label mb-0 me-4" style="font-weight: 500;">Choose consultant:</label>
+
+										<div class="d-flex align-items-center gap-4">
+											<div class="form-check mb-0">
+												<input class="form-check-input" type="radio" asp-for="ConsultantType" value="doctor" id="doctor" checked />
+												<label class="form-check-label" for="doctor">Doctor</label>
+											</div>
+											<div class="form-check mb-0">
+												<input class="form-check-input" type="radio" asp-for="ConsultantType" value="department_head" id="department_head" />
+												<label class="form-check-label" for="department_head">Department Head</label>
+											</div>
+											<span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+										</div>
+									</div>
 								</div>
 
 
@@ -130,7 +142,7 @@
 												<input class="form-check-input" type="radio" asp-for="SelectedServiceId" value="2" id="advanced" />
 												<label class="form-check-label" for="advanced">Advanced Consultation</label>
 											</div>
-
+											<span asp-validation-for="SelectedServiceId" class="text-danger"></span>
 										</div>
 									</div>
 								</div>
