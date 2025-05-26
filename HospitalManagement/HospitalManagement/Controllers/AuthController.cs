@@ -68,13 +68,26 @@ namespace HospitalManagement.Controllers
 
                 return View(LogInfo);
             }
-            var userJson = JsonConvert.SerializeObject(user); // convert Account object to JSON string
-            HttpContext.Session.SetString("UserSession", userJson);
+            var roleName = user.RoleName;  // Có thể là "Patient", "Doctor", "Admin", ...
+
+            // Tạo claims với role thực tế
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.FullName ?? ""),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, roleName)
+            };
+
+            // Tạo identity và principal
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            // Đăng nhập
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
 
             // Đăng nhập thành công
             TempData["success"] = "Login successful!";
-
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
 
         }
 
@@ -156,6 +169,7 @@ namespace HospitalManagement.Controllers
             };
             _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
+
             var patient = new Patient
             {
                 AccountId = account.AccountId
@@ -167,11 +181,21 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.Remove("PendingRegister");
             HttpContext.Session.Remove("VerificationCode");
 
-            var accJson = JsonConvert.SerializeObject(account);
-            HttpContext.Session.SetString("UserSession", accJson);
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, account.FullName ?? ""),
+                new Claim(ClaimTypes.Email, account.Email),
+                new Claim(ClaimTypes.Role, account.RoleName)
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
+
 
             TempData["success"] = "Register successful!";
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
         public async Task LoginGoogle()
         {
@@ -201,7 +225,13 @@ namespace HospitalManagement.Controllers
 
             _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
+            var patient = new Patient
+            {
+                AccountId = account.AccountId
+            };
 
+            _context.Patients.Add(patient);
+            await _context.SaveChangesAsync();
             return true;
         }
         public async Task<IActionResult> GoogleResponse()
@@ -249,7 +279,10 @@ namespace HospitalManagement.Controllers
 
             }
             // Lưu session sau khi đăng nhập
-            var userJson = JsonConvert.SerializeObject(user);
+            var userJson = JsonConvert.SerializeObject(user, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
             HttpContext.Session.SetString("UserSession", userJson);
 
             TempData["success"] = "Login successful!";
@@ -281,8 +314,8 @@ namespace HospitalManagement.Controllers
             var resetLink = Url.Action("ResetPassword", "Auth", new { token = token }, Request.Scheme);
             string subject = "Đặt lại mật khẩu";
             string body = $"<p>Nhấn vào liên kết để đặt lại mật khẩu:</p><a href='{resetLink}'>{resetLink}</a>";
-            await _emailService.SendEmailAsync(email, subject, body);
 
+            Console.WriteLine(await _emailService.SendEmailAsync(email, subject, body));
             TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
             return RedirectToAction("Login");
         }
@@ -309,12 +342,12 @@ namespace HospitalManagement.Controllers
             var reset = await _context.PasswordResets.FirstOrDefaultAsync(x => x.Token == token && x.ExpireAt > DateTime.Now);
             if (reset == null)
             {
-                TempData["error"] = "Token is invalid or expired."+token+" "+DateTime.Now;
-             
+                TempData["error"] = "Token is invalid or expired." + token + " " + DateTime.Now;
+
                 return RedirectToAction("ForgotPassword");
             }
 
-            if(model.NewPassword == null || model.NewPassword != model.ConfirmPassword)
+            if (model.NewPassword == null || model.NewPassword != model.ConfirmPassword)
             {
                 TempData["error"] = "Two password is not match";
 
