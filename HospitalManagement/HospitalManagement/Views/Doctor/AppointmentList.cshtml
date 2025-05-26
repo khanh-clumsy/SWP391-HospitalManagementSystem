@@ -82,6 +82,7 @@
                             <th>Email</th>
                             <th>Phone Number</th>
                             <th>Description</th>
+                            <th>day</th>
                             <th>Slot</th>
                             <th>Action</th>
                         </tr>
@@ -96,7 +97,8 @@
                                     <td>@item.Patient.Account.FullName</td>
                                     <td>@item.Patient.Account.Email</td>
                                     <td>@item.Patient.Account.PhoneNumber</td>
-                                    <td>@item.SlotId</td>
+                                    <td>@item.Note</td>
+                                    <td>@item.Date</td>
                                     <td>@item.Slot.StartTime.ToString("hh\\:mm")</td>
                                     <td>
                                     @if (item.Status == "Pending")

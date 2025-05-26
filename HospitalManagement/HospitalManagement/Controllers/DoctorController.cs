@@ -25,7 +25,7 @@ namespace HospitalManagement.Controllers
         {
             var query = _context.Appointments
                 .Include(a => a.Patient)
-                    .ThenInclude(p => p.Account)
+                .ThenInclude(p => p.Account)
                .Include(a => a.Slot)
                 .AsQueryable();
 

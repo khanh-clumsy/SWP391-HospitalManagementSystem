@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace HospitalManagement.Controllers
 {
@@ -28,81 +29,36 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
-        [HttpGet]
-        public async Task<IActionResult> BookingAppoinment()
+        public IActionResult ViewBookingAppointment(string searchName, string timeFilter, DateTime? dateFilter, string statusFilter)
         {
-            var userJson = HttpContext.Session.GetString("UserSession");
+            var appointments = _context.Appointments
+            .Include(a => a.Patient).ThenInclude(p => p.Account)
+            .Include(a => a.Slot)
+            .AsQueryable();
 
-            //if (string.IsNullOrEmpty(userJson))
-            //{
-            //    return RedirectToAction("Login", "Auth");
-            //}
+            // Lọc theo thời gian slot
 
-             var user = JsonConvert.DeserializeObject<Account>(userJson);
-            //if (user == null)
-            //{
-            //    return RedirectToAction("Login", "Auth");
-            //}
-            var doctors = await _context.Doctors
-            .Include(d => d.Account)
-             
-            .Select(d => new
+            if (!string.IsNullOrEmpty(timeFilter) && TimeOnly.TryParse(timeFilter, out var parsedTime))
             {
-                Id = d.DoctorId,
-                Name = d.Account.FullName
-            })
-            .ToListAsync();
+                appointments = appointments.Where(a => a.Slot.StartTime == parsedTime);
+            }
 
-            // Tạo SelectList cho dropdown
-            ViewBag.DoctorList = new SelectList(doctors, "Id", "Name");
-            var model = new BookingApointment
+            // Lọc theo ngày
+            if (dateFilter.HasValue)
             {
-                Name = user.FullName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber
-            };
+                var filterDate = DateOnly.FromDateTime(dateFilter.Value);
+                appointments = appointments.Where(a => a.Date == filterDate);
+            }
 
-            return View(model);
+            // Lọc theo trạng thái
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                appointments = appointments.Where(a => a.Status == statusFilter);
+            }
+
+            return View(appointments.ToList());
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult BookingAppointment(BookingApointment model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-            var userJson = HttpContext.Session.GetString("UserSession");
-            if (string.IsNullOrEmpty(userJson))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var user = JsonConvert.DeserializeObject<Account>(userJson);
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var patient = _context.Patients.FirstOrDefault(p => p.AccountId == user.AccountId);
-
-            var appointment = new Appointment
-            {
-                PatientId = patient.PatientId,
-               
-               
-                Status = "Pending",
-                ServiceId = model.SelectedServiceId
-            };
-
-            _context.Appointments.Add(appointment);
-            _context.SaveChanges();
-
-            return RedirectToAction("BookingSuccess");
-        }
-
-
 
     }
 }
+
