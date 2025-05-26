@@ -140,27 +140,69 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
-        [HttpPost]
-        public IActionResult ViewConsultations(ViewConsultationsViewModel model)
-        {
-            return View();
-        }
-
-        [Route("Patient/ViewConsultations/Edit/{consultantId}")]
+        [Route("Patient/EditConsultant/{consultantId}")]
         [HttpGet]
-        public IActionResult EditConsultant(int consultconsultantIdationId)
+        public IActionResult EditConsultant(int consultantId)
         {
-            return View();
+            var consultant = _context.Consultants
+            .Include(c => c.Patient)
+            .ThenInclude(p => p.Account)
+            .Include(c => c.Service)
+            .Include(c => c.Doctor)
+            .ThenInclude(d => d.Account)
+            .FirstOrDefault(c => c.ConsultantId == consultantId);
 
+            if (consultant == null)
+            {
+                TempData["ErrorMessage"] = "Err";
+                return View("ViewConsultations");
+            }
+            var model = new EditConsultantViewModel
+            {
+                ConsultantID = consultantId,
+                Name = consultant.Patient?.Account?.FullName,
+                Email = consultant.Patient?.Account?.Email,
+                PhoneNumber = consultant.Patient?.Account?.PhoneNumber,
+                RequestedDate = consultant.RequestedDate,
+                Consultants = consultant.RequestedPersonType,
+                ServiceID = consultant.Service.ServiceId,
+                Description = consultant.Description,
+            };
+            return View(model);
         }
 
-        [Route("Patient/ViewConsultations/Edit/{id}")]
+        [Route("Patient/EditConsultant/{consultantId}")]
         [HttpPost]
-        public IActionResult EditConsultant(int consultantId, Consultant model)
+        public IActionResult EditConsultant(int consultantId, EditConsultantViewModel model)
         {
-            return View();
 
+            if (consultantId != model.ConsultantID)
+            {
+                return BadRequest(); 
+            }
+
+            var consultant = _context.Consultants
+                .FirstOrDefault(c => c.ConsultantId == consultantId);
+
+            if (consultant == null)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            consultant.RequestedPersonType = model.Consultants;  
+            consultant.ServiceId = (int)model.ServiceID;                
+            consultant.Description = model.Description;
+
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = $"Update successfully with ID = {consultantId}";
+            return RedirectToAction("ViewConsultations");
         }
+
 
 
         [HttpPost]

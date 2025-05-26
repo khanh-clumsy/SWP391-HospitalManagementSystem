@@ -51,28 +51,28 @@
 			<form method="get" asp-action="ViewConsultations" class="d-flex flex-wrap gap-3 align-items-center mb-4">
 
 				<input type="date" name="DateFilter" class="form-control" style="width: 180px;" value="@(Model.DateFilter?.ToString("yyyy-MM-dd") ?? "")" />
-				
+
 				<select asp-for="StatusFilter" asp-items="ViewBag.StatusOptions" class="form-select" style="width: 150px;">
 				</select>
 
 				<button type="submit" class="btn btn-primary">Filter</button>
 			</form>
 
-					@if (TempData["SuccessMessage"] != null)
-					{
-			<div class="alert alert-success alert-dismissible fade show" role="alert">
-						@TempData["SuccessMessage"]
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-			</div>
-					}
+			@if (TempData["SuccessMessage"] != null)
+			{
+				<div class="alert alert-success alert-dismissible fade show" role="alert">
+					@TempData["SuccessMessage"]
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+			}
 
-					@if (TempData["ErrorMessage"] != null)
-					{
-			<div class="alert alert-danger alert-dismissible fade show" role="alert">
-						@TempData["ErrorMessage"]
-				<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-			</div>
-					}
+			@if (TempData["ErrorMessage"] != null)
+			{
+				<div class="alert alert-danger alert-dismissible fade show" role="alert">
+					@TempData["ErrorMessage"]
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+			}
 
 			<!-- Consultations Table -->
 			<div class="table-responsive">
@@ -93,52 +93,52 @@
 						</tr>
 					</thead>
 					<tbody>
-					@if (Model != null && Model.Consultants != null)
-					{
-					foreach (var item in Model.Consultants)
-					{
-						<tr>
-							<td>@item.ConsultantId</td>
-							<td>@item.Patient?.Account?.FullName</td>
-							<td>@item.Patient?.Account?.Email</td>
-							<td>@item.Patient?.Account?.PhoneNumber</td>
-							<td>
-							@(item.RequestedPersonType == "doctor" ? "Doctor" :
-							item.RequestedPersonType == "department_head" ? "Department Head" :
-							item.RequestedPersonType)
-							</td>
-							<td>@item.Service?.ServiceType</td>
-							<td>@item.RequestedDate</td>
-							<td>@item.Description</td>
-							<td>@item.Doctor?.Account?.FullName</td>
-							<td>@item.Status</td>
-							<td>
-							@if (item.Status == "Pending")
+						@if (Model != null && Model.Consultants != null)
+						{
+							foreach (var item in Model.Consultants)
 							{
-								<div style="display: inline-flex; gap: 5px;">
-									<a asp-controller="Patient" asp-action="EditConsultant" asp-route-id="@item.ConsultantId" class="btn btn-sm btn-success" style="margin-right:5px;">
-										Edit
-									</a>
-									<form method="post" asp-action="DeleteConsultant" asp-controller="Patient" onsubmit="return confirm('Are you sure to delete this consultant?');" style="display:inline-block;">
-										<input type="hidden" name="consultantId" value="@item.ConsultantId" />
-										<button type="submit" class="btn btn-sm btn-danger">Delete</button>
-									</form>
-								</div>
+								<tr>
+									<td>@item.ConsultantId</td>
+									<td>@item.Patient?.Account?.FullName</td>
+									<td>@item.Patient?.Account?.Email</td>
+									<td>@item.Patient?.Account?.PhoneNumber</td>
+									<td>
+										@(item.RequestedPersonType == "doctor" ? "Doctor" :
+																	item.RequestedPersonType == "department_head" ? "Department Head" :
+																	item.RequestedPersonType)
+									</td>
+									<td>@item.Service?.ServiceType</td>
+									<td>@item.RequestedDate</td>
+									<td>@item.Description</td>
+									<td>@item.Doctor?.Account?.FullName</td>
+									<td>@item.Status</td>
+									<td>
+										@if (item.Status == "Pending")
+										{
+											<div style="display: inline-flex; gap: 5px;">
+												<a asp-controller="Patient" asp-action="EditConsultant" asp-route-id="@item.ConsultantId" class="btn btn-sm btn-success" style="margin-right:5px;">
+													Edit
+												</a>
+												<form method="post" asp-action="DeleteConsultant" asp-controller="Patient" onsubmit="return confirm('Are you sure to delete this consultant?');" style="display:inline-block;">
+													<input type="hidden" name="consultantId" value="@item.ConsultantId" />
+													<button type="submit" class="btn btn-sm btn-danger">Delete</button>
+												</form>
+											</div>
+										}
+										else
+										{
+											<span class="badge bg-secondary">@item.Status</span>
+										}
+									</td>
+								</tr>
 							}
-							else
-							{
-								<span class="badge bg-secondary">@item.Status</span>
-							}
-							</td>
-						</tr>
-					}
-					}
-					else
-					{
-						<tr>
-							<td colspan="10">No consultations found.</td>
-						</tr>
-					}
+						}
+						else
+						{
+							<tr>
+								<td colspan="10">No consultations found.</td>
+							</tr>
+						}
 					</tbody>
 
 				</table>
