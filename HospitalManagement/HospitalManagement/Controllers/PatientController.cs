@@ -2,10 +2,6 @@
 using HospitalManagement.Models;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 
 namespace HospitalManagement.Controllers
 {
@@ -94,12 +90,78 @@ namespace HospitalManagement.Controllers
 
         public IActionResult Appointment()
 
+        [HttpGet]
+        public async Task<IActionResult> BookingAppoinment()
         {
-            return View();
+            var userJson = HttpContext.Session.GetString("UserSession");
+
+            //if (string.IsNullOrEmpty(userJson))
+            //{
+            //    return RedirectToAction("Login", "Auth");
+            //}
+
+             var user = JsonConvert.DeserializeObject<Account>(userJson);
+            //if (user == null)
+            //{
+            //    return RedirectToAction("Login", "Auth");
+            //}
+            var doctors = await _context.Doctors
+            .Include(d => d.Account)
+             
+            .Select(d => new
+            {
+                Id = d.DoctorId,
+                Name = d.Account.FullName
+            })
+            .ToListAsync();
+
+            // Tạo SelectList cho dropdown
+            ViewBag.DoctorList = new SelectList(doctors, "Id", "Name");
+            var model = new BookingApointment
+            {
+                Name = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return View(model);
         }
-        public IActionResult AppointmentList()
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult BookingAppointment(BookingApointment model)
         {
-            return View();
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var userJson = HttpContext.Session.GetString("UserSession");
+            if (string.IsNullOrEmpty(userJson))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var user = JsonConvert.DeserializeObject<Account>(userJson);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var patient = _context.Patients.FirstOrDefault(p => p.AccountId == user.AccountId);
+
+            var appointment = new Appointment
+            {
+                PatientId = patient.PatientId,
+               
+               
+                Status = "Pending",
+                ServiceId = model.SelectedServiceId
+            };
+
+            _context.Appointments.Add(appointment);
+            _context.SaveChanges();
+
+            return RedirectToAction("BookingSuccess");
         }
         [HttpGet]
         public IActionResult ViewConsultations(DateTime? dateFilter, string statusFilter)

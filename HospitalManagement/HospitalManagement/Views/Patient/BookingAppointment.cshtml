@@ -1,6 +1,8 @@
 @{
     var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+    var isReadonly = !string.IsNullOrEmpty(Model.Name);
 }
+@model HospitalManagement.ViewModels.BookingApointment
 <!DOCTYPE html>
 
 <html lang="en">
@@ -78,52 +80,77 @@
                         </div>
                     </div>
                 </div>
+                <div class="bg-light rounded h-100 d-flex align-items-center p-5">
+                    <form asp-action="Book" asp-controller="Appointment" method="post">
+                        <div class="col-12">
+                            @if (isReadonly)
+                            {
+                                <input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" readonly="readonly" />
+                            }
+                            else
+                            {
+                                <input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" />
+                            }
+                        </div>
 
-                <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
-                    <div class="bg-light rounded h-100 d-flex align-items-center p-5">
-                        <form>
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <input type="text" class="form-control border-0" placeholder="Name" style="height: 55px;">
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <input type="email" class="form-control border-0" placeholder="Email" style="height: 55px;">
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <input type="text" class="form-control border-0" placeholder="Phone Number" style="height: 55px;">
-                                </div>
-                                <div class="col-12">
-                                    <input type="date" id="appointmentDate" class="form-control border-0" style="height: 55px;" required />
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <select class="form-select border-0" style="height: 55px;">
-                                        <option selected>Choose Doctor</option>
-                                        <option value="1">Doctor 1</option>
-                                        <option value="2">Doctor 2</option>
-                                    </select>
-                                </div>
-                                <div class="col-12 col-sm-6">
-                                    <select class="form-select border-0" style="height: 55px;">
-                                        <option selected>Choose Slot</option>
-                                    </select>
-                                </div>
-                                <div class="col-12">
-                                    <select class="form-select" id="serviceType" name="serviceType" style="height: 55px;">
-                                        <option value="servicetype" selected>Service type</option>
-                                        <option value="common">Common</option>
-                                        <option value="advanced">Advanced</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <textarea class="form-control" rows="3" placeholder="Describe your problem"></textarea>
-                                </div>
+                        <div class="col-12 col-sm-6">
+                            @if (isReadonly)
+                            {
+                                <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" readonly="readonly" />
+                            }
+                            else
+                            {
+                                <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" />
+                            }
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            @if (isReadonly)
+                            {
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" readonly="readonly" />
+                            }
+                            else
+                            {
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" />
+                            }
+                        </div>
 
-                                <div class="col-12">
-                                    <button class="btn btn-primary w-100 py-3" type="submit">Book Appointment</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                        <div class="col-12">
+                            <input asp-for="AppointmentDate" type="date" class="form-control border-0" style="height: 55px;" required min="@minDate" />
+                            <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <select asp-for="SelectedDoctorId" asp-items="ViewBag.DoctorList" class="form-select border-0" style="height: 55px;">
+                                <option value="">Choose Doctor</option>
+                            </select>
+                              
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <select asp-for="SelectedServiceId" class="form-select border-0" style="height: 55px;" asp-items="ViewBag.ServiceList">
+                                <option value="">Choose Service</option>
+                            </select>
+                            <span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 col-sm-6">
+                            <select asp-for="TimeSlot" class="form-select border-0" style="height: 55px;" required>
+                                <option value="">Choose Slot</option>
+                              
+                            </select>
+                            <span asp-validation-for="TimeSlot" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <textarea asp-for="Note" class="form-control" rows="3" placeholder="Describe your problem"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <button class="btn btn-primary w-100 py-3" type="submit">Book Appointment</button>
+                        </div>
+                    </form>
+                </div>
+
                 </div>
 
             </div>
