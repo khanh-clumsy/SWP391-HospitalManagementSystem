@@ -84,6 +84,7 @@ namespace HospitalManagement.Controllers
                 Status = "Pending",
                 ServiceId = model.SelectedServiceId
             };
+
             _context.Consultants.Add(consultant);
             _context.SaveChanges();
             TempData["SuccessMessage"] = $"Request successfully with Consultant ID = {consultant.ConsultantId}!";
