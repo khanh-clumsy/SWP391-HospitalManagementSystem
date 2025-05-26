@@ -1,5 +1,6 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -73,7 +74,7 @@ namespace HospitalManagement.Controllers
             }
 
             var patient = _context.Patients.FirstOrDefault(p => p.AccountId == user.AccountId);
-            Console.WriteLine(patient.PatientId);
+
             var consultant = new Consultant
             {
                 PatientId = patient.PatientId,
@@ -85,10 +86,9 @@ namespace HospitalManagement.Controllers
             };
             _context.Consultants.Add(consultant);
             _context.SaveChanges();
+            TempData["SuccessMessage"] = $"Request successfully with Consultant ID = {consultant.ConsultantId}!";
             int affected = _context.SaveChanges();
-            Console.WriteLine($"Rows affected: {affected}");
-            TempData["SuccessMessage"] = "Request sent successfully!";
-            return RedirectToAction("ViewDoctors");
+            return RedirectToAction("ViewConsultations");
         }
 
         public IActionResult Appointment()
@@ -100,6 +100,93 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
+        [HttpGet]
+        public IActionResult ViewConsultations(DateTime? dateFilter, string statusFilter)
+        {
+            var statusOptions = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "All Status" },
+                new SelectListItem { Value = "Confirmed", Text = "Confirmed" },
+                new SelectListItem { Value = "Pending", Text = "Pending" },
+                new SelectListItem { Value = "Cancelled", Text = "Cancelled" }
+            };
+
+            ViewBag.StatusOptions = new SelectList(statusOptions, "Value", "Text", statusFilter);
+            var query = _context.Consultants
+            .Include(c => c.Patient).ThenInclude(p => p.Account)
+            .Include(c => c.Doctor).ThenInclude(d => d.Account)
+            .Include(c => c.Service)
+            .AsQueryable();
+
+            if (dateFilter.HasValue)
+            {
+                var dateOnlyFilter = DateOnly.FromDateTime(dateFilter.Value);
+
+                query = query.Where(c => c.RequestedDate.HasValue && c.RequestedDate.Value == dateOnlyFilter);
+            }
+
+            if (!string.IsNullOrEmpty(statusFilter))
+            {
+                query = query.Where(c => c.Status == statusFilter);
+            }
+
+            var model = new ViewConsultationsViewModel
+            {
+                DateFilter = dateFilter,
+                StatusFilter = statusFilter,
+                Consultants = query.ToList()
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult ViewConsultations(ViewConsultationsViewModel model)
+        {
+            return View();
+        }
+
+        [Route("Patient/ViewConsultations/Edit/{consultantId}")]
+        [HttpGet]
+        public IActionResult EditConsultant(int consultconsultantIdationId)
+        {
+            return View();
+
+        }
+
+        [Route("Patient/ViewConsultations/Edit/{id}")]
+        [HttpPost]
+        public IActionResult EditConsultant(int consultantId, Consultant model)
+        {
+            return View();
+
+        }
+
+
+        [HttpPost]
+        public IActionResult DeleteConsultant(int consultantId)
+        {
+            var consultant = _context.Consultants.Find(consultantId);
+            if (consultant == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                _context.Consultants.Remove(consultant);
+                _context.SaveChanges();
+                TempData["SuccessMessage"] = $"Consultant deleted with ID = {consultantId} successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error deleting consultant: " + ex.Message;
+            }
+
+            return RedirectToAction("ViewConsultations");
+        }
+
+
     }
 
 }
