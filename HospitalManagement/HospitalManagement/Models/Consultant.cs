@@ -9,7 +9,7 @@ public partial class Consultant
 
     public int PatientId { get; set; }
 
-    public int DoctorId { get; set; }
+    public int? DoctorId { get; set; }
 
     public int ServiceId { get; set; }
 
@@ -27,7 +27,7 @@ public partial class Consultant
 
     public int? TransactionCode { get; set; }
 
-    public virtual Doctor Doctor { get; set; } = null!;
+    public virtual Doctor? Doctor { get; set; } = null!;
 
     public virtual Patient Patient { get; set; } = null!;
 

@@ -90,10 +90,15 @@ namespace HospitalManagement.Controllers
 
             _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
+            
+            var patient = new Patient
+            {
+                AccountId = account.AccountId
+            };
 
+            _context.Patients.Add(patient);
+            _context.SaveChanges(); // Tạo patient
             return RedirectToAction("Login");
         }
-
-
     }
 }

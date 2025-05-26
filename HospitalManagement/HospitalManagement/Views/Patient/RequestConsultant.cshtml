@@ -95,7 +95,7 @@
 									}
 									else
 									{
-										<input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" />
+										<input asp-for="Email" class="form-control" placeholder="Your Name" style="height: 55px;" />
 									}
 								</div>
 								<div class="col-12 col-sm-6">
@@ -111,10 +111,8 @@
 
 								<!-- Consultant Selection field - Full width -->
 								<div class="col-12">
-									<select asp-for="ConsultantType" class="form-select" style="height: 55px;">
-										<option value="" disabled selected>Choose Consultant</option>
-										<option value="doctor">Doctor</option>
-										<option value="department_head">Department Head</option>
+									<select asp-for="ConsultantType" class="form-select" asp-items="Model.ConsultantTypes" style="height: 55px;">
+										<option value="">Choose Consultant</option>
 									</select>
 								</div>
 
@@ -126,17 +124,14 @@
 
 										<div class="d-flex align-items-center gap-4">
 											<div class="form-check mb-0">
-												<input asp-for="Service" class="form-check-input" type="radio" name="serviceLevel" id="common" value="common" checked>
-												<label class="form-check-label" for="common">
-													Common
-												</label>
+												<input class="form-check-input" type="radio" asp-for="SelectedServiceId" value="1" id="common" checked />
+												<label class="form-check-label" for="common">Common Consultation</label>
 											</div>
 											<div class="form-check mb-0">
-												<input asp-for="Service" class="form-check-input" type="radio" name="serviceLevel" id="advance" value="advance">
-												<label class="form-check-label" for="advance">
-													Advanced
-												</label>
+												<input class="form-check-input" type="radio" asp-for="SelectedServiceId" value="2" id="advanced" />
+												<label class="form-check-label" for="advanced">Advanced Consultation</label>
 											</div>
+
 										</div>
 									</div>
 								</div>
@@ -148,7 +143,7 @@
 
 								<!-- Submit button -->
 								<div class="col-12">
-									<button class="btn btn-primary w-100 py-3" type="submit">Book Appointment</button>
+									<button class="btn btn-primary w-100 py-3" type="submit">Request Consultant</button>
 								</div>
 							</div>
 						</form>
