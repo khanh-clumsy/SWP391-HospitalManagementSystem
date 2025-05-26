@@ -74,7 +74,7 @@ namespace HospitalManagement.Controllers
             // Đăng nhập thành công
             TempData["success"] = "Login successful!";
 
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -164,7 +164,7 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.SetString("UserSession", accJson);
 
             TempData["success"] = "Register successful!";
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
         public async Task LoginGoogle()
         {
@@ -245,7 +245,7 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.SetString("UserSession", userJson);
 
             TempData["success"] = "Login successful!";
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -329,7 +329,7 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.SetString("UserSession", userJson);
 
             TempData["success"] = "Đổi mật khẩu thành công.";
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
 
 

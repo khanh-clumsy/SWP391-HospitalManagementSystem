@@ -22,6 +22,7 @@ namespace HospitalManagement.Controllers
          */
         public async Task<IActionResult> ViewDoctors(int? page, string? name, string? department, int? exp, bool? isHead, string? sort)
         {
+
             int pageSize = 8;
             int pageNumber = page ?? 1;
 
