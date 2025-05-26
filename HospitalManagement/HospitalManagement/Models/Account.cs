@@ -17,9 +17,8 @@ public partial class Account
 
     public string? Gender { get; set; }
 
-    public bool IsActive { get; set; }
 
-    public int? ExternalId { get; set; }
+    public bool IsActive { get; set; }
 
     public string RoleName { get; set; } = null!;
 
