@@ -49,7 +49,7 @@
 	</div>
 	<!-- Page Header End -->
 	<form method="post" asp-action="EditConsultant" asp-controller="Patient" class="mx-auto mt-5" style="max-width: 480px;">
-		<input type="hidden" asp-for="ConsultantId" />
+		<input type="hidden" asp-for="ConsultantID" />
 
 		<div class="mb-3">
 			<label asp-for="Name" class="form-label fw-bold">Name:</label>
@@ -75,8 +75,8 @@
 		</div>
 
 		<div class="mb-3">
-			<label asp-for="Service" class="form-label fw-bold">Service:</label>
-			<select asp-for="Service" class="form-select">
+			<label asp-for="ServiceID" class="form-label fw-bold">Service:</label>
+			<select asp-for="ServiceID" class="form-select">
 				<option value="1">Common Consultation</option>
 				<option value="2">Advanced Consultation</option>
 			</select>
