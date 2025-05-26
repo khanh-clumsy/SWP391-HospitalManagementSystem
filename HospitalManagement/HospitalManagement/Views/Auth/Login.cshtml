@@ -1,4 +1,4 @@
-﻿@model HospitalManagement.Models.Login
+﻿@model HospitalManagement.ViewModels.Login
 @{
 	Layout = null;
 }
@@ -40,23 +40,20 @@
 		<div class="container-login100" style="background-image: url('@Url.Content("~/img/bg.jpg")');">
 
 			<div>
-				@if (!ViewData.ModelState.IsValid)
+				<!-- Notifications-->
+				@if (TempData["error"] != null)
 				{
-					var popupErrors = ViewData.ModelState.Values.SelectMany(v => v.Errors)
-					.Where(e => e.ErrorMessage.StartsWith("!"))
-					.Select(e => e.ErrorMessage.Substring(1))
-					.ToList();
-
-					if (popupErrors.Any())
-					{
-						<div id="popup-alert" class=" popup-alert alert alert-danger alert-dismissible fade show text-center"
-							 role="alert" style="z-index: 1055; border-radius: 8px;">
-							@foreach (var msg in popupErrors)
-							{
-								<div>@msg</div>
-							}
-						</div>
-					}
+					<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
+						 role="alert" style="z-index: 1055; border-radius: 8px;">
+						<div>@TempData["error"]</div>
+					</div>
+				}
+				@if (TempData["success"] != null)
+				{
+					<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
+						 role="alert" style="z-index: 1055; border-radius: 8px;">
+						<div>@TempData["success"]</div>
+					</div>
 				}
 
 			</div>
@@ -71,8 +68,9 @@
 					<span class="login100-form-title p-b-53">Login With</span>
 
 					<div class="d-flex justify-content-center w-100">
-						<a href="#" class="btn-google m-b-20 w-75">
-							<img src="~/img/icons/icon-google.png" alt="GOOGLE"> Google
+						<a asp-action="LoginGoogle" asp-controller="Auth" class="btn-google m-b-20 w-75">
+							<img src="~/img/icons/icon-google.png" alt="GOOGLE"> 
+							Google
 						</a>
 					</div>
 

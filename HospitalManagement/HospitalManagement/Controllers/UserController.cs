@@ -3,11 +3,21 @@ using Newtonsoft.Json;
 using HospitalManagement.Models; // namespace chứa Account
 using HospitalManagement.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using HospitalManagement.ViewModels;
 
 namespace HospitalManagement.Controllers
 {
     public class UserController : Controller
     {
+        private readonly PasswordHasher<Account> _passwordHasher;
+
+        public UserController(HospitalManagementContext context)
+        {
+            _passwordHasher = new PasswordHasher<Account>();
+        }
+
         [HttpGet]
 
         public IActionResult ViewProfile()
@@ -39,9 +49,7 @@ namespace HospitalManagement.Controllers
         }
 
 
-
         [HttpGet]
-
         public IActionResult ChangePassword()
         {
             // Load profile data from sesion
@@ -53,8 +61,52 @@ namespace HospitalManagement.Controllers
             }
 
             var user = JsonConvert.DeserializeObject<Account>(userJson);
-            return View(user);
+            return View();
         }
+
+
+        [HttpPost]
+        public IActionResult ChangePassword(ChangePass model)
+        {
+            var userJson = HttpContext.Session.GetString("UserSession");
+            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+            var user = JsonConvert.DeserializeObject<Account>(userJson);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.OldPassword) != PasswordVerificationResult.Success)
+            {
+                TempData["error"] = "Current password not match";
+                return View();
+            }
+
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                TempData["error"] = "2 new passwords not match";
+                return View();
+            }
+
+            // Cập nhật trong DB
+            using (var context = new HospitalManagementContext())
+            {
+                var dbUser = context.Accounts.FirstOrDefault(u => u.AccountId == user.AccountId);
+                if (dbUser != null)
+                {
+                    dbUser.PasswordHash = _passwordHasher.HashPassword(null, model.NewPassword);
+                    context.SaveChanges();
+                    HttpContext.Session.SetString("UserSession", JsonConvert.SerializeObject(dbUser));
+
+                }
+            }
+
+            // Cập nhật lại session
+            TempData["success"] = "Change password successful!";
+            return View();
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> UploadPhoto(IFormFile photo)
@@ -86,6 +138,7 @@ namespace HospitalManagement.Controllers
                 // Cập nhật lại session
                 HttpContext.Session.SetString("UserSession", JsonConvert.SerializeObject(user));
             }
+            TempData["success"] = "Update successful!";
 
 
             return RedirectToAction("UpdateProfile");
@@ -119,6 +172,7 @@ namespace HospitalManagement.Controllers
                     HttpContext.Session.SetString("UserSession", JsonConvert.SerializeObject(sessionUser));
                 }
             }
+            TempData["success"] = "Update successful!";
 
             return RedirectToAction("UpdateProfile");
         }
@@ -128,6 +182,7 @@ namespace HospitalManagement.Controllers
         {
             // Xóa toàn bộ session
             HttpContext.Session.Clear();
+            TempData["success"] = "Logout successful!";
 
             // Chuyển hướng đến trang danh sách bác sĩ
             return RedirectToAction("ViewDoctors", "Patient");
