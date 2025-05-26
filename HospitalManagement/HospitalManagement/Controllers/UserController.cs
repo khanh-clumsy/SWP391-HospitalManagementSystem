@@ -5,6 +5,7 @@ using HospitalManagement.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using HospitalManagement.ViewModels;
 
 namespace HospitalManagement.Controllers
 {
@@ -70,6 +71,11 @@ namespace HospitalManagement.Controllers
             var userJson = HttpContext.Session.GetString("UserSession");
             if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
             var user = JsonConvert.DeserializeObject<Account>(userJson);
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
             if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.OldPassword) != PasswordVerificationResult.Success)
             {
