@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace HospitalManagement.Models;
 
@@ -16,6 +15,8 @@ public partial class Account
 
     public string? PhoneNumber { get; set; }
 
+    public string? Gender { get; set; }
+
     public bool IsActive { get; set; }
 
     public int? ExternalId { get; set; }
@@ -27,4 +28,18 @@ public partial class Account
     public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
 
     public virtual ICollection<Patient> Patients { get; set; } = new List<Patient>();
+    public string GetFullGender()
+    {
+        if(this.Gender=="M")
+        {
+            return "Male";
+        } else if(this.Gender=="F")
+        {
+            return "Female";
+        }
+        else
+        {
+            return "Other";
+        }
+    }
 }
