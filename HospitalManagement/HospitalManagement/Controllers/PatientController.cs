@@ -21,18 +21,13 @@ namespace HospitalManagement.Controllers
     public class PatientController : Controller
     {
         private readonly HospitalManagementContext _context;
+        private readonly IDoctorRepository _doctorRepo;
 
-        public PatientController(HospitalManagementContext context)
+        public PatientController(HospitalManagementContext context, IDoctorRepository doctorRepo)
         {
             _context = context;
-        }
-
-        public IActionResult ViewDoctors()
-
-        private readonly IDoctorRepository _doctorRepo;
-        public PatientController(IDoctorRepository doctorRepo)
-        {
             _doctorRepo = doctorRepo;
+
         }
 
         /**
@@ -141,7 +136,7 @@ namespace HospitalManagement.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> BookingAppointment()
+        public async Task<IActionResult> BookingAppointment(int? doctorId)
         {
             var userJson = HttpContext.Session.GetString("UserSession");
 
@@ -181,9 +176,9 @@ namespace HospitalManagement.Controllers
                 PhoneNumber = user.PhoneNumber,
                 DoctorOptions = doctors,
                 SlotOptions = slots,
-                AppointmentDate = DateTime.Today
+                AppointmentDate = DateTime.Today,
+                SelectedDoctorId = doctorId ?? 0  
             };
-
             return View(model);
         }
 
@@ -288,9 +283,9 @@ namespace HospitalManagement.Controllers
             var statusOptions = new List<SelectListItem>
             {
                 new SelectListItem { Value = "", Text = "All Status" },
-                new SelectListItem { Value = "Confirmed", Text = "Confirmed" },
+                new SelectListItem { Value = "Accepted", Text = "Accepted" },
                 new SelectListItem { Value = "Pending", Text = "Pending" },
-                new SelectListItem { Value = "Cancelled", Text = "Cancelled" }
+                new SelectListItem { Value = "Rejected", Text = "Rejected" }
             };
 
             ViewBag.StatusOptions = new SelectList(statusOptions, "Value", "Text", statusFilter);

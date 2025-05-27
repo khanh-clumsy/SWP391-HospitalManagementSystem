@@ -170,7 +170,7 @@
                                     <h5>@doctor.Account.FullName</h5>
                                     <p class="text-primary">@doctor.DepartmentName (@doctor.ExperienceYear Exp Years)</p>
                                     <div class="d-flex justify-content-center gap-2 mt-4">
-                                        <a href="#" class="btn btn-sm btn-outline-primary">Make an Appointment</a>
+                                    <a asp-controller="Patient" method="get" asp-action="BookingAppointment" asp-route-doctorId="@doctor.DoctorId" class="btn btn-sm btn-outline-primary">Make an Appointment</a>
                                         <a href="/Patient/DoctorDetail/@doctor.DoctorId" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center">Detail</a>
                                     </div>
                                 </div>

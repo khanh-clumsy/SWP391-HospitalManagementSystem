@@ -1,8 +1,10 @@
 ﻿using HospitalManagement.Data;
+using HospitalManagement.Models;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -64,28 +66,42 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("AppointmentList");
         }
 
+
         [HttpGet]
         public IActionResult ConsultationList(string searchName, string statusFilter, string timeFilter, DateTime? dateFilter)
         {
-            var statusOptions = new List<SelectListItem>
+            // Lấy user từ session
+            var userJson = HttpContext.Session.GetString("UserSession");
+            string? currentRole = null;
+            if (!string.IsNullOrEmpty(userJson))
             {
-                new SelectListItem { Value = "", Text = "All Status" },
-                new SelectListItem { Value = "Confirmed", Text = "Confirmed" },
-                new SelectListItem { Value = "Pending", Text = "Pending" },
-                new SelectListItem { Value = "Cancelled", Text = "Cancelled" }
-            };
+                var user = JsonConvert.DeserializeObject<Account>(userJson);
+                currentRole = user?.RoleName?.ToLower();
+            }
+
+            var statusOptions = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "All Status" },
+        new SelectListItem { Value = "Accepted", Text = "Confirmed" },
+        new SelectListItem { Value = "Pending", Text = "Pending" },
+        new SelectListItem { Value = "Rejected", Text = "Cancelled" }
+    };
 
             ViewBag.StatusOptions = new SelectList(statusOptions, "Value", "Text", statusFilter);
             var query = _context.Consultants
-            .Include(c => c.Patient).ThenInclude(p => p.Account)
-            .Include(c => c.Doctor).ThenInclude(d => d.Account)
-            .Include(c => c.Service)
-            .AsQueryable();
+                .Include(c => c.Patient).ThenInclude(p => p.Account)
+                .Include(c => c.Doctor).ThenInclude(d => d.Account)
+                .Include(c => c.Service)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(currentRole))
+            {
+                query = query.Where(c => c.RequestedPersonType != null && c.RequestedPersonType.ToLower() == currentRole);
+            }
 
             if (dateFilter.HasValue)
             {
                 var dateOnlyFilter = DateOnly.FromDateTime(dateFilter.Value);
-
                 query = query.Where(c => c.RequestedDate.HasValue && c.RequestedDate.Value == dateOnlyFilter);
             }
 
@@ -94,12 +110,18 @@ namespace HospitalManagement.Controllers
                 query = query.Where(c => c.Status == statusFilter);
             }
 
+            if (!string.IsNullOrEmpty(searchName))
+            {
+                query = query.Where(c => c.Patient.Account.FullName.Contains(searchName));
+            }
+
             var model = new ViewConsultationsViewModel
             {
                 DateFilter = dateFilter,
                 StatusFilter = statusFilter,
                 Consultants = query.ToList()
             };
+
             return View(model);
         }
 
@@ -116,6 +138,31 @@ namespace HospitalManagement.Controllers
             }
 
             consultant.Status = newStatus;
+            if (newStatus.Equals("Accepted"))
+            {
+                var userJson = HttpContext.Session.GetString("UserSession");
+                if (string.IsNullOrEmpty(userJson))
+                {
+                    TempData["ErrorMessage"] = "User session expired.";
+                    return RedirectToAction("Login", "Auth");
+                }
+
+                var user = JsonConvert.DeserializeObject<Account>(userJson);
+                if (user == null)
+                {
+                    TempData["ErrorMessage"] = "User session invalid.";
+                    return RedirectToAction("Login", "Auth");
+                }
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.AccountId == user.AccountId);
+                if (doctor == null)
+                {
+                    TempData["ErrorMessage"] = "Doctor not found for current user.";
+                    return RedirectToAction("ConsultationList");
+                }
+
+                // Gán DoctorID cho consultant
+                consultant.DoctorId = doctor.DoctorId;
+            }
             _context.Consultants.Update(consultant);
             await _context.SaveChangesAsync();
 

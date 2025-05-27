@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="en">
 @{
@@ -36,10 +36,10 @@
 
 	<style>
 		.popup-alert {
-		position: fixed;
-		text-align: center;
-		top: 5px;
-		right: 5px;
+			position: fixed;
+			text-align: center;
+			top: 5px;
+			right: 5px;
 		}
 	</style>
 </head>
@@ -86,14 +86,14 @@
 		@if (TempData["error"] != null)
 		{
 			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
-			role="alert" style="z-index: 1055; border-radius: 8px;">
+				 role="alert" style="z-index: 1055; border-radius: 8px;">
 				<div>@TempData["error"]</div>
 			</div>
 		}
 		@if (TempData["success"] != null)
 		{
 			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
-			role="alert" style="z-index: 1055; border-radius: 8px;">
+				 role="alert" style="z-index: 1055; border-radius: 8px;">
 				<div>@TempData["success"]</div>
 			</div>
 		}
@@ -101,7 +101,7 @@
 
 		<!-- Navbar Start -->
 		<nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn" data-wow-delay="0.1s">
-			<a href="index.html" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
+			<a asp-action="Index" asp-controller="Home" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
 				<h1 class="m-0 text-primary">
 					<img src="~/img/logo.jpg" style="width: 60px; height: 60px;" />
 					Klinik
@@ -114,17 +114,10 @@
 			<div class="collapse navbar-collapse" id="navbarCollapse">
 				<div class="navbar-nav ms-auto p-4 p-lg-0">
 
-					<a href="index.html" class="nav-item nav-link">Home</a>
-					<a href="about.html" class="nav-item nav-link">About</a>
-					<a href="service.html" class="nav-item nav-link">Service</a>
-
-					<a asp-action="ViewDoctors" asp-controller="Patient" class="nav-item nav-link">Doctors</a>
-
-
 					<a asp-action="Index" asp-controller="Home" class="nav-item nav-link">Home</a>
 					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">About</a>
 					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
-					@if(!string.IsNullOrEmpty(userSession))
+					@if (!string.IsNullOrEmpty(userSession))
 					{
 						var user = Newtonsoft.Json.JsonConvert.DeserializeObject<Account>(userSession);
 						@if (user.RoleName == "Patient")
@@ -135,12 +128,15 @@
 								<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
 								<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 									<a class="dropdown-item" asp-controller="User" asp-action="ViewProfile">View Profile</a>
+									<a class="dropdown-item" asp-controller="Patient" asp-action="RequestConsultant">Request Consultation</a>
+									<a class="dropdown-item" asp-controller="Patient" asp-action="ViewConsultations">View Consultations</a>
+									<a class="dropdown-item" asp-controller="Patient" asp-action="ViewBookingAppointment">View Appointments</a>
 									<a class="dropdown-item" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
 									<a class="dropdown-item" asp-controller="User" asp-action="ChangePassword">Change Password</a>
 									<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
 								</div>
 							</div>
-							<a href="" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+							<a asp-action="BookingAppointment" asp-controller="Patient" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
 
 						}
 						else
@@ -149,6 +145,8 @@
 								<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
 								<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 									<a class="dropdown-item" asp-controller="User" asp-action="ViewProfile">View Profile</a>
+									<a class="dropdown-item" asp-controller="Doctor" asp-action="AppointmentList">View Appointments</a>
+									<a class="dropdown-item" asp-controller="Doctor" asp-action="ConsultationList">View Consultations</a>
 									<a class="dropdown-item" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
 									<a class="dropdown-item" asp-controller="User" asp-action="ChangePassword">Change Password</a>
 									<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
@@ -159,27 +157,11 @@
 					}
 					else
 					{
-						<!-- Nếu đã đăng nhập -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="User" asp-action="ViewProfile">View Profile</a>
-								<a class="dropdown-item" asp-controller="Patient" asp-action="ViewConsultations">View Consultations</a>
-								<a class="dropdown-item" asp-controller="Patient" asp-action="RequestConsultant">Request A Consultations</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="ChangePassword">Change Password</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
-							</div>
-						</div>
-					}
-				</div>
-				<a asp-action="BookingAppointment" asp-controller="Patient" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
-
 						<!-- Nếu chưa đăng nhập -->
 						<a asp-action="ViewDoctors" asp-controller="Patient" class="nav-item nav-link">Doctors</a>
 						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
 						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Register</a>
-						<a href="" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+						<a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
 					}
 				</div>
 			</div>
@@ -265,6 +247,7 @@
 			}
 		}, 3000);
 	</script>
+
 </body>
 </html>
 

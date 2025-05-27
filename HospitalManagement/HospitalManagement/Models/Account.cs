@@ -19,8 +19,6 @@ public partial class Account
 
     public bool IsActive { get; set; }
 
-    public int? ExternalId { get; set; }
-
     public string RoleName { get; set; } = null!;
 
     public string? ProfileImagePath { get; set; }
