@@ -107,8 +107,4 @@
     <Folder Include="Data\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="Views\Patient\Appointment.cshtml" />
-  </ItemGroup>
-
 </Project>
