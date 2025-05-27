@@ -19,6 +19,8 @@ public partial class Account
 
     public bool IsActive { get; set; }
 
+    public int? ExternalId { get; set; }
+
     public string RoleName { get; set; } = null!;
 
     public string? ProfileImagePath { get; set; }
@@ -27,4 +29,19 @@ public partial class Account
     public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
 
     public virtual ICollection<Patient> Patients { get; set; } = new List<Patient>();
+    public string GetFullGender()
+    {
+        if (this.Gender == "M")
+        {
+            return "Male";
+        }
+        else if (this.Gender == "F")
+        {
+            return "Female";
+        }
+        else
+        {
+            return "Other";
+        }
+    }
 }

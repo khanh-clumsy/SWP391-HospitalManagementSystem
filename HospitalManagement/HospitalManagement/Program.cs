@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using HospitalManagement.Repositories;
 using HospitalManagement.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -22,6 +23,10 @@ builder.Services.AddAuthentication(options =>
 {
     options.ClientId = builder.Configuration["GoogleKeys:ClientId"];
     options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
+builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
 
     options.Events.OnRedirectToAuthorizationEndpoint = context =>
     {
@@ -44,6 +49,8 @@ builder.Services.AddDbContext<HospitalManagementContext>(options =>
 
 builder.Services.AddDistributedMemoryCache();
 
+
+builder.Services.AddDistributedMemoryCache(); // Bộ nhớ tạm cho session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -93,6 +100,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Auth}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

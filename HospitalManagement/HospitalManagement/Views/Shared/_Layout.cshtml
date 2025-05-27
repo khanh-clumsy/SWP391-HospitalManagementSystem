@@ -1,4 +1,4 @@
-﻿
+
 <!DOCTYPE html>
 <html lang="en">
 @{
@@ -36,10 +36,10 @@
 
 	<style>
 		.popup-alert {
-			position: fixed;
-			text-align: center;
-			top: 5px;
-			right: 5px;
+		position: fixed;
+		text-align: center;
+		top: 5px;
+		right: 5px;
 		}
 	</style>
 </head>
@@ -86,18 +86,17 @@
 		@if (TempData["error"] != null)
 		{
 			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
+			role="alert" style="z-index: 1055; border-radius: 8px;">
 				<div>@TempData["error"]</div>
 			</div>
 		}
 		@if (TempData["success"] != null)
 		{
 			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
+			role="alert" style="z-index: 1055; border-radius: 8px;">
 				<div>@TempData["success"]</div>
 			</div>
 		}
-
 
 
 		<!-- Navbar Start -->
@@ -121,11 +120,42 @@
 
 					<a asp-action="ViewDoctors" asp-controller="Patient" class="nav-item nav-link">Doctors</a>
 
-					@if (string.IsNullOrEmpty(userSession))
+
+					<a asp-action="Index" asp-controller="Home" class="nav-item nav-link">Home</a>
+					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">About</a>
+					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
+					@if(!string.IsNullOrEmpty(userSession))
 					{
-						<!-- Nếu chưa đăng nhập -->
-						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
-						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Register</a>
+						var user = Newtonsoft.Json.JsonConvert.DeserializeObject<Account>(userSession);
+						@if (user.RoleName == "Patient")
+						{
+							<a asp-action="ViewDoctors" asp-controller="Patient" class="nav-item nav-link">Doctors</a>
+							<!-- Nếu đã đăng nhập -->
+							<div class="nav-item dropdown">
+								<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
+								<div class="dropdown-menu rounded-0 rounded-bottom m-0">
+									<a class="dropdown-item" asp-controller="User" asp-action="ViewProfile">View Profile</a>
+									<a class="dropdown-item" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
+									<a class="dropdown-item" asp-controller="User" asp-action="ChangePassword">Change Password</a>
+									<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
+								</div>
+							</div>
+							<a href="" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+
+						}
+						else
+						{
+							<div class="nav-item dropdown">
+								<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
+								<div class="dropdown-menu rounded-0 rounded-bottom m-0">
+									<a class="dropdown-item" asp-controller="User" asp-action="ViewProfile">View Profile</a>
+									<a class="dropdown-item" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
+									<a class="dropdown-item" asp-controller="User" asp-action="ChangePassword">Change Password</a>
+									<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
+								</div>
+							</div>
+							<a class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block"></a>
+						}
 					}
 					else
 					{
@@ -144,6 +174,14 @@
 					}
 				</div>
 				<a asp-action="BookingAppointment" asp-controller="Patient" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+
+						<!-- Nếu chưa đăng nhập -->
+						<a asp-action="ViewDoctors" asp-controller="Patient" class="nav-item nav-link">Doctors</a>
+						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
+						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Register</a>
+						<a href="" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+					}
+				</div>
 			</div>
 		</nav>
 		<!-- Navbar End -->
@@ -215,6 +253,7 @@
 	<!-- Back to Top -->
 	<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 
+
 	<script>
 		window.setTimeout(function () {
 			const alertBox = document.getElementById('popup-alert');
@@ -231,3 +270,4 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+
