@@ -80,7 +80,7 @@ namespace HospitalManagement.Controllers
             }
 
             var statusOptions = new List<SelectListItem>
-    {
+    {   
         new SelectListItem { Value = "", Text = "All Status" },
         new SelectListItem { Value = "Accepted", Text = "Confirmed" },
         new SelectListItem { Value = "Pending", Text = "Pending" },
