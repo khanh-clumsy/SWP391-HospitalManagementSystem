@@ -20,6 +20,14 @@ namespace HospitalFETemplate.Controllers
         {
             return View();
         }
-        // Nếu bạn muốn thêm các trang khác (about, service, contact...), có thể khai báo thêm action tương ứng
+
+        public IActionResult NotFound()
+        {
+            return View();
+        }
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
     }
 }

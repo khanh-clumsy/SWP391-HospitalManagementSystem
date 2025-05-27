@@ -14,6 +14,7 @@ builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseS
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
 
+
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
@@ -93,6 +94,9 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+// Xử lý lỗi trang không tồn tại
+app.UseStatusCodePagesWithReExecute("/Home/NotFound");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
