@@ -8,7 +8,6 @@ namespace HospitalManagement.ViewModels
     public class BookingApointment
     {
 
-
         public string Name { get; set; }
 
 
