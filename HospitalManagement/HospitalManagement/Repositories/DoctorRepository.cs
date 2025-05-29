@@ -14,7 +14,7 @@ namespace HospitalManagement.Repositories
 
         public async Task<int> CountAsync(string? name, string? department, int? exp, bool? isHead)
         {
-            var query = _context.Doctors.Include(d => d.Account).AsQueryable();
+            var query = _context.Doctors.AsQueryable();
 
             if (!string.IsNullOrEmpty(name))
             {

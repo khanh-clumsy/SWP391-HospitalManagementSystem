@@ -44,7 +44,7 @@
                 <div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
                     <div class="profile-card text-center">
                         <div class="profile-image">
-                            <img src="@Model.Account.ProfileImagePath" alt="Doctor's Photo">
+                            @* <img src="@Model.Account.ProfileImagePath" alt="Doctor's Photo"> *@
                         </div>
                         <div class="profile-buttons">
                             <div class="d-flex gap-2 justify-content-center flex-wrap">
@@ -67,7 +67,7 @@
                                 </div>
                                 <div class="info-content">
                                     <h5>Full Name</h5>
-                                    <p>@Model.Account.FullName (@Model.ExperienceYear Experience Years)</p>
+                                     <p>@Model.FullName (@Model.ExperienceYear Experience Years)</p> 
                                 </div>
                             </div>
 
@@ -77,7 +77,7 @@
                                 </div>
                                 <div class="info-content">
                                     <h5>Gender</h5>
-                                    <p>@Model.Account.GetFullGender()</p>
+                                     @* <p>@Model.GetFullGender()</p>  *@
                                 </div>
                             </div>
 
@@ -87,7 +87,7 @@
                                 </div>
                                 <div class="info-content">
                                     <h5>Email</h5>
-                                    <p>@Model.Account.Email</p>
+                                     <p>@Model.Email</p> 
                                 </div>
                             </div>
 

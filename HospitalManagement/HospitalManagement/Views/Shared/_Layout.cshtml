@@ -117,11 +117,7 @@
 					<a asp-action="Index" asp-controller="Home" class="nav-item nav-link">Home</a>
 					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">About</a>
 					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
-					@if (!string.IsNullOrEmpty(userSession))
-					{
-						var user = Newtonsoft.Json.JsonConvert.DeserializeObject<Account>(userSession);
-						@if (user.RoleName == "Patient")
-						{
+					
 							<a asp-action="ViewDoctors" asp-controller="Patient" class="nav-item nav-link">Doctors</a>
 							<!-- Nếu đã đăng nhập -->
 							<div class="nav-item dropdown">
@@ -137,32 +133,6 @@
 								</div>
 							</div>
 							<a asp-action="BookingAppointment" asp-controller="Patient" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
-
-						}
-						else
-						{
-							<div class="nav-item dropdown">
-								<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
-								<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-									<a class="dropdown-item" asp-controller="User" asp-action="ViewProfile">View Profile</a>
-									<a class="dropdown-item" asp-controller="Doctor" asp-action="AppointmentList">View Appointments</a>
-									<a class="dropdown-item" asp-controller="Doctor" asp-action="ConsultationList">View Consultations</a>
-									<a class="dropdown-item" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
-									<a class="dropdown-item" asp-controller="User" asp-action="ChangePassword">Change Password</a>
-									<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
-								</div>
-							</div>
-							<a class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block"></a>
-						}
-					}
-					else
-					{
-						<!-- Nếu chưa đăng nhập -->
-						<a asp-action="ViewDoctors" asp-controller="Patient" class="nav-item nav-link">Doctors</a>
-						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
-						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Register</a>
-						<a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
-					}
 				</div>
 			</div>
 		</nav>

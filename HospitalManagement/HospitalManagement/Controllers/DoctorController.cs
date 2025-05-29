@@ -29,13 +29,12 @@ namespace HospitalManagement.Controllers
         {
             var query = _context.Appointments
                 .Include(a => a.Patient)
-                    .ThenInclude(p => p.Account)
                .Include(a => a.Slot)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchName))
             {
-                query = query.Where(a => EF.Functions.Like(a.Patient.Account.FullName, $"{searchName}%"));
+                query = query.Where(a => EF.Functions.Like(a.Patient.FullName, $"{searchName}%"));
 
             }
 
@@ -71,13 +70,13 @@ namespace HospitalManagement.Controllers
         public IActionResult ConsultationList(string searchName, string statusFilter, string timeFilter, DateTime? dateFilter)
         {
             // Lấy user từ session
-            var userJson = HttpContext.Session.GetString("UserSession");
-            string? currentRole = null;
-            if (!string.IsNullOrEmpty(userJson))
-            {
-                var user = JsonConvert.DeserializeObject<Account>(userJson);
-                currentRole = user?.RoleName?.ToLower();
-            }
+            //var userJson = HttpContext.Session.GetString("UserSession");
+            //string? currentRole = null;
+            //if (!string.IsNullOrEmpty(userJson))
+            //{
+            //    var user = JsonConvert.DeserializeObject<Account>(userJson);
+            //    currentRole = user?.RoleName?.ToLower();
+            //}
 
             var statusOptions = new List<SelectListItem>
     {   
@@ -89,8 +88,8 @@ namespace HospitalManagement.Controllers
 
             ViewBag.StatusOptions = new SelectList(statusOptions, "Value", "Text", statusFilter);
             var query = _context.Consultants
-                .Include(c => c.Patient).ThenInclude(p => p.Account)
-                .Include(c => c.Doctor).ThenInclude(d => d.Account)
+                .Include(c => c.Patient)
+                .Include(c => c.Doctor)
                 .Include(c => c.Service)
                 .AsQueryable();
 
