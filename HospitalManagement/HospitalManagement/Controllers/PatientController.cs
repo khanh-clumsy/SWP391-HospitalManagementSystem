@@ -1,410 +1,231 @@
-﻿using HospitalManagement.Data;
-using HospitalManagement.Models;
-using HospitalManagement.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-﻿using System.Threading.Tasks;
-using HospitalManagement.Data;
 using HospitalManagement.Models;
-using HospitalManagement.Repositories;
-using Microsoft.AspNetCore.Mvc;
+using HospitalManagement.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using X.PagedList;
-
-
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using HospitalManagement.ViewModels;
 
 namespace HospitalManagement.Controllers
 {
     public class PatientController : Controller
     {
-        private readonly HospitalManagementContext _context;
-        private readonly IDoctorRepository _doctorRepo;
+        private readonly PasswordHasher<Patient> _passwordHasher;
 
-        public PatientController(HospitalManagementContext context, IDoctorRepository doctorRepo)
+        public PatientController(HospitalManagementContext context)
         {
-            _context = context;
-            _doctorRepo = doctorRepo;
-
-        }
-
-        /**
-         * Controller for ViewDoctors page, get name, department, exp year, isHead,
-         * sort type, to filter out doctor, handle pagination
-         */
-        public async Task<IActionResult> ViewDoctors(int? page, string? name, string? department, int? exp, bool? isHead, string? sort)
-        {
-            int pageSize = 8;
-            int pageNumber = page ?? 1;
-
-            // Lấy danh sách bác sĩ theo trang, async với EF Core
-            var doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, pageNumber, pageSize);
-            // Lấy tổng số bác sĩ
-            var totalDoctors = await _doctorRepo.CountAsync(name, department, exp, isHead);
-
-            // Tạo IPagedList từ danh sách đã lấy
-            var pagedDoctors = new StaticPagedList<Doctor>(doctors, pageNumber, pageSize, totalDoctors);
-            var departments = await _doctorRepo.GetDistinctDepartment();
-
-
-            // Truyền lại dữ liệu vào cshtml để khi reload trang filter vẫn hiển thị nội dung filter đã chọn
-            ViewBag.Name = name;
-            ViewBag.Department = department;
-            ViewBag.Experience = exp;
-            ViewBag.Type = isHead;
-            ViewBag.Sort = sort;
-            ViewBag.Departments = departments;
-
-           
-            return View(pagedDoctors);
-        }
-        public async Task<IActionResult> DoctorDetail(int id)
-        {
-            var doctor = await _doctorRepo.GetByIdAsync(id);
-            if (doctor == null)
-            {
-                return NotFound();
-            }
-            return View(doctor);
+            _passwordHasher = new PasswordHasher<Patient>();
         }
 
         [HttpGet]
-        public IActionResult RequestConsultant()
+
+        public IActionResult ViewProfile()
         {
-            var userJson = HttpContext.Session.GetString("UserSession");
+            // Load profile data from sesion
+            var userJson = HttpContext.Session.GetString("PatientSession");
 
             if (string.IsNullOrEmpty(userJson))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var user = JsonConvert.DeserializeObject<Account>(userJson);
-            if (user == null)
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            return View(user);
+        }
+        [HttpGet]
+        public IActionResult UpdateProfile()
+        {
+            // Load profile data to edit
+            var userJson = HttpContext.Session.GetString("PatientSession");
+
+            if (string.IsNullOrEmpty(userJson))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var model = new RequestConsultantViewModel
-            {
-                Name = user.FullName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber
-            };
-
-            return View(model);
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            return View(user);
         }
 
-        [HttpPost]
-        public IActionResult RequestConsultant(RequestConsultantViewModel model)
+
+        [HttpGet]
+        public IActionResult ChangePassword()
         {
+            // Load profile data from sesion
+            var userJson = HttpContext.Session.GetString("PatientSession");
+
+            if (string.IsNullOrEmpty(userJson))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            return View();
+        }
+
+
+        [HttpPost]
+        public IActionResult ChangePassword(ChangePass model)
+        {
+            var userJson = HttpContext.Session.GetString("PatientSession");
+            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
-            var userJson = HttpContext.Session.GetString("UserSession");
-            if (string.IsNullOrEmpty(userJson))
+
+            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.OldPassword) != PasswordVerificationResult.Success)
             {
-                return RedirectToAction("Login", "Auth");
+                TempData["error"] = "Current password not match";
+                return View();
             }
 
-            var user = JsonConvert.DeserializeObject<Account>(userJson);
-            if (user == null)
+            if (model.NewPassword != model.ConfirmPassword)
             {
-                return RedirectToAction("Login", "Auth");
+                TempData["error"] = "2 new passwords not match";
+                return View();
             }
 
-            var patient = _context.Patients.FirstOrDefault(p => p.AccountId == user.AccountId);
-
-            var consultant = new Consultant
+            // Cập nhật trong DB
+            using (var context = new HospitalManagementContext())
             {
-                PatientId = patient.PatientId,
-                RequestedPersonType = model.ConsultantType,
-                Description = model.Note,
-                RequestedDate = DateOnly.FromDateTime(DateTime.Now),
-                Status = "Pending",
-                ServiceId = model.SelectedServiceId
-            };
-
-            _context.Consultants.Add(consultant);
-            _context.SaveChanges();
-            TempData["SuccessMessage"] = $"Request successfully with Consultant ID = {consultant.ConsultantId}!";
-            return RedirectToAction("ViewConsultations");
-        }
-
-
-        [HttpGet]
-        public async Task<IActionResult> BookingAppointment(int? doctorId)
-        {
-            var userJson = HttpContext.Session.GetString("UserSession");
-
-            if (string.IsNullOrEmpty(userJson))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var user = JsonConvert.DeserializeObject<Account>(userJson);
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-            var doctors = await _context.Doctors
-           .Include(d => d.Account)
-           .Select(d => new SelectListItem
-           {
-               Value = d.DoctorId.ToString(),
-               Text = d.Account.FullName
-           })
-           .ToListAsync();
-
-            // Lấy danh sách slot từ DB
-            var slots = await _context.Slots
-                .Select(s => new SelectListItem
+                var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+                if (dbUser != null)
                 {
-                    Value = s.SlotId.ToString(),
-                    Text = s.StartTime.ToString(@"hh\:mm") + " - " + s.EndTime.ToString(@"hh\:mm")
-                })
-                .ToListAsync();
+                    dbUser.PasswordHash = _passwordHasher.HashPassword(null, model.NewPassword);
+                    context.SaveChanges();
+                    HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(dbUser));
 
-
-            var model = new BookingApointment
-            {
-                Name = user.FullName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                DoctorOptions = doctors,
-                SlotOptions = slots,
-                AppointmentDate = DateTime.Today,
-                SelectedDoctorId = doctorId ?? 0  
-            };
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BookingAppointment(BookingApointment model)
-        {
-            ModelState.Remove(nameof(model.DoctorOptions));
-            ModelState.Remove(nameof(model.SlotOptions));
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                foreach (var error in errors)
-                {
-                    // Ghi log các lỗi
-                    Console.WriteLine(error);
                 }
-                // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
-                model.DoctorOptions = await _context.Doctors
-                    .Include(d => d.Account)
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.DoctorId.ToString(),
-                        Text = d.Account.FullName
-                    })
-                    .ToListAsync();
-
-                model.SlotOptions = await _context.Slots
-                    .Select(s => new SelectListItem
-                    {
-                        Value = s.SlotId.ToString(),
-                        Text = s.StartTime.ToString(@"hh\:mm") + " - " + s.EndTime.ToString(@"hh\:mm")
-                    })
-                    .ToListAsync();
-                return View(model);
             }
-            var userJson = HttpContext.Session.GetString("UserSession");
+
+            // Cập nhật lại session
+            TempData["success"] = "Change password successful!";
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> UploadPhoto(IFormFile photo)
+        {
+            // check login
+            var userJson = HttpContext.Session.GetString("PatientSession");
+            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+
+            // get user from session
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+
+
+            if (photo != null && photo.Length > 0)
+            {
+                // convert img -> Byte ->  Base64String
+                using var ms = new MemoryStream();
+                await photo.CopyToAsync(ms);
+                var imageBytes = ms.ToArray();
+                user.ProfileImage = Convert.ToBase64String(imageBytes);
+
+                // add in database
+                using (var context = new HospitalManagementContext())
+                {
+                    var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+                    if (dbUser != null)
+                    {
+                        dbUser.ProfileImage = user.ProfileImage;
+                        context.SaveChanges();
+                    }
+                }
+
+                // Cập nhật lại session
+                HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));
+                TempData["success"] = "Update successful!";
+                return RedirectToAction("UpdateProfile");
+
+            }
+
+            // do nothing
+            TempData["success"] = null;
+            return RedirectToAction("UpdateProfile");
+        }
+        [HttpPost]
+        public IActionResult UpdateProfile(Patient model)
+        {
+            // check login
+            var userJson = HttpContext.Session.GetString("PatientSession");
             if (string.IsNullOrEmpty(userJson))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var user = JsonConvert.DeserializeObject<Account>(userJson);
-            if (user == null)
+            // get user
+            var sessionUser = JsonConvert.DeserializeObject<Patient>(userJson);
+
+            using (var context = new HospitalManagementContext())
             {
-                return RedirectToAction("Login", "Auth");
+                var curUser = context.Patients.FirstOrDefault(u => u.PatientId == sessionUser.PatientId);
+                if (curUser != null)
+                {
+                    // check if phone start with 0 and 9 digits back
+                    if (model.PhoneNumber == null)
+                    {
+                        TempData["error"] = "Phone number is invalid.";
+                        return RedirectToAction("UpdateProfile");
+                    }
+
+                    if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
+                    {
+                        TempData["error"] = "Phone number is invalid.";
+                        return RedirectToAction("UpdateProfile");
+                    }
+
+                    //check if phone is non - number
+                    foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
+                            {
+                                TempData["error"] = "Phone number is invalid.";
+                                return RedirectToAction("UpdateProfile");
+                            }
+
+                    // check phone is used(not this user)
+                    var phoneOwner = context.Patients.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+
+                    if (phoneOwner != null && phoneOwner.PatientId != curUser.PatientId)
+                    {
+                        TempData["error"] = "This phone number was used before.";
+                        return RedirectToAction("UpdateProfile");
+                    }
+
+
+                    // update info user and session
+                    sessionUser.FullName = curUser.FullName = model.FullName;
+                    sessionUser.Gender =  curUser.Gender = model.Gender;
+                    sessionUser.PhoneNumber = curUser.PhoneNumber = model.PhoneNumber;
+                    sessionUser.Dob = curUser.Dob = model.Dob;
+                    sessionUser.Address = curUser.Address = model.Address;
+                    sessionUser.HealthInsurance = curUser.HealthInsurance = model.HealthInsurance;
+                    sessionUser.BloodGroup = curUser.BloodGroup = model.BloodGroup;
+
+                    // luu lai user vao database
+                    context.SaveChanges();
+
+                    // reset session
+                    HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(sessionUser));
+                }
             }
+            TempData["success"] = "Update successful!";
 
-            var patient = _context.Patients.FirstOrDefault(p => p.AccountId == user.AccountId);
-
-            var appointment = new Appointment
-            {
-                PatientId = patient.PatientId,
-                DoctorId = model.SelectedDoctorId,
-                Note = model.Note,
-                SlotId = model.SelectedSlotId,
-                ServiceId = model.SelectedServiceId,
-                Date = DateOnly.FromDateTime(model.AppointmentDate),
-                Status = "Pending",
-            };
-
-            _context.Appointments.Add(appointment);
-            _context.SaveChanges();
-            return RedirectToAction("ViewBookingAppointment");
+            return RedirectToAction("UpdateProfile");
         }
-
-        public IActionResult ViewBookingAppointment(string searchName, string timeFilter, DateTime? dateFilter, string statusFilter)
-        {
-            var appointments = _context.Appointments
-            .Include(a => a.Patient).ThenInclude(p => p.Account)
-            .Include(a => a.Doctor).ThenInclude(d => d.Account)
-            .Include(a => a.Slot)
-            .AsQueryable();
-
-            // Lọc theo thời gian slot
-
-            if (!string.IsNullOrEmpty(timeFilter) && TimeOnly.TryParse(timeFilter, out var parsedTime))
-            {
-                appointments = appointments.Where(a => a.Slot.StartTime == parsedTime);
-            }
-
-            // Lọc theo ngày
-            if (dateFilter.HasValue)
-            {
-                var filterDate = DateOnly.FromDateTime(dateFilter.Value);
-                appointments = appointments.Where(a => a.Date == filterDate);
-            }
-
-            // Lọc theo trạng thái
-            if (!string.IsNullOrEmpty(statusFilter))
-            {
-                appointments = appointments.Where(a => a.Status == statusFilter);
-            }
-
-            return View(appointments.ToList());
-        }
-
 
         [HttpGet]
-        public IActionResult ViewConsultations(DateTime? dateFilter, string statusFilter)
+        public IActionResult Logout()
         {
-            var statusOptions = new List<SelectListItem>
-            {
-                new SelectListItem { Value = "", Text = "All Status" },
-                new SelectListItem { Value = "Accepted", Text = "Accepted" },
-                new SelectListItem { Value = "Pending", Text = "Pending" },
-                new SelectListItem { Value = "Rejected", Text = "Rejected" }
-            };
+            // Xóa toàn bộ session
+            HttpContext.Session.Clear();
+            TempData["success"] = "Logout successful!";
 
-            ViewBag.StatusOptions = new SelectList(statusOptions, "Value", "Text", statusFilter);
-            var query = _context.Consultants
-            .Include(c => c.Patient).ThenInclude(p => p.Account)
-            .Include(c => c.Doctor).ThenInclude(d => d.Account)
-            .Include(c => c.Service)
-            .AsQueryable();
-
-            if (dateFilter.HasValue)
-            {
-                var dateOnlyFilter = DateOnly.FromDateTime(dateFilter.Value);
-
-                query = query.Where(c => c.RequestedDate.HasValue && c.RequestedDate.Value == dateOnlyFilter);
-            }
-
-            if (!string.IsNullOrEmpty(statusFilter))
-            {
-                query = query.Where(c => c.Status == statusFilter);
-            }
-
-            var model = new ViewConsultationsViewModel
-            {
-                DateFilter = dateFilter,
-                StatusFilter = statusFilter,
-                Consultants = query.ToList()
-            };
-
-            return View(model);
+            return RedirectToAction("Index", "Home");
         }
-
-        [Route("Patient/EditConsultant/{consultantId}")]
-        [HttpGet]
-        public IActionResult EditConsultant(int consultantId)
-        {
-            var consultant = _context.Consultants
-            .Include(c => c.Patient)
-            .ThenInclude(p => p.Account)
-            .Include(c => c.Service)
-            .Include(c => c.Doctor)
-            .ThenInclude(d => d.Account)
-            .FirstOrDefault(c => c.ConsultantId == consultantId);
-
-            if (consultant == null)
-            {
-                TempData["ErrorMessage"] = "Err";
-                return View("ViewConsultations");
-            }
-            var model = new EditConsultantViewModel
-            {
-                ConsultantID = consultantId,
-                Name = consultant.Patient?.Account?.FullName,
-                Email = consultant.Patient?.Account?.Email,
-                PhoneNumber = consultant.Patient?.Account?.PhoneNumber,
-                RequestedDate = consultant.RequestedDate,
-                Consultants = consultant.RequestedPersonType,
-                ServiceID = consultant.Service.ServiceId,
-                Description = consultant.Description,
-            };
-            return View(model);
-        }
-
-        [Route("Patient/EditConsultant/{consultantId}")]
-        [HttpPost]
-        public IActionResult EditConsultant(int consultantId, EditConsultantViewModel model)
-        {
-
-            if (consultantId != model.ConsultantID)
-            {
-                return BadRequest();
-            }
-
-            var consultant = _context.Consultants
-                .FirstOrDefault(c => c.ConsultantId == consultantId);
-
-            if (consultant == null)
-            {
-                return NotFound();
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            consultant.RequestedPersonType = model.Consultants;
-            consultant.ServiceId = (int)model.ServiceID;
-            consultant.Description = model.Description;
-
-            _context.SaveChanges();
-            TempData["SuccessMessage"] = $"Update successfully with ID = {consultantId}";
-            return RedirectToAction("ViewConsultations");
-        }
-
-
-
-        [HttpPost]
-        public IActionResult DeleteConsultant(int consultantId)
-        {
-            var consultant = _context.Consultants.Find(consultantId);
-            if (consultant == null)
-            {
-                return NotFound();
-            }
-
-            try
-            {
-                _context.Consultants.Remove(consultant);
-                _context.SaveChanges();
-                TempData["SuccessMessage"] = $"Consultant deleted with ID = {consultantId} successfully.";
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Error deleting consultant: " + ex.Message;
-            }
-
-            return RedirectToAction("ViewConsultations");
-        }
-
-
     }
-
 }

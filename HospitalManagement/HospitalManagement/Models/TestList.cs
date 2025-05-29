@@ -11,9 +11,9 @@ public partial class TestList
 
     public int AppointmentId { get; set; }
 
-    public string? Result { get; set; }
+    public string Result { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
 
     public virtual Appointment Appointment { get; set; } = null!;
 
