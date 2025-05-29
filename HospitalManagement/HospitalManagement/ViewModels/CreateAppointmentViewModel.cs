@@ -21,17 +21,17 @@ public class CreateAppointmentViewModel
     public DateTime? AppointmentDate { get; set; }
 
     [Required(ErrorMessage = "Please select a doctor.")]
-    public int? SelectedDoctorId { get; set; }
+    public int SelectedDoctorId { get; set; }
 
     public List<SelectListItem> DoctorOptions { get; set; } = new List<SelectListItem>();
 
     [Required(ErrorMessage = "Please select a time slot.")]
-    public int? SelectedSlotId { get; set; }
+    public int SelectedSlotId { get; set; }
 
     public List<SelectListItem> SlotOptions { get; set; } = new List<SelectListItem>();
 
     [Required(ErrorMessage = "Please select a service.")]
-    public int? SelectedServiceId { get; set; }
+    public int SelectedServiceId { get; set; }
 
     public List<SelectListItem> ServiceOptions { get; set; } = new List<SelectListItem>();
 

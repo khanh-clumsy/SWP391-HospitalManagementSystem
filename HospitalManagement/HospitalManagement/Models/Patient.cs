@@ -11,7 +11,7 @@ public partial class Patient
 
     public string PasswordHash { get; set; } = null!;
 
-    public int? PhoneNumber { get; set; }
+    public string? PhoneNumber { get; set; }
 
     public DateTime? Dob { get; set; }
 

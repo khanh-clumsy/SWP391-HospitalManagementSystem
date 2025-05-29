@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Security.Claims;
+using System.Threading.Tasks;
 using HospitalManagement.Data;
 using HospitalManagement.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +12,12 @@ namespace HospitalManagement.Controllers
     public class SalesController : Controller
     {
         private readonly HospitalManagementContext _context;
-        public SalesController(HospitalManagementContext context)
+        private readonly IPasswordHasher<Patient> _passwordHasher;
+
+        public SalesController(HospitalManagementContext context, IPasswordHasher<Patient> passwordHasher)
         {
             _context = context;
+            _passwordHasher = passwordHasher;
         }
 
         public IActionResult Index()
@@ -32,8 +37,10 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAppointment(CreateAppointmentViewModel model)
         {
+            //Nếu không hợp lệ thì trả về View với các options luôn
             if (!ModelState.IsValid)
             {
                 model.DoctorOptions = await GetDoctorListAsync();
@@ -42,25 +49,39 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
+            // Kiểm tra xem bệnh nhân đã tồn tại trong hệ thống chưa
             var patient = await _context.Patients
                 .FirstOrDefaultAsync(p => p.Email == model.Email);
 
+            // Nếu bệnh nhân chưa tồn tại, tạo mới một đối tượng Patient
             if (patient == null)
             {
                 patient = new Patient
                 {
-                    FullName = model.Name ?? string.Empty, // Fix for CS8601: Ensure non-null assignment
-                    Email = model.Email ?? string.Empty,  // Fix for CS8601: Ensure non-null assignment
-                    Gender = "M"                          // Default value for Gender
+                    FullName = model.Name ?? string.Empty,
+                    Email = model.Email ?? string.Empty,
+                    PhoneNumber = model.PhoneNumber,
+                    IsActive = true,
+                    PasswordHash = ""
                 };
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync(); 
             }
 
+            //Sau đó mới tạo 1 bản ghi cho appointment và add vào DB
             var appointment = new Appointment
             {
-                // Additional code for appointment creation goes here
+                PatientId = patient.PatientId,
+                DoctorId =  model.SelectedDoctorId,
+                SlotId = model.SelectedSlotId,
+                ServiceId = model.SelectedServiceId,
+                Note = model.Note,
+                Date = DateOnly.FromDateTime(model.AppointmentDate ?? DateTime.Now),
+                Status = "Pending"
             };
-
-            return View();
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync(); 
+            return RedirectToAction("Index", "Home");
         }
 
         private async Task<List<SelectListItem>> GetServiceListAsync()

@@ -7,7 +7,7 @@ public partial class Doctor
 {
     public int DoctorId { get; set; }
 
-    public int Email { get; set; }
+    public string Email { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
 
