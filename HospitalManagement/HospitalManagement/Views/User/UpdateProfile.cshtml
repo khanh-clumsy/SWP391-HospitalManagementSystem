@@ -1,93 +1,96 @@
-﻿@{
+﻿@model HospitalManagement.Models.Account
+@{
 	ViewData["Title"] = "Update Profile";
 }
 
 <!DOCTYPE html>
 <html lang="en">
+<head>
+	<!-- Template Stylesheet -->
+	<link href="/css/doctorprofile.css" rel="stylesheet">
+</head>
 
 <body>
-	<!-- Navbar Start -->
-	<nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 wow fadeIn" data-wow-delay="0.1s">
-		<a href="index.html" class="navbar-brand d-flex align-items-center px-4 px-lg-5">
-			<h1 class="m-0 text-primary">
-				<img src="~/img/logo.jpg" style="width: 80px; height: 60px;" />
-				Klinik
-			</h1>
+	<!-- Profile Start -->
+	<div class="container-xxl doctor-profile py-5">
+		<div class="container">
 
-		</a>
-		<button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-		<div class="collapse navbar-collapse" id="navbarCollapse">
-			<div class="navbar-nav ms-auto p-4 p-lg-0">
-				<a href="index.html" class="nav-item nav-link">Home</a>
-				<a href="about.html" class="nav-item nav-link">About</a>
-				<a href="service.html" class="nav-item nav-link">Service</a>
-				<div class="nav-item dropdown">
-					<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Pages</a>
-					<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-						<a href="feature.html" class="dropdown-item">Feature</a>
-						<a href="team.html" class="dropdown-item active">Our Doctor</a>
-						<a href="appointment.html" class="dropdown-item">Appointment</a>
-						<a href="testimonial.html" class="dropdown-item">Testimonial</a>
-						<a href="404.html" class="dropdown-item">404 Page</a>
+			<div class="row mb-4">
+				<div class="col-12">
+					<a asp-controller="Patient" asp-action="ViewDoctors" class="back-to-list">
+						<i class="fas fa-arrow-left"></i>
+						Back to Doctor List
+					</a>
+				</div>
+			</div>
+
+			<div class="row g-4 align-items-stretch">
+				<!-- Image and Upload Buttons -->
+				<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
+					<div class="profile-card text-center">
+
+						<!-- Ảnh hiện tại -->
+						<div class="profile-image">
+							<img src="@(Model.ProfileImagePath != null
+									 ? $"data:image/png;base64,{Model.ProfileImagePath}"
+									 : Url.Content("~/img/logo.jpg"))"
+								 alt="Current Photo" class="shadow mb-2" />
+						</div>
+
+						<!-- Chọn file + nút Upload  -->
+						<div class="profile-buttons">
+							<div class="d-flex gap-2 justify-content-center flex-wrap">
+									<div style="width: 240px; margin-bottom:30px">
+				
+										<form asp-action="UploadPhoto" asp-controller="User" method="post" enctype="multipart/form-data">
+											<input type="file" class="form-control form-control-sm" name="photo" />
+											<button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Upload</button>
+										</form>
+
+
+									</div>
+							</div>
+						</div>
+
+
 					</div>
 				</div>
-				<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
-
-			</div>
-			<a href="" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
-		</div>
-	</nav>
-	<!-- Navbar End -->
 
 
-	<div class="container-login100" style="margin-top: 100px>
+				<!-- Update Information -->
+				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
+					<div class="profile-card">
+						<div class="profile-info">
+							<h2> Update Details</h2>
 
-		<div class="wrap-login100 p-5 bg-white rounded shadow">
-			<div>
-				<h3 class="text-center mb-4">Update Profile</h3>
-			</div>
-			<form>
-				<!-- Ảnh hiện tại -->
-				<div class="mb-3">
-					<label class="form-label fw-bold">Current Photo:</label><br />
-					<img src="~/img/team-1.jpg" alt="Current Photo"
-						 class="shadow mb-2"
-						 style="width: 140px; height: 180px; object-fit: cover;" />
-				</div>
-
-				<!-- Chọn file + nút Upload nhỏ gọn -->
-				<div style="width: 240px; margin-bottom:30px">
-					<div class="mb-2">
-						<label for="photo" class="form-label fw-bold">Upload new photo:</label>
-						<input type="file" class="form-control form-control-sm" id="photo" name="photo" />
+							<form asp-action="UpdateProfile" asp-controller="User" method="post" enctype="multipart/form-data">
+								<div class="form-group">
+									<label>Full Name</label>
+									<input asp-for="FullName" class="form-control" />
+								</div>
+								<div class="form-group">
+									<label>Gender</label>
+									<select asp-for="Gender" class="form-select">
+										<option value="M">Male</option>
+										<option value="F">Female</option>
+										<option value="O">Other</option>
+									</select>
+								</div>
+								<div class="form-group">
+									<label>Phone</label>
+									<input asp-for="PhoneNumber" class="form-control" />
+								</div>
+								<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
+							</form>
+						</div>
 					</div>
-					<button type="submit" class="btn btn-sm btn-primary w-100">Upload</button>
 				</div>
-			</form>
 
 
 
-			<form>
-				<div class="form-group">
-					<label>Full Name</label>
-					<input class="form-control" value="John Doe" />
-				</div>
-				<div class="form-group">
-					<label>Email</label>
-					<input class="form-control" value="john@example.com" />
-				</div>
-				<div class="form-group">
-					<label>Phone</label>
-					<input class="form-control" value="0123456789" />
-				</div>
-				<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
-			</form>
+			</div>
 		</div>
 	</div>
-	<!-- Back to Top -->
-	<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 
 
 	<!-- JavaScript Libraries -->

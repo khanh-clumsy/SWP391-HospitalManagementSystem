@@ -1,50 +1,35 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HospitalManagement.ViewModels
 {
     public class BookingApointment
     {
-        public int SelectedDoctorId { get; set; }
-        public BookingApointment()
-        {
-        }
 
-        public BookingApointment(string name, string email, string phoneNumber, string consultantType, int selectedServiceId, string note, DateTime appointmentDate, string timeSlot)
-        {
-            Name = name;
-            Email = email;
-            PhoneNumber = phoneNumber;
-            ConsultantType = consultantType;
-            SelectedServiceId = selectedServiceId;
-            Note = note;
-            AppointmentDate = appointmentDate;
-            TimeSlot = timeSlot;
-        }
 
-        [Required(ErrorMessage = "Name is required")]
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Email format is invalid")]
+
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Phone number is required")]
         public string PhoneNumber { get; set; }
 
-        [Required(ErrorMessage = "Consultant Type is required")]
-        public string ConsultantType { get; set; }
 
-        [Required(ErrorMessage = "Please select a service")]
-        public int SelectedServiceId { get; set; }
-
-        [Required(ErrorMessage = "Appointment date is required")]
-        [DataType(DataType.Date)]
-        [CustomValidation(typeof(BookingApointment), nameof(ValidateAppointmentDate))]
         public DateTime AppointmentDate { get; set; }
 
-        [Required(ErrorMessage = "Please select a time slot")]
-        public string TimeSlot { get; set; }
+
+        public int SelectedDoctorId { get; set; }
+
+        [BindNever]
+        public List<SelectListItem> DoctorOptions { get; set; }
+
+        public int SelectedSlotId { get; set; }
+
+        [BindNever]
+        public List<SelectListItem> SlotOptions { get; set; }
+        public int SelectedServiceId { get; set; }
 
         public string Note { get; set; }
 

@@ -58,4 +58,17 @@ wwwroot/lib/
 
 ## Temp files
 ~$*
+*~~$*
 *~
+HospitalManagement/HospitalManagement/appsettings.json
+/HospitalManagement/HospitalManagement/obj
+/HospitalManagement/HospitalManagement/obj
+HospitalManagement/HospitalManagement/obj/Release/net8.0/HospitalManagement.AssemblyInfoInputs.cache
+HospitalManagement/HospitalManagement/obj/Release/net8.0/HospitalManagement.GeneratedMSBuildEditorConfig.editorconfig
+HospitalManagement/HospitalManagement/obj/Release/net8.0/HospitalManagement.AssemblyInfoInputs.cache
+HospitalManagement/HospitalManagement/obj/Release/net8.0/HospitalManagement.AssemblyInfo.cs
+HospitalManagement/HospitalManagement/obj/Debug/net8.0/HospitalManagement.GeneratedMSBuildEditorConfig.editorconfig
+HospitalManagement/HospitalManagement/obj/Debug/net8.0/HospitalManagement.AssemblyInfoInputs.cache
+HospitalManagement/HospitalManagement/obj/Debug/net8.0/HospitalManagement.AssemblyInfo.cs
+*.cache
+
