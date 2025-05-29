@@ -18,7 +18,7 @@ namespace HospitalManagement.Repositories
 
             if (!string.IsNullOrEmpty(name))
             {
-                query = query.Where(d => d.Account.FullName.Contains(name));
+                query = query.Where(d => d.FullName.Contains(name));
             }
             if (!string.IsNullOrEmpty(department))
             {
@@ -38,12 +38,12 @@ namespace HospitalManagement.Repositories
 
         public async Task<IEnumerable<Doctor>> GetAllAsync()
         {
-            return await _context.Doctors.Include(d => d.Account).ToListAsync();
+            return await _context.Doctors.Include(d => d).ToListAsync();
         }
 
         public async Task<Doctor?> GetByIdAsync(int id)
         {
-            return await _context.Doctors.Include(d => d.Account).FirstOrDefaultAsync(d => d.DoctorId == id);
+            return await _context.Doctors.Include(d => d).FirstOrDefaultAsync(d => d.DoctorId == id);
         }
 
         public async Task<IEnumerable<string?>> GetDistinctDepartment()
@@ -56,11 +56,11 @@ namespace HospitalManagement.Repositories
 
         public async Task<IEnumerable<Doctor>> SearchAsync(string? name, string? department, int? exp, bool? isHead, string? sort, int page, int pageSize)
         {
-            var query = _context.Doctors.Include(d => d.Account).AsQueryable();
+            var query = _context.Doctors.Include(d => d).AsQueryable();
 
             if (!string.IsNullOrEmpty(name))
             {
-                query = query.Where(d => d.Account.FullName.Contains(name));
+                query = query.Where(d => d.FullName.Contains(name));
             }
             if (!string.IsNullOrEmpty(department))
             {

@@ -81,16 +81,16 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            var user = JsonConvert.DeserializeObject<Account>(userJson);
-            if (user == null)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
+            //var user = JsonConvert.DeserializeObject<Account>(userJson);
+            //if (user == null)
+            //{
+            //    return RedirectToAction("Login", "Auth");
+            //}
             var doctors = await _context.Doctors
            .Select(d => new SelectListItem
            {
                Value = d.DoctorId.ToString(),
-               Text = d.Account.FullName
+               Text = d.FullName
            })
            .ToListAsync();
 
@@ -104,17 +104,18 @@ namespace HospitalManagement.Controllers
                 .ToListAsync();
 
 
-            var model = new BookingApointment
-            {
-                Name = user.FullName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                DoctorOptions = doctors,
-                SlotOptions = slots,
-                AppointmentDate = DateTime.Today,
-                SelectedDoctorId = doctorId ?? 0  
-            };
-            return View(model);
+            //var model = new BookingApointment
+            //{
+            //    Name = user.FullName,
+            //    Email = user.Email,
+            //    PhoneNumber = user.PhoneNumber,
+            //    DoctorOptions = doctors,
+            //    SlotOptions = slots,
+            //    AppointmentDate = DateTime.Today,
+            //    SelectedDoctorId = doctorId ?? 0  
+            //};
+            //return View(model);
+            return View();
         }
 
         [HttpPost]
@@ -136,7 +137,7 @@ namespace HospitalManagement.Controllers
                     .Select(d => new SelectListItem
                     {
                         Value = d.DoctorId.ToString(),
-                        Text = d.Account.FullName
+                        Text = d.FullName
                     })
                     .ToListAsync();
 
@@ -161,22 +162,23 @@ namespace HospitalManagement.Controllers
             //    return RedirectToAction("Login", "Auth");
             //}
 
-            var patient = _context.Patients.FirstOrDefault(p => p.PatientId == user.PatientId);
+            //var patient = _context.Patients.FirstOrDefault(p => p.PatientId == user.PatientId);
 
-            var appointment = new Appointment
-            {
-                PatientId = patient.PatientId,
-                DoctorId = model.SelectedDoctorId,
-                Note = model.Note,
-                SlotId = model.SelectedSlotId,
-                ServiceId = model.SelectedServiceId,
-                Date = DateOnly.FromDateTime(model.AppointmentDate),
-                Status = "Pending",
-            };
+            //var appointment = new Appointment
+            //{
+            //    PatientId = patient.PatientId,
+            //    DoctorId = model.SelectedDoctorId,
+            //    Note = model.Note,
+            //    SlotId = model.SelectedSlotId,
+            //    ServiceId = model.SelectedServiceId,
+            //    Date = DateOnly.FromDateTime(model.AppointmentDate),
+            //    Status = "Pending",
+            //};
 
-            _context.Appointments.Add(appointment);
-            _context.SaveChanges();
-            return RedirectToAction("ViewBookingAppointment");
+            //_context.Appointments.Add(appointment);
+            //_context.SaveChanges();
+            //return RedirectToAction("ViewBookingAppointment");
+            return View();
         }
 
         public IActionResult ViewBookingAppointment(string searchName, string timeFilter, DateTime? dateFilter, string statusFilter)
