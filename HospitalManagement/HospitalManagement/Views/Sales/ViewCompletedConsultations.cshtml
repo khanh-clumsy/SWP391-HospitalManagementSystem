@@ -26,11 +26,11 @@
 		<!-- Filter Form -->
 		<form method="get" asp-action="AppointmentList" class="d-flex flex-wrap gap-3 align-items-center mb-4">
 			<div class="input-group" style="width: 250px;">
-				<input type="text" name="searchName" class="form-control" placeholder="Search by patient name" />
+				<input type="text" name="SearchName" class="form-control" placeholder="Search by patient name" />
 				<span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
 			</div>
 
-			<select name="timeFilter" class="form-select" style="width: 150px;">
+			<select name="TimeFilter" class="form-select" style="width: 150px;">
 				<option value="">Time</option>
 				@for (var time = startTime; time <= endTime; time += slotDuration)
 				{
@@ -41,7 +41,7 @@
 
 			<input type="date" name="dateFilter" class="form-control" style="width: 180px;" />
 
-			<select name="statusFilter" class="form-select" style="width: 150px;">
+			<select name="StatusFilter" class="form-select" style="width: 150px;">
 				<option value="">All Status</option>
 				<option value="Confirmed">Accepted</option>
 				<option value="Pending">Pending</option>
@@ -56,8 +56,8 @@
 			<table class="table table-bordered text-center">
 				<thead class="table-light">
 					<tr>
-						<th>ID</th>
-						<th>Name</th>
+						<th>Appointment ID</th>
+						<th>Patient Name</th>
 						<th>Email</th>
 						<th>Phone Number</th>
 						<th>Description</th>
@@ -66,7 +66,6 @@
 						<th>Day</th>
 						<th>Start Time</th>
 						<th>End Time</th>
-						<th>Action</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -82,27 +81,9 @@
 								<td>@item.Note</td>
 								<th>@item.Doctor.FullName</th>
 								<th>@item.Doctor.DepartmentName</th>
-								<td>@item.Date</td>
+								<td>@item.Date.ToString("dd/MM/yyyy")</td>
 								<td>@item.Slot.StartTime.ToString("hh\\:mm")</td>
 								<td>@item.Slot.EndTime.ToString("hh\\:mm")</td>
-								<td>
-									@if (item.Status == "Pending")
-									{
-										<span class="badge bg-warning text-dark">Pending</span>
-									}
-									else if (item.Status == "Accepted")
-									{
-										<span class="badge bg-success">Accepted</span>
-									}
-									else if (item.Status == "Rejected")
-									{
-										<span class="badge bg-danger">Rejected</span>
-									}
-									else
-									{
-										<span class="badge bg-secondary">@item.Status</span>
-									}
-								</td>
 							</tr>
 						}
 					}

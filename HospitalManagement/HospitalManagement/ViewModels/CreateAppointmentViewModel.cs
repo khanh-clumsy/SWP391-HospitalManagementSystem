@@ -18,7 +18,7 @@ public class CreateAppointmentViewModel
 
     [Required(ErrorMessage = "Appointment date is required.")]
     [DataType(DataType.Date)]
-    public DateTime? AppointmentDate { get; set; }
+    public DateOnly AppointmentDate { get; set; }
 
     [Required(ErrorMessage = "Please select a doctor.")]
     public int SelectedDoctorId { get; set; }

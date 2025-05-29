@@ -25,6 +25,7 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
+        // Hiển thị trang tạo lịch hẹn, lấy các danh sách bác sĩ, slot và dịch vụ để hiển thị trong form
         [HttpGet]
         public async Task<IActionResult> CreateAppointment()
         {
@@ -41,11 +42,11 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> CreateAppointment(CreateAppointmentViewModel model)
         {
             //Nếu không hợp lệ thì trả về View với các options luôn
+            model.DoctorOptions = await GetDoctorListAsync();
+            model.SlotOptions = await GetSlotListAsync();
+            model.ServiceOptions = await GetServiceListAsync();
             if (!ModelState.IsValid)
             {
-                model.DoctorOptions = await GetDoctorListAsync();
-                model.SlotOptions = await GetSlotListAsync();
-                model.ServiceOptions = await GetServiceListAsync();
                 return View(model);
             }
 
@@ -66,38 +67,46 @@ namespace HospitalManagement.Controllers
                 var fixedPassword = "A12345678";
                 patient.PasswordHash = _passwordHasher.HashPassword(patient, fixedPassword);
                 _context.Patients.Add(patient);
-                await _context.SaveChangesAsync(); 
+                await _context.SaveChangesAsync();
             }
+            var isExistedAppointment = await _context.Appointments
+            .AnyAsync(a => a.Date == model.AppointmentDate && a.PatientId == patient.PatientId);
 
+            if (isExistedAppointment)
+            {
+                ViewBag.ErrorMessage = "Không thể tạo cuộc hẹn mới trong cùng 1 ngày!.";
+                return View(model);
+            }
             //Sau đó mới tạo 1 bản ghi cho appointment và add vào DB
-            var appointment = new Appointment
+            var newAppointment = new Appointment
             {
                 PatientId = patient.PatientId,
-                DoctorId =  model.SelectedDoctorId,
+                DoctorId = model.SelectedDoctorId,
                 SlotId = model.SelectedSlotId,
                 ServiceId = model.SelectedServiceId,
                 Note = model.Note,
-                Date = DateOnly.FromDateTime(model.AppointmentDate ?? DateTime.Now),
+                Date = model.AppointmentDate,
                 Status = "Pending"
             };
-            _context.Appointments.Add(appointment);
-            await _context.SaveChangesAsync(); 
-            return RedirectToAction("Index", "Home");
+            _context.Appointments.Add(newAppointment);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("ViewCompletedConsultations", "Sales");
         }
 
+        //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()
         {
             return await _context.Services
                 .Select(s => new SelectListItem
                 {
                     Value = s.ServiceId.ToString(),
-                    Text = $"{s.ServiceType} - {s.ServicePrice.ToString("0")}k" 
+                    Text = $"{s.ServiceType} - {s.ServicePrice.ToString("0")}k"
                 })
                 .ToListAsync();
         }
 
 
-
+        //Lấy slot cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetSlotListAsync()
         {
             return await _context.Slots
@@ -109,7 +118,7 @@ namespace HospitalManagement.Controllers
                 .ToListAsync();
         }
 
-
+        //Lấy doctor cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetDoctorListAsync()
         {
             return await _context.Doctors
@@ -121,5 +130,18 @@ namespace HospitalManagement.Controllers
                                 })
                                 .ToListAsync();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewCompletedConsultations()
+        {
+            var appointments = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .Include(a => a.Slot)
+                .Include(a => a.Service)
+                .ToListAsync();
+            return View(appointments);
+        }
+
     }
 }
