@@ -4,6 +4,8 @@ using HospitalManagement.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using HospitalManagement.Services;
+using HospitalManagement.Models;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
@@ -62,6 +64,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
 var app = builder.Build();
 

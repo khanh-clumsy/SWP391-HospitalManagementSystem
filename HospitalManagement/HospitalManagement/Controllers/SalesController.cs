@@ -62,8 +62,9 @@ namespace HospitalManagement.Controllers
                     Email = model.Email ?? string.Empty,
                     PhoneNumber = model.PhoneNumber,
                     IsActive = true,
-                    PasswordHash = ""
                 };
+                var fixedPassword = "A12345678";
+                patient.PasswordHash = _passwordHasher.HashPassword(patient, fixedPassword);
                 _context.Patients.Add(patient);
                 await _context.SaveChangesAsync(); 
             }
