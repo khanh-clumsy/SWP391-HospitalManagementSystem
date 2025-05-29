@@ -13,9 +13,9 @@ public partial class Medicine
 
     public decimal Price { get; set; }
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 
-    public string? Unit { get; set; }
+    public string Unit { get; set; } = null!;
 
     public virtual ICollection<MedicineList> MedicineLists { get; set; } = new List<MedicineList>();
 }

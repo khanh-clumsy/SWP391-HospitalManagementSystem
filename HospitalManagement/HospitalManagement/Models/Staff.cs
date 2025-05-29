@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace HospitalManagement.Models;
 
-public partial class Doctor
+public partial class Staff
 {
-    public int DoctorId { get; set; }
+    public int StaffId { get; set; }
 
-    public int Email { get; set; }
+    public string Email { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
 
@@ -15,23 +15,13 @@ public partial class Doctor
 
     public string? PhoneNumber { get; set; }
 
-    public string DepartmentName { get; set; } = null!;
-
-    public bool IsDepartmentHead { get; set; }
-
-    public int ExperienceYear { get; set; }
-
-    public string? Degree { get; set; }
-
     public bool IsActive { get; set; }
 
-    public bool IsSpecial { get; set; }
+    public string RoleName { get; set; } = null!;
 
     public string? Gender { get; set; }
 
     public string? ProfileImage { get; set; }
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
-
-    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 }

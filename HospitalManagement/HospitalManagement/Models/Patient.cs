@@ -7,9 +7,13 @@ public partial class Patient
 {
     public int PatientId { get; set; }
 
-    public int AccountId { get; set; }
+    public string Email { get; set; } = null!;
 
-    public DateOnly? Dob { get; set; }
+    public string PasswordHash { get; set; } = null!;
+
+    public int? PhoneNumber { get; set; }
+
+    public DateTime? Dob { get; set; }
 
     public string? Address { get; set; }
 
@@ -17,11 +21,15 @@ public partial class Patient
 
     public string? BloodGroup { get; set; }
 
-    public virtual Account Account { get; set; } = null!;
+    public string FullName { get; set; } = null!;
+
+    public bool IsActive { get; set; }
+
+    public string? Gender { get; set; }
+
+    public string? ProfileImage { get; set; }
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
-
-    public virtual ICollection<Consultant> Consultants { get; set; } = new List<Consultant>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
 }
