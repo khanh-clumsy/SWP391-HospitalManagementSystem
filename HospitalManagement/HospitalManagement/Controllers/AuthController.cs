@@ -73,8 +73,7 @@ namespace HospitalManagement.Controllers
 
             // Đăng nhập thành công
             TempData["success"] = "Login successful!";
-
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -153,18 +152,29 @@ namespace HospitalManagement.Controllers
                 RoleName = "Patient",
                 IsActive = true
             };
-
             _context.Accounts.Add(account);
+            await _context.SaveChangesAsync();
+
+            var patient = new Patient
+            {
+                AccountId = account.AccountId
+            };
+
+            _context.Patients.Add(patient);
             await _context.SaveChangesAsync();
 
             HttpContext.Session.Remove("PendingRegister");
             HttpContext.Session.Remove("VerificationCode");
 
-            var accJson = JsonConvert.SerializeObject(account);
+            var accJson = JsonConvert.SerializeObject(account, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
             HttpContext.Session.SetString("UserSession", accJson);
 
+
             TempData["success"] = "Register successful!";
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
         public async Task LoginGoogle()
         {
@@ -193,6 +203,13 @@ namespace HospitalManagement.Controllers
             };
 
             _context.Accounts.Add(account);
+            await _context.SaveChangesAsync();
+            var patient = new Patient
+            {
+                AccountId = account.AccountId
+            };
+
+            _context.Patients.Add(patient);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -241,11 +258,14 @@ namespace HospitalManagement.Controllers
 
             }
             // Lưu session sau khi đăng nhập
-            var userJson = JsonConvert.SerializeObject(user);
+            var userJson = JsonConvert.SerializeObject(user, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
             HttpContext.Session.SetString("UserSession", userJson);
 
             TempData["success"] = "Login successful!";
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -273,8 +293,8 @@ namespace HospitalManagement.Controllers
             var resetLink = Url.Action("ResetPassword", "Auth", new { token = token }, Request.Scheme);
             string subject = "Đặt lại mật khẩu";
             string body = $"<p>Nhấn vào liên kết để đặt lại mật khẩu:</p><a href='{resetLink}'>{resetLink}</a>";
-            await _emailService.SendEmailAsync(email, subject, body);
 
+            Console.WriteLine(await _emailService.SendEmailAsync(email, subject, body));
             TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
             return RedirectToAction("Login");
         }
@@ -301,12 +321,12 @@ namespace HospitalManagement.Controllers
             var reset = await _context.PasswordResets.FirstOrDefaultAsync(x => x.Token == token && x.ExpireAt > DateTime.Now);
             if (reset == null)
             {
-                TempData["error"] = "Token is invalid or expired."+token+" "+DateTime.Now;
-             
+                TempData["error"] = "Token is invalid or expired." + token + " " + DateTime.Now;
+
                 return RedirectToAction("ForgotPassword");
             }
 
-            if(model.NewPassword == null || model.NewPassword != model.ConfirmPassword)
+            if (model.NewPassword == null || model.NewPassword != model.ConfirmPassword)
             {
                 TempData["error"] = "Two password is not match";
 
@@ -329,9 +349,8 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.SetString("UserSession", userJson);
 
             TempData["success"] = "Đổi mật khẩu thành công.";
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
-
 
     }
 }

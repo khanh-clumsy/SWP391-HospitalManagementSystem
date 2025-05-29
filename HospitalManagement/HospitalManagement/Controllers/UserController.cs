@@ -185,7 +185,7 @@ namespace HospitalManagement.Controllers
             TempData["success"] = "Logout successful!";
 
             // Chuyển hướng đến trang danh sách bác sĩ
-            return RedirectToAction("ViewDoctors", "Patient");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

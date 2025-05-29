@@ -92,7 +92,12 @@
             }
         }
     });
+    //check date
+    $(document).ready(function () {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        $(".appointmentDate").attr('min', tomorrow.toISOString().split("T")[0]);
+    });
 
-    
 })(jQuery);
 
