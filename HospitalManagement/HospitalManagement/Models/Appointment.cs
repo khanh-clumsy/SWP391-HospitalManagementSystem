@@ -13,6 +13,8 @@ public partial class Appointment
 
     public int ServiceId { get; set; }
 
+    public int? StaffId { get; set; }
+
     public int SlotId { get; set; }
 
     public DateOnly Date { get; set; }
@@ -23,7 +25,7 @@ public partial class Appointment
 
     public string? PaymentMethod { get; set; }
 
-    public int? PaymentStatus { get; set; }
+    public string? PaymentStatus { get; set; }
 
     public string? TransactionCode { get; set; }
 
@@ -35,7 +37,7 @@ public partial class Appointment
 
     public string? Note { get; set; }
 
-    public DateTime RecordCreatedAt { get; set; }
+    public DateTime? RecordCreatedAt { get; set; }
 
     public virtual Doctor Doctor { get; set; } = null!;
 
@@ -46,6 +48,8 @@ public partial class Appointment
     public virtual Service Service { get; set; } = null!;
 
     public virtual Slot Slot { get; set; } = null!;
+
+    public virtual Staff? Staff { get; set; }
 
     public virtual ICollection<TestList> TestLists { get; set; } = new List<TestList>();
 

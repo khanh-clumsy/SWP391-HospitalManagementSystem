@@ -1,4 +1,4 @@
-﻿@model HospitalManagement.Models.Account
+﻿@model HospitalManagement.Models.Doctor
 @{
 	ViewData["Title"] = "Update Profile";
 }
@@ -17,9 +17,9 @@
 
 			<div class="row mb-4">
 				<div class="col-12">
-					<a asp-controller="Patient" asp-action="ViewDoctors" class="back-to-list">
+					<a asp-controller="Home" asp-action="Index" class="back-to-list">
 						<i class="fas fa-arrow-left"></i>
-						Back to Doctor List
+						Back to Home Page
 					</a>
 				</div>
 			</div>
@@ -31,31 +31,29 @@
 
 						<!-- Ảnh hiện tại -->
 						<div class="profile-image">
-							<img src="@(Model.ProfileImagePath != null
-									 ? $"data:image/png;base64,{Model.ProfileImagePath}"
+							<img src="@(Model.ProfileImage != null
+									 ? $"data:image/png;base64,{Model.ProfileImage}"
 									 : Url.Content("~/img/logo.jpg"))"
 								 alt="Current Photo" class="shadow mb-2" />
 						</div>
+						@Html.ValidationMessage("photo", "", new { @class = "text-danger" })
 
 						<!-- Chọn file + nút Upload  -->
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
-									<div style="width: 240px; margin-bottom:30px">
-				
-										<form asp-action="UploadPhoto" asp-controller="User" method="post" enctype="multipart/form-data">
-											<input type="file" class="form-control form-control-sm" name="photo" />
-											<button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Upload</button>
-										</form>
+								<div style="width: 240px; margin-bottom:30px">
 
+									<form id="photoForm" asp-action="UploadPhoto" asp-controller="Doctor" method="post" enctype="multipart/form-data">
+										<input type="file" class="form-control form-control-sm" id="photoInput" name="photo" accept=".jpg,.jpeg,.png,.gif" />
+										<button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Upload</button>
+									</form>
 
-									</div>
+								</div>
 							</div>
 						</div>
 
-
 					</div>
 				</div>
-
 
 				<!-- Update Information -->
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
@@ -63,7 +61,7 @@
 						<div class="profile-info">
 							<h2> Update Details</h2>
 
-							<form asp-action="UpdateProfile" asp-controller="User" method="post" enctype="multipart/form-data">
+							<form asp-action="UpdateProfile" asp-controller="Doctor" method="post">
 								<div class="form-group">
 									<label>Full Name</label>
 									<input asp-for="FullName" class="form-control" />
@@ -86,12 +84,9 @@
 					</div>
 				</div>
 
-
-
 			</div>
 		</div>
 	</div>
-
 
 	<!-- JavaScript Libraries -->
 	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -107,6 +102,33 @@
 
 	<!-- Template Javascript -->
 	<script src="/js/main.js"></script>
-</body>
 
+	<script>
+		// validate photo upload
+		document.getElementById('photoForm').addEventListener('submit', function (e) {
+			const input = document.getElementById('photoInput');
+			const file = input.files[0];
+			const maxSize = 6 * 1024 * 1024; // 6MB
+			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+
+			if (!file) return; // file null
+
+			let errors = [];
+
+			if (!allowedTypes.includes(file.type)) {
+				errors.push("Ảnh phải là .jpg, .jpeg, .png hoặc .gif.");
+			}
+
+			if (file.size > maxSize) {
+				errors.push("Dung lượng ảnh không được vượt quá 6MB.");
+			}
+
+			if (errors.length > 0) {
+				e.preventDefault();
+				alert(errors.join('\n'));
+			}
+		});
+	</script>
+
+</body>
 </html>

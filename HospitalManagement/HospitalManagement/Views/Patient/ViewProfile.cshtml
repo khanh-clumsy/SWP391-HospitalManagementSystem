@@ -1,4 +1,4 @@
-﻿@model HospitalManagement.Models.Account
+﻿@model HospitalManagement.Models.Patient
 @{
 	ViewData["Title"] = "View Profile";
 }
@@ -18,9 +18,9 @@
 
 			<div class="row mb-4">
 				<div class="col-12">
-					<a asp-controller="Patient" asp-action="ViewDoctors" class="back-to-list">
+					<a asp-controller="Home" asp-action="Index" class="back-to-list">
 						<i class="fas fa-arrow-left"></i>
-						Back to Doctor List
+						Back to Home Page
 					</a>
 				</div>
 			</div>
@@ -31,16 +31,16 @@
 					<div class="profile-card text-center">
 						<!-- Ảnh hiện tại -->
 						<div class="profile-image">
-							<img src="@(Model.ProfileImagePath != null
-									 ? $"data:image/png;base64,{Model.ProfileImagePath}"
+							<img src="@(Model.ProfileImage != null
+									 ? $"data:image/png;base64,{Model.ProfileImage}"
 									 : Url.Content("~/img/logo.jpg"))"
 								 alt="Current Photo" class="shadow mb-2" />
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
-								<a class="btn btn-primary flex-fill text-center" asp-controller="User" asp-action="UpdateProfile">Update Profile</a>
-								<a class="btn btn-primary flex-fill text-center" asp-controller="User" asp-action="ChangePassword">Change Password</a>
-								<a class="btn btn-outline-primary flex-fill text-center" asp-controller="User" asp-action="Logout">Logout</a>
+								<a class="btn btn-primary flex-fill text-center" asp-controller="Patient" asp-action="UpdateProfile">Update Profile</a>
+								<a class="btn btn-primary flex-fill text-center" asp-controller="Patient" asp-action="ChangePassword">Change Password</a>
+								<a class="btn btn-outline-primary flex-fill text-center" asp-controller="Patient" asp-action="Logout">Logout</a>
 							</div>
 						</div>
 
@@ -69,7 +69,8 @@
 								</div>
 								<div class="info-content">
 									<h5>Gender</h5>
-									@if(Model.Gender[0]=='M'){
+									@if (Model.Gender[0] == 'M')
+									{
 										<p>Male</p>
 									}
 									else if (Model.Gender[0] == 'F')
@@ -86,16 +87,6 @@
 
 							<div class="info-item">
 								<div class="info-icon">
-									<i class="fas fa-envelope"></i>
-								</div>
-								<div class="info-content">
-									<h5>Email</h5>
-									<p>@Model.Email</p>
-								</div>
-							</div>
-
-							<div class="info-item">
-								<div class="info-icon">
 									<i class="fas fa-phone"></i>
 								</div>
 								<div class="info-content">
@@ -103,6 +94,56 @@
 									<p>@Model.PhoneNumber</p>
 								</div>
 							</div>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-calendar-alt"></i>
+								</div>
+								<div class="info-content">
+									<h5>Date of Birth</h5>
+									<p>@Model.Dob?.ToString("dd/MM/yyyy")</p>
+								</div>
+							</div>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-map-marker-alt"></i>
+								</div>
+								<div class="info-content">
+									<h5>Address</h5>
+									<p>@Model.Address</p>
+								</div>
+							</div>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-id-card"></i>
+								</div>
+								<div class="info-content">
+									<h5>Health Insurance</h5>
+									<p>@Model.HealthInsurance</p>
+								</div>
+							</div>
+
+							<div class="info-item">
+								<div class="info-icon">
+									<i class="fas fa-tint"></i>
+								</div>
+								<div class="info-content">
+									<h5>Blood Group</h5>
+									<p>@Model.BloodGroup</p>
+								</div>
+							</div>
+
+							@* <div class="info-item"> *@
+							@* 	<div class="info-icon"> *@
+							@* 		<i class="fas fa-check-circle"></i> *@
+							@* 	</div> *@
+							@* 	<div class="info-content"> *@
+							@* 		<h5>Status</h5> *@
+							@* 		<p>@(Model.IsActive ? "Active" : "Inactive")</p> *@
+							@* 	</div> *@
+							@* </div> *@
 
 						</div>
 					</div>

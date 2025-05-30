@@ -98,9 +98,9 @@
 							{
 								<tr>
 									<td>@item.ConsultantId</td>
-									<td>@item.Patient?.Account?.FullName</td>
-									<td>@item.Patient?.Account?.Email</td>
-									<td>@item.Patient?.Account?.PhoneNumber</td>
+									<td>@item.Patient?.FullName</td>
+									<td>@item.Patient?.Email</td>
+									<td>@item.Patient?.PhoneNumber</td>
 									<td>
 										@(item.RequestedPersonType == "doctor" ? "Doctor" :
 																	item.RequestedPersonType == "department_head" ? "Department Head" :
@@ -109,7 +109,7 @@
 									<td>@item.Service?.ServiceType</td>
 									<td>@item.RequestedDate</td>
 									<td>@item.Description</td>
-									<td>@item.Doctor?.Account?.FullName</td>
+									<td>@item.Doctor?.FullName</td>
 									<td>@item.Status</td>
 									<td>
 										@if (item.Status == "Pending")

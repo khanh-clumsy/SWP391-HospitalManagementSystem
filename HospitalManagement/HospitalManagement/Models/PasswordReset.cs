@@ -5,11 +5,11 @@ namespace HospitalManagement.Models;
 
 public partial class PasswordReset
 {
-    public int Id { get; set; }
+    public int? Id { get; set; }
 
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; }
 
-    public string Token { get; set; } = null!;
+    public string? Token { get; set; }
 
-    public DateTime ExpireAt { get; set; }
+    public DateTime? ExpireAt { get; set; }
 }

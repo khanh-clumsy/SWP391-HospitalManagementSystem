@@ -13,7 +13,7 @@ public partial class Feedback
 
     public int Rating { get; set; }
 
-    public string? Comment { get; set; }
+    public string Comment { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
 

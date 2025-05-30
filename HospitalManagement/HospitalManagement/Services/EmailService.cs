@@ -8,9 +8,8 @@ namespace HospitalManagement.Services
 {
     public class EmailService
     {
-        private readonly string _emailFrom = "phamgiakhanh0709@gmail.com";
-        private readonly string _emailPassword = "ktml psaf hxlj oxjz";
-
+        private readonly string _emailFrom = "kdodjeksdkkd@gmail.com";
+        private readonly string _emailPassword = "oeew lwvb hesu cfis";
         public async Task<bool> SendEmailAsync(string toEmail, string subject, string body)
         {
             try

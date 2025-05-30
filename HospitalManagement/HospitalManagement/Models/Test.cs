@@ -11,7 +11,7 @@ public partial class Test
 
     public decimal Price { get; set; }
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 
     public virtual ICollection<TestList> TestLists { get; set; } = new List<TestList>();
 }

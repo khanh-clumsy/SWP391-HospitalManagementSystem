@@ -15,6 +15,8 @@ using System.Security.Claims;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using HospitalManagement.Services;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Org.BouncyCastle.Crypto.Generators;
 
 namespace HospitalManagement.Controllers
 {
@@ -23,7 +25,8 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            return View();
+            var model = new ViewModels.Login();
+            return View(model);
         }
         [HttpGet]
 
@@ -38,22 +41,37 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult DoctorRegister()
+        {
+            return View();
+        }
+
         private readonly HospitalManagementContext _context;
-        private readonly PasswordHasher<Account> _passwordHasher;
+        private readonly PasswordHasher<Patient> _passwordHasher;
         private readonly EmailService _emailService;
 
         public AuthController(HospitalManagementContext context, EmailService emailService)
         {
             _context = context;
-            _passwordHasher = new PasswordHasher<Account>();
+            _passwordHasher = new PasswordHasher<Patient>();
             _emailService = emailService;
 
         }
 
 
+
+
         [HttpPost]
         public async Task<IActionResult> Login(ViewModels.Login LogInfo)
         {
+            //check role pick
+            if (LogInfo.Role == "Staff")
+            {
+                TempData["error"] = "Hải chưa làm phần này T.T";
+                return View(LogInfo);
+            }
+
             if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))
             {
                 TempData["error"] = "Please enter Email and password.";
@@ -61,32 +79,49 @@ namespace HospitalManagement.Controllers
                 return View(LogInfo);
             }
 
-            var user = _context.Accounts.SingleOrDefault(u => u.Email == LogInfo.Email);
-            if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+            if(LogInfo.Role == "Patient")
             {
-                TempData["error"] = "Email or password is invalid.";
+                var user = _context.Patients.SingleOrDefault(u => u.Email == LogInfo.Email);
+                if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+                {
+                    TempData["error"] = "Email or password is invalid.";
 
-                return View(LogInfo);
+                    return View(LogInfo);
+                }
+                var userJson = JsonConvert.SerializeObject(user);
+                HttpContext.Session.SetString("PatientSession", userJson);
+
+                // Đăng nhập thành công
+                TempData["success"] = "Login successful!";
+                return RedirectToAction("Index", "Home");
             }
-            var userJson = JsonConvert.SerializeObject(user); // convert Account object to JSON string
-            HttpContext.Session.SetString("UserSession", userJson);
+            else // Doctor
+            {
+                var user = _context.Doctors.SingleOrDefault(u => u.Email == LogInfo.Email);
+                PasswordHasher<Doctor>  localHasher = new PasswordHasher<Doctor>();
+                if (user == null || localHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+                {
+                    TempData["error"] = "Email or password is invalid.";
+                    return View(LogInfo);
+                }
+                var userJson = JsonConvert.SerializeObject(user);
+                HttpContext.Session.SetString("DoctorSession", userJson);
 
-            // Đăng nhập thành công
-            TempData["success"] = "Login successful!";
-            return RedirectToAction("Index", "Home");
+                // Đăng nhập thành công
+                TempData["success"] = "Doctor Login successful!";
+                return RedirectToAction("Index", "Home");
+            }
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> Register(ViewModels.Register model)
         {
-            if (!ModelState.IsValid)
-            {
-                TempData["error"] = "Invalid data";
 
-                return View(model); // trả về cùng model để hiện lỗi
-            }
 
-            var existingAccount = await _context.Accounts.FirstOrDefaultAsync(a => a.Email == model.Email);
+            // check if mail is used
+            var existingAccount = await _context.Patients.FirstOrDefaultAsync(a => a.Email == model.Email);
             if (existingAccount != null)
             {
 
@@ -95,19 +130,55 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            // 1. Tạo mã xác minh
+            //check phone valid
+
+            // check if phone start with 0 and 9 digits back
+            if (model.PhoneNumber == null)
+            {
+                TempData["error"] = "Phone number is invalid.";
+                return View(model);
+            }
+
+            if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
+            {
+                TempData["error"] = "Phone number is invalid.";
+                return View(model);
+            }
+
+            // check if phone is non-number
+            foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
+                {
+                    TempData["error"] = "Phone number is invalid.";
+                    return View(model);
+                }
+
+            // check phone is used(not this user)
+            var phoneOwner = _context.Patients.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+
+            if (phoneOwner != null)
+            {
+                TempData["error"] = "This phone number was used before.";
+                return View(model);
+            }
+
+            // not check confirm password, valid in View
+
+
+            // 1. gen random code 6 digit
             string code = new Random().Next(100000, 999999).ToString();
 
-            // 2. Gửi email
+            // 2. send email
             await SendVerificationEmail(model.Email, code);
 
-            // 3. Lưu thông tin đăng ký tạm thời + mã vào session
+            // 3. put temp model and code into session
             HttpContext.Session.SetString("PendingRegister", JsonConvert.SerializeObject(model));
             HttpContext.Session.SetString("VerificationCode", code);
 
-            // 4. Chuyển sang trang nhập mã xác minh
+            // 4. move to verify code page
             return RedirectToAction("VerifyCode", new { email = model.Email });
         }
+
+
         private async Task<bool> SendVerificationEmail(string toEmail, string code)
         {
             string subject = "Your verification code";
@@ -116,11 +187,13 @@ namespace HospitalManagement.Controllers
             return await _emailService.SendEmailAsync(toEmail, subject, body);
         }
 
+
         [HttpGet]
         public IActionResult VerifyCode(string email)
         {
             return View(new VerifyCodeModel { Email = email });
         }
+
 
         [HttpPost]
         public async Task<IActionResult> VerifyCode(VerifyCodeModel model)
@@ -142,22 +215,14 @@ namespace HospitalManagement.Controllers
 
             var registerModel = JsonConvert.DeserializeObject<ViewModels.Register>(registerData);
 
-            var account = new Account
+            var patient = new Patient
             {
                 Email = registerModel.Email,
                 PasswordHash = _passwordHasher.HashPassword(null, registerModel.Password),
                 FullName = registerModel.FullName,
                 PhoneNumber = registerModel.PhoneNumber,
                 Gender = registerModel.Gender,
-                RoleName = "Patient",
                 IsActive = true
-            };
-            _context.Accounts.Add(account);
-            await _context.SaveChangesAsync();
-
-            var patient = new Patient
-            {
-                AccountId = account.AccountId
             };
 
             _context.Patients.Add(patient);
@@ -166,54 +231,61 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.Remove("PendingRegister");
             HttpContext.Session.Remove("VerificationCode");
 
-            var accJson = JsonConvert.SerializeObject(account, new JsonSerializerSettings
+            var accJson = JsonConvert.SerializeObject(patient, new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             });
-            HttpContext.Session.SetString("UserSession", accJson);
+            HttpContext.Session.SetString("PatientSession", accJson);
 
 
             TempData["success"] = "Register successful!";
             return RedirectToAction("Index", "Home");
         }
-        public async Task LoginGoogle()
+
+        [HttpGet] // Đổi từ HttpPost sang HttpGet
+        public async Task<IActionResult> LoginGoogle(string role)
         {
+            if (role == "Staff")
+            {
+                TempData["error"] = "Hải chưa làm phần này T.T";
+                return RedirectToAction("Login", "Auth"); // Thêm return
+            }
+
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme,
                 new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action("GoogleResponse")
+                    RedirectUri = Url.Action("GoogleResponse", "Auth", new {role = role}) // phai dung thu tu
                 });
+
+            return new EmptyResult(); // Thêm return để tránh lỗi
         }
+
+        // create new account for patient gmail login
         private async Task<bool> RegisterAccountAsync(ViewModels.Register model)
         {
-            if (await _context.Accounts.AnyAsync(a => a.Email == model.Email))
+            if (await _context.Patients.AnyAsync(a => a.Email == model.Email))
             {
                 return false;
             }
 
-            var account = new Account
+            var patient = new Patient
             {
                 Email = model.Email,
                 PasswordHash = _passwordHasher.HashPassword(null, model.Password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
-                RoleName = "Patient", // mặc định nếu dùng Google
                 IsActive = true
-            };
-
-            _context.Accounts.Add(account);
-            await _context.SaveChangesAsync();
-            var patient = new Patient
-            {
-                AccountId = account.AccountId
             };
 
             _context.Patients.Add(patient);
             await _context.SaveChangesAsync();
+
             return true;
         }
-        public async Task<IActionResult> GoogleResponse()
+
+
+        public async Task<IActionResult> GoogleResponse(string role)
         {
             var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             if (!result.Succeeded)
@@ -230,48 +302,79 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Email not found in Google response.";
                 return RedirectToAction("Login");
             }
-            var user = _context.Accounts.SingleOrDefault(u => u.Email == email);
 
-            if (user == null)
+            if (role == "Patient") // null => can register for them
             {
-                var passwordHash = _passwordHasher.HashPassword(null, "17092005");
-                var registerNew = new ViewModels.Register
-                {
-                    Email = email,
-                    Password = "password",
-                    ConfirmPassword = "password",
-                    FullName = name,
-                    PhoneNumber = "0",
-                    Gender = "M",
-                };
 
-                // register and return result
+                var user = _context.Patients.SingleOrDefault(u => u.Email == email);
 
-                bool success = await RegisterAccountAsync(registerNew);
-                if (!success)
+                if (user == null)
                 {
-                    TempData["error"] = "Fail to register new account with Google.";
-                    return RedirectToAction("Login");
+                    var registerNew = new ViewModels.Register
+                    {
+                        Email = email,
+                        Password = "password",
+                        ConfirmPassword = "password",
+                        FullName = name,
+                        PhoneNumber = "", // null
+                        Gender = "M",
+                    };
+
+                    // register and return result
+
+                    bool success = await RegisterAccountAsync(registerNew);
+                    if (!success)
+                    {
+                        TempData["error"] = "Fail to register new account with Google.";
+                        return RedirectToAction("Login");
+                    }
+
+                    user = await _context.Patients.FirstOrDefaultAsync(u => u.Email == email);
+
                 }
+                // Lưu session sau khi đăng nhập
+                var userJson = JsonConvert.SerializeObject(user, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                HttpContext.Session.SetString("PatientSession", userJson);
 
-                user = await _context.Accounts.FirstOrDefaultAsync(u => u.Email == email);
-
+                TempData["success"] = "Login successful!";
+                return RedirectToAction("Index", "Home");
             }
-            // Lưu session sau khi đăng nhập
-            var userJson = JsonConvert.SerializeObject(user, new JsonSerializerSettings
+            else if(role == "Doctor") // doctor: null => not register for them like patient
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
-            HttpContext.Session.SetString("UserSession", userJson);
+                var user = _context.Doctors.SingleOrDefault(u => u.Email == email);
 
-            TempData["success"] = "Login successful!";
-            return RedirectToAction("Index", "Home");
+                if (user == null)
+                {
+                    TempData["error"] = "Doctor Email is invalid.";
+                    return RedirectToAction("Login");
+
+                }
+                // Lưu session sau khi đăng nhập
+                var userJson = JsonConvert.SerializeObject(user, new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
+                HttpContext.Session.SetString("DoctorSession", userJson);
+
+                TempData["success"] = "Doctor Login successful!";
+                return RedirectToAction("Index", "Home");
+            }
+            else
+            {
+                TempData["error"] = "Unexpected Role: " + role;
+                return RedirectToAction("Index", "Home");
+            }
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(string email)
         {
-            var user = await _context.Accounts.FirstOrDefaultAsync(x => x.Email == email);
+            var user = await _context.Patients.FirstOrDefaultAsync(x => x.Email == email);
             if (user == null)
             {
                 TempData["error"] = "Email không tồn tại.";
@@ -299,6 +402,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("Login");
         }
 
+
         [HttpGet]
         public async Task<IActionResult> ResetPassword(string token)
         {
@@ -312,6 +416,8 @@ namespace HospitalManagement.Controllers
             HttpContext.Session.SetString("Token", token);
             return View(); // Hiện form nhập mật khẩu mới
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> DoResetPassword(ResetPasswordModel model)
@@ -333,22 +439,96 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("ForgotPassword");
             }
 
-            var user = await _context.Accounts.FirstOrDefaultAsync(x => x.Email == reset.Email);
+            var user = await _context.Patients.FirstOrDefaultAsync(x => x.Email == reset.Email);
             if (user == null)
             {
                 TempData["error"] = "Không tìm thấy tài khoản.";
                 return RedirectToAction("ForgotPassword");
             }
 
-            var hasher = new PasswordHasher<Account>();
+            var hasher = new PasswordHasher<Patient>();
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
             _context.PasswordResets.Remove(reset);
             await _context.SaveChangesAsync();
 
             var userJson = JsonConvert.SerializeObject(user);
-            HttpContext.Session.SetString("UserSession", userJson);
+            HttpContext.Session.SetString("PatientSession", userJson);
 
             TempData["success"] = "Đổi mật khẩu thành công.";
+            return RedirectToAction("Index", "Home");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DoctorRegister(ViewModels.Register model)
+        {
+            // check if mail is used
+            var existingAccount = await _context.Patients.FirstOrDefaultAsync(a => a.Email == model.Email);
+            if (existingAccount != null)
+            {
+
+                TempData["error"] = "Email is already registered.";
+
+                return View(model);
+            }
+
+            //check phone valid
+
+            // check if phone start with 0 and 9 digits back
+            if (model.PhoneNumber == null)
+            {
+                TempData["error"] = "Phone number is invalid.";
+                return View(model);
+            }
+
+            if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
+            {
+                TempData["error"] = "Phone number is invalid.";
+                return View(model);
+            }
+
+            // check if phone is non-number
+            foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
+                {
+                    TempData["error"] = "Phone number is invalid.";
+                    return View(model);
+                }
+
+            // check phone is used(not this user)
+            var phoneOwner = _context.Doctors.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+
+            if (phoneOwner != null)
+            {
+                TempData["error"] = "This phone number was used before.";
+                return View(model);
+            }
+
+            var doctor = new Models.Doctor
+            {
+                Email = model.Email,
+                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                FullName = model.FullName,
+                PhoneNumber = model.PhoneNumber,
+                Gender = model.Gender,
+                IsActive = true,
+                DepartmentName = model.DepartmentName,
+                IsDepartmentHead = model.IsDepartmentHead,
+                ExperienceYear = model.ExperienceYear,
+                Degree = model.Degree,
+                IsSpecial = model.IsSpecial,
+                ProfileImage = model.ProfileImage
+            };
+
+            _context.Doctors.Add(doctor);
+            await _context.SaveChangesAsync();
+
+            // Lưu session sau khi đăng nhập
+            var doctorJson = JsonConvert.SerializeObject(doctor, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
+            HttpContext.Session.SetString("DoctorSession", doctorJson);
+
+            TempData["success"] = "Doctor registered successfully!";
             return RedirectToAction("Index", "Home");
         }
 
