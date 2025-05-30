@@ -68,7 +68,22 @@ namespace HospitalManagement.Controllers
                 patient.PasswordHash = _passwordHasher.HashPassword(patient, fixedPassword);
                 _context.Patients.Add(patient);
                 await _context.SaveChangesAsync();
+                TempData["success"] = $"Tạo tài khoản bệnh nhân thành công với email là {patient.Email}.";
             }
+            else
+            {
+                var patientEmail = await _context.Patients
+                    .Select(p => p.Email)
+                    .ToListAsync();
+                foreach (string email in patientEmail)
+                {
+                    if (patient.Email.Equals(email))
+                    {
+                        TempData["error"] = $"Đã có tài khoản bệnh nhân với email là {patient.Email}.";
+                    }
+                }
+            }
+
             var isExistedAppointment = await _context.Appointments
             .AnyAsync(a => a.Date == model.AppointmentDate && a.PatientId == patient.PatientId);
 
