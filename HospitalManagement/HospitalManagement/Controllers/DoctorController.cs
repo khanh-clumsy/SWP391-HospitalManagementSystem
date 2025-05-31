@@ -64,5 +64,10 @@ namespace HospitalManagement.Controllers
 
             return RedirectToAction("AppointmentList");
         }
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
     }
+   
 }
