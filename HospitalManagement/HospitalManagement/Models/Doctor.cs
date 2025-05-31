@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 
 namespace HospitalManagement.Models;
 
@@ -34,4 +35,20 @@ public partial class Doctor
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
+    public string GetFullGender()
+    {
+        if (this.Gender == "M")
+        {
+            return "Male";
+        }
+        else if (this.Gender == "F")
+        {
+            return "Female";
+        }
+        else
+        {
+            return "Other";
+        }
+    }
 }
