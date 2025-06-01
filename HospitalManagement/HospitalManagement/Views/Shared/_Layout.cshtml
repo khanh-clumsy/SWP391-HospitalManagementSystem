@@ -1,10 +1,7 @@
 ﻿
 <!DOCTYPE html>
 <html lang="en">
-@{
-	var PatientSession = Context.Session.GetString("PatientSession");
-	var DoctorSession = Context.Session.GetString("DoctorSession");
-}
+
 <head>
 	<meta charset="utf-8">
 	<title>Klinik - Clinic Website Template</title>
@@ -119,10 +116,8 @@
 					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">About</a>
 					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
 
-					@if (!string.IsNullOrEmpty(PatientSession))
+					@if (User.IsInRole("Patient"))
 					{
-						var user = Newtonsoft.Json.JsonConvert.DeserializeObject<Patient>(PatientSession);
-
 						<!-- Patient -->
 						<div class="nav-item dropdown">
 							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
@@ -138,8 +133,7 @@
 
 
 					}
-					else if(!string.IsNullOrEmpty(DoctorSession)){
-						var user = Newtonsoft.Json.JsonConvert.DeserializeObject<Patient>(DoctorSession);
+					else if(User.IsInRole("Doctor")){
 
 						<!-- Doctor -->
 						<div class="nav-item dropdown">
@@ -153,7 +147,7 @@
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Logout</a>
 							</div>
 						</div>
-						
+
 						<a href="#"  class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
 
 					}
