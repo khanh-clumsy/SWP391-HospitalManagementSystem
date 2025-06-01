@@ -59,9 +59,6 @@ namespace HospitalManagement.Controllers
 
         }
 
-
-
-
         [HttpPost]
         public async Task<IActionResult> Login(ViewModels.Login LogInfo)
         {
@@ -78,8 +75,8 @@ namespace HospitalManagement.Controllers
 
                 return View(LogInfo);
             }
-
-            if(LogInfo.Role == "Patient")
+            //Patient
+            if (LogInfo.Role == "Patient")
             {
                 var user = _context.Patients.SingleOrDefault(u => u.Email == LogInfo.Email);
                 if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
@@ -88,8 +85,17 @@ namespace HospitalManagement.Controllers
 
                     return View(LogInfo);
                 }
-                var userJson = JsonConvert.SerializeObject(user);
-                HttpContext.Session.SetString("PatientSession", userJson);
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, "Patient"),
+                        new Claim("PatientID", user.PatientId.ToString())
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                 // Đăng nhập thành công
                 TempData["success"] = "Login successful!";
@@ -98,7 +104,7 @@ namespace HospitalManagement.Controllers
             else // Doctor
             {
                 var user = _context.Doctors.SingleOrDefault(u => u.Email == LogInfo.Email);
-                PasswordHasher<Doctor>  localHasher = new PasswordHasher<Doctor>();
+                PasswordHasher<Doctor> localHasher = new PasswordHasher<Doctor>();
                 if (user == null || localHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
                 {
                     TempData["error"] = "Email or password is invalid.";
@@ -118,7 +124,6 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(ViewModels.Register model)
         {
-
 
             // check if mail is used
             var existingAccount = await _context.Patients.FirstOrDefaultAsync(a => a.Email == model.Email);
@@ -254,7 +259,7 @@ namespace HospitalManagement.Controllers
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme,
                 new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action("GoogleResponse", "Auth", new {role = role}) // phai dung thu tu
+                    RedirectUri = Url.Action("GoogleResponse", "Auth", new { role = role }) // phai dung thu tu
                 });
 
             return new EmptyResult(); // Thêm return để tránh lỗi
@@ -284,7 +289,6 @@ namespace HospitalManagement.Controllers
             return true;
         }
 
-
         public async Task<IActionResult> GoogleResponse(string role)
         {
             var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -294,9 +298,9 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Login");
             }
 
-            var claims = result.Principal.Identities.FirstOrDefault()?.Claims;
-            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+            var googleClaims = result.Principal.Identities.FirstOrDefault()?.Claims;
+            var email = googleClaims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = googleClaims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             if (string.IsNullOrEmpty(email))
             {
                 TempData["error"] = "Email not found in Google response.";
@@ -305,7 +309,6 @@ namespace HospitalManagement.Controllers
 
             if (role == "Patient") // null => can register for them
             {
-
                 var user = _context.Patients.SingleOrDefault(u => u.Email == email);
 
                 if (user == null)
@@ -321,28 +324,33 @@ namespace HospitalManagement.Controllers
                     };
 
                     // register and return result
-
                     bool success = await RegisterAccountAsync(registerNew);
                     if (!success)
                     {
                         TempData["error"] = "Fail to register new account with Google.";
                         return RedirectToAction("Login");
                     }
-
                     user = await _context.Patients.FirstOrDefaultAsync(u => u.Email == email);
 
                 }
-                // Lưu session sau khi đăng nhập
-                var userJson = JsonConvert.SerializeObject(user, new JsonSerializerSettings
-                {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                });
-                HttpContext.Session.SetString("PatientSession", userJson);
+                // Tạo Claim và Identity cho Patient
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, "Patient"),
+                        new Claim("PatientID", user.PatientId.ToString())
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
 
                 TempData["success"] = "Login successful!";
                 return RedirectToAction("Index", "Home");
             }
-            else if(role == "Doctor") // doctor: null => not register for them like patient
+            else if (role == "Doctor") // doctor: null => not register for them like patient
             {
                 var user = _context.Doctors.SingleOrDefault(u => u.Email == email);
 
@@ -352,12 +360,18 @@ namespace HospitalManagement.Controllers
                     return RedirectToAction("Login");
 
                 }
-                // Lưu session sau khi đăng nhập
-                var userJson = JsonConvert.SerializeObject(user, new JsonSerializerSettings
-                {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-                });
-                HttpContext.Session.SetString("DoctorSession", userJson);
+                // Tạo Claim và Identity cho Doctor
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, "Doctor"),
+                        new Claim("DoctorID", user.DoctorId.ToString())
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                 TempData["success"] = "Doctor Login successful!";
                 return RedirectToAction("Index", "Home");
@@ -467,7 +481,6 @@ namespace HospitalManagement.Controllers
             {
 
                 TempData["error"] = "Email is already registered.";
-
                 return View(model);
             }
 
@@ -512,9 +525,9 @@ namespace HospitalManagement.Controllers
                 IsActive = true,
                 DepartmentName = model.DepartmentName,
                 IsDepartmentHead = model.IsDepartmentHead,
-                ExperienceYear = model.ExperienceYear,
+                ExperienceYear = model.ExperienceYear ?? 0,
                 Degree = model.Degree,
-                IsSpecial = model.IsSpecial,
+                IsSpecial = model.IsSpecial ?? false,
                 ProfileImage = model.ProfileImage
             };
 
@@ -522,11 +535,17 @@ namespace HospitalManagement.Controllers
             await _context.SaveChangesAsync();
 
             // Lưu session sau khi đăng nhập
-            var doctorJson = JsonConvert.SerializeObject(doctor, new JsonSerializerSettings
+            var claims = new List<Claim>
             {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
-            HttpContext.Session.SetString("DoctorSession", doctorJson);
+                new Claim(ClaimTypes.Email, doctor.Email),
+                new Claim(ClaimTypes.Role, "Doctor"),
+                new Claim("DoctorId", doctor.DoctorId.ToString())
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
             TempData["success"] = "Doctor registered successfully!";
             return RedirectToAction("Index", "Home");

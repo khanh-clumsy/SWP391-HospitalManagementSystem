@@ -9,8 +9,11 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using HospitalManagement.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication;
 namespace HospitalManagement.Controllers
 {
+    [Authorize(Roles = "Patient")]
     public class PatientController : Controller
     {
         private readonly PasswordHasher<Patient> _passwordHasher;
@@ -18,6 +21,8 @@ namespace HospitalManagement.Controllers
         private readonly IBookingAppointmentRepository _slotRepo;
         private readonly IBookingAppointmentRepository _patientRepo;
         private readonly IBookingAppointmentRepository _appointmentRepo;
+        private readonly HospitalManagementContext _context;
+
 
      
         public PatientController(HospitalManagementContext context, IBookingAppointmentRepository doctorRepo,
@@ -25,6 +30,7 @@ namespace HospitalManagement.Controllers
             IBookingAppointmentRepository patientRepo,
             IBookingAppointmentRepository appointmentRepo)
         {
+            _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
             _doctorRepo = doctorRepo;
             _slotRepo = slotRepo;
@@ -33,32 +39,45 @@ namespace HospitalManagement.Controllers
         }
 
         [HttpGet]
-
         public IActionResult ViewProfile()
         {
-            // Load profile data from sesion
-            var userJson = HttpContext.Session.GetString("PatientSession");
-
-            if (string.IsNullOrEmpty(userJson))
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             return View(user);
         }
         [HttpGet]
         public IActionResult UpdateProfile()
         {
-            // Load profile data to edit
-            var userJson = HttpContext.Session.GetString("PatientSession");
-
-            if (string.IsNullOrEmpty(userJson))
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             return View(user);
         }
 
@@ -66,15 +85,22 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public IActionResult ChangePassword()
         {
-            // Load profile data from sesion
-            var userJson = HttpContext.Session.GetString("PatientSession");
-
-            if (string.IsNullOrEmpty(userJson))
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
             return View();
         }
 
@@ -82,9 +108,22 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public IActionResult ChangePassword(ChangePass model)
         {
-            var userJson = HttpContext.Session.GetString("PatientSession");
-            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
-            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -104,19 +143,15 @@ namespace HospitalManagement.Controllers
             }
 
             // Cập nhật trong DB
-            using (var context = new HospitalManagementContext())
+            var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+            if (dbUser != null)
             {
-                var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
-                if (dbUser != null)
-                {
-                    dbUser.PasswordHash = _passwordHasher.HashPassword(null, model.NewPassword);
-                    context.SaveChanges();
-                    HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(dbUser));
+                dbUser.PasswordHash = _passwordHasher.HashPassword(null, model.NewPassword);
+                context.SaveChanges();
+                HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(dbUser));
 
-                }
             }
 
-            // Cập nhật lại session
             TempData["success"] = "Change password successful!";
             return View();
         }
@@ -126,11 +161,22 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> UploadPhoto(IFormFile photo)
         {
             // check login
-            var userJson = HttpContext.Session.GetString("PatientSession");
-            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
-            // get user from session
-            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
 
             if (photo != null && photo.Length > 0)
@@ -142,18 +188,16 @@ namespace HospitalManagement.Controllers
                 user.ProfileImage = Convert.ToBase64String(imageBytes);
 
                 // add in database
-                using (var context = new HospitalManagementContext())
+
+                var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+                if (dbUser != null)
                 {
-                    var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
-                    if (dbUser != null)
-                    {
-                        dbUser.ProfileImage = user.ProfileImage;
-                        context.SaveChanges();
-                    }
+                    dbUser.ProfileImage = user.ProfileImage;
+                    context.SaveChanges();
                 }
 
                 // Cập nhật lại session
-                HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));
+                //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));
                 TempData["success"] = "Update successful!";
                 return RedirectToAction("UpdateProfile");
 
@@ -167,16 +211,19 @@ namespace HospitalManagement.Controllers
         public IActionResult UpdateProfile(Patient model)
         {
             // check login
-            var userJson = HttpContext.Session.GetString("PatientSession");
-            if (string.IsNullOrEmpty(userJson))
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            // get user
-            var sessionUser = JsonConvert.DeserializeObject<Patient>(userJson);
+            int patientId = int.Parse(patientIdClaim);
 
-            using (var context = new HospitalManagementContext())
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
             {
                 var curUser = context.Patients.FirstOrDefault(u => u.PatientId == sessionUser.PatientId);
                 if (curUser != null)
@@ -226,19 +273,73 @@ namespace HospitalManagement.Controllers
                     // reset session
                     HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(sessionUser));
                 }
+
+                return RedirectToAction("Login", "Auth");
+
             }
+
+
+            var curUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+            if (curUser != null)
+            {
+                // check if phone start with 0 and 9 digits back
+                if (model.PhoneNumber == null)
+                {
+                    TempData["error"] = "Phone number is invalid.";
+                    return RedirectToAction("UpdateProfile");
+                }
+
+                if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
+                {
+                    TempData["error"] = "Phone number is invalid.";
+                    return RedirectToAction("UpdateProfile");
+                }
+
+                //check if phone is non - number
+                foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
+                    {
+                        TempData["error"] = "Phone number is invalid.";
+                        return RedirectToAction("UpdateProfile");
+                    }
+
+                // check phone is used(not this user)
+                var phoneOwner = context.Patients.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+
+                if (phoneOwner != null && phoneOwner.PatientId != curUser.PatientId)
+                {
+                    TempData["error"] = "This phone number was used before.";
+                    return RedirectToAction("UpdateProfile");
+                }
+
+
+                // update info user and session
+                user.FullName = curUser.FullName = model.FullName;
+                user.Gender = curUser.Gender = model.Gender;
+                user.PhoneNumber = curUser.PhoneNumber = model.PhoneNumber;
+                user.Dob = curUser.Dob = model.Dob;
+                user.Address = curUser.Address = model.Address;
+                user.HealthInsurance = curUser.HealthInsurance = model.HealthInsurance;
+                user.BloodGroup = curUser.BloodGroup = model.BloodGroup;
+
+                // luu lai user vao database
+                context.SaveChanges();
+
+                //// reset session
+                //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(sessionUser));
+            }
+
             TempData["success"] = "Update successful!";
 
             return RedirectToAction("UpdateProfile");
         }
-
+     
         [HttpGet]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            // Xóa toàn bộ session
-            HttpContext.Session.Clear();
-            TempData["success"] = "Logout successful!";
+            // Đăng xuất người dùng khỏi Identity (cookie authentication)
+            await HttpContext.SignOutAsync();
 
+            TempData["success"] = "Logout successful!";
             return RedirectToAction("Index", "Home");
         }
         [HttpGet]
@@ -306,6 +407,5 @@ namespace HospitalManagement.Controllers
 
             return RedirectToAction("ViewBookingAppointment");
         }
-
     }
 }

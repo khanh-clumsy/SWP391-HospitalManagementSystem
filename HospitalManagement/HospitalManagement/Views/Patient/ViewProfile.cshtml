@@ -69,18 +69,24 @@
 								</div>
 								<div class="info-content">
 									<h5>Gender</h5>
-									@if (Model.Gender[0] == 'M')
+									@if (!string.IsNullOrEmpty(Model.Gender))
 									{
-										<p>Male</p>
-									}
-									else if (Model.Gender[0] == 'F')
-									{
-										<p>Female</p>
+										if (Model.Gender[0] == 'M')
+										{
+											<p>Male</p>
+										}
+										else if (Model.Gender[0] == 'F')
+										{
+											<p>Female</p>
+										}
+										else
+										{
+											<p>Other</p>
+										}
 									}
 									else
 									{
-										<p>Other</p>
-
+										<p></p>
 									}
 								</div>
 							</div>
