@@ -533,7 +533,7 @@ namespace HospitalManagement.Controllers
                 Gender = model.Gender,
                 IsActive = true,
                 DepartmentName = model.DepartmentName,
-                IsDepartmentHead = model.IsDepartmentHead,
+                IsDepartmentHead = model.IsDepartmentHead ?? false,
                 ExperienceYear = model.ExperienceYear ?? 0,
                 Degree = model.Degree,
                 IsSpecial = model.IsSpecial ?? false,
