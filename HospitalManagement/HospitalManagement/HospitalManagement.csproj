@@ -107,7 +107,7 @@
 
   <ItemGroup>
     <Folder Include="Data\" />
-    <Folder Include="Views\Appointment\" />
+    <Folder Include="Views\Sales\" />
   </ItemGroup>
 
 </Project>
