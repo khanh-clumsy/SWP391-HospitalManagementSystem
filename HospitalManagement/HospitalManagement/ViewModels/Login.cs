@@ -11,5 +11,7 @@ namespace HospitalManagement.ViewModels
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; } = null!;
+
+        public string Role { get; set; } = null!;
     }
 }

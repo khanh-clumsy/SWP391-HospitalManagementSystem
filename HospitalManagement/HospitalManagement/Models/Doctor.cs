@@ -15,9 +15,9 @@ public partial class Doctor
 
     public string? PhoneNumber { get; set; }
 
-    public string DepartmentName { get; set; } = null!;
+    public string? DepartmentName { get; set; } = null!;
 
-    public bool IsDepartmentHead { get; set; }
+    public bool? IsDepartmentHead { get; set; }
 
     public int ExperienceYear { get; set; }
 

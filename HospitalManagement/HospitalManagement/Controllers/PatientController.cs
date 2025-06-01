@@ -1,91 +1,36 @@
-﻿using HospitalManagement.Data;
-using HospitalManagement.Models;
-using HospitalManagement.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-﻿using System.Threading.Tasks;
-using HospitalManagement.Data;
 using HospitalManagement.Models;
-using HospitalManagement.Repositories;
-using Microsoft.AspNetCore.Mvc;
+using HospitalManagement.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using X.PagedList;
-
-
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using HospitalManagement.ViewModels;
 
 namespace HospitalManagement.Controllers
 {
     public class PatientController : Controller
     {
-        private readonly HospitalManagementContext _context;
-        private readonly IDoctorRepository _doctorRepo;
+        private readonly PasswordHasher<Patient> _passwordHasher;
 
-        public PatientController(HospitalManagementContext context, IDoctorRepository doctorRepo)
+        public PatientController(HospitalManagementContext context)
         {
-            _context = context;
-            _doctorRepo = doctorRepo;
-
-        }
-
-        /**
-         * Controller for ViewDoctors page, get name, department, exp year, isHead,
-         * sort type, to filter out doctor, handle pagination
-         */
-        public async Task<IActionResult> ViewDoctors(int? page, string? name, string? department, int? exp, bool? isHead, string? sort)
-        {
-            int pageSize = 8;
-            int pageNumber = page ?? 1;
-
-            // Lấy danh sách bác sĩ theo trang, async với EF Core
-            var doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, pageNumber, pageSize);
-            // Lấy tổng số bác sĩ
-            var totalDoctors = await _doctorRepo.CountAsync(name, department, exp, isHead);
-
-            // Tạo IPagedList từ danh sách đã lấy
-            var pagedDoctors = new StaticPagedList<Doctor>(doctors, pageNumber, pageSize, totalDoctors);
-            var departments = await _doctorRepo.GetDistinctDepartment();
-
-
-            // Truyền lại dữ liệu vào cshtml để khi reload trang filter vẫn hiển thị nội dung filter đã chọn
-            ViewBag.Name = name;
-            ViewBag.Department = department;
-            ViewBag.Experience = exp;
-            ViewBag.Type = isHead;
-            ViewBag.Sort = sort;
-            ViewBag.Departments = departments;
-
-           
-            return View(pagedDoctors);
-        }
-        public async Task<IActionResult> DoctorDetail(int id)
-        {
-            var doctor = await _doctorRepo.GetByIdAsync(id);
-            if (doctor == null)
-            {
-                return NotFound();
-            }
-            return View(doctor);
+            _passwordHasher = new PasswordHasher<Patient>();
         }
 
 
         [HttpGet]
-        public async Task<IActionResult> BookingAppointment(int? doctorId)
+
+        public IActionResult ViewProfile()
         {
-            var userJson = HttpContext.Session.GetString("UserSession");
+            // Load profile data from sesion
+            var userJson = HttpContext.Session.GetString("PatientSession");
 
             if (string.IsNullOrEmpty(userJson))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            //var user = JsonConvert.DeserializeObject<Account>(userJson);
-            //if (user == null)
-            //{
-            //    return RedirectToAction("Login", "Auth");
-            //}
             var doctors = await _context.Doctors
            .Select(d => new SelectListItem
            {
@@ -97,125 +42,202 @@ namespace HospitalManagement.Controllers
             // Lấy danh sách slot từ DB
             var slots = await _context.Slots
                 .Select(s => new SelectListItem
-                {
-                    Value = s.SlotId.ToString(),
-                    Text = s.StartTime.ToString(@"hh\:mm") + " - " + s.EndTime.ToString(@"hh\:mm")
-                })
-                .ToListAsync();
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            return View(user);
+        }
+        [HttpGet]
+        public IActionResult UpdateProfile()
+        {
+            // Load profile data to edit
+            var userJson = HttpContext.Session.GetString("PatientSession");
+
+            if (string.IsNullOrEmpty(userJson))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            return View(user);
+        }
 
 
-            //var model = new BookingApointment
-            //{
-            //    Name = user.FullName,
-            //    Email = user.Email,
-            //    PhoneNumber = user.PhoneNumber,
-            //    DoctorOptions = doctors,
-            //    SlotOptions = slots,
-            //    AppointmentDate = DateTime.Today,
-            //    SelectedDoctorId = doctorId ?? 0  
-            //};
-            //return View(model);
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            // Load profile data from sesion
+            var userJson = HttpContext.Session.GetString("PatientSession");
+
+            if (string.IsNullOrEmpty(userJson))
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
             return View();
         }
+
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BookingAppointment(BookingApointment model)
+        public IActionResult ChangePassword(ChangePass model)
         {
-            ModelState.Remove(nameof(model.DoctorOptions));
-            ModelState.Remove(nameof(model.SlotOptions));
+            var userJson = HttpContext.Session.GetString("PatientSession");
+            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                foreach (var error in errors)
-                {
-                    // Ghi log các lỗi
-                    Console.WriteLine(error);
-                }
-                // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
-                model.DoctorOptions = await _context.Doctors
-                    .Select(d => new SelectListItem
-                    {
-                        Value = d.DoctorId.ToString(),
-                        Text = d.FullName
-                    })
-                    .ToListAsync();
-
-                model.SlotOptions = await _context.Slots
-                    .Select(s => new SelectListItem
-                    {
-                        Value = s.SlotId.ToString(),
-                        Text = s.StartTime.ToString(@"hh\:mm") + " - " + s.EndTime.ToString(@"hh\:mm")
-                    })
-                    .ToListAsync();
                 return View(model);
             }
-            //var userJson = HttpContext.Session.GetString("UserSession");
-            //if (string.IsNullOrEmpty(userJson))
-            //{
-            //    return RedirectToAction("Login", "Auth");
-            //}
 
-            //var user = JsonConvert.DeserializeObject<Account>(userJson);
-            //if (user == null)
-            //{
-            //    return RedirectToAction("Login", "Auth");
-            //}
+            if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.OldPassword) != PasswordVerificationResult.Success)
+            {
+                TempData["error"] = "Current password not match";
+                return View();
+            }
 
-            //var patient = _context.Patients.FirstOrDefault(p => p.PatientId == user.PatientId);
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                TempData["error"] = "2 new passwords not match";
+                return View();
+            }
 
-            //var appointment = new Appointment
-            //{
-            //    PatientId = patient.PatientId,
-            //    DoctorId = model.SelectedDoctorId,
-            //    Note = model.Note,
-            //    SlotId = model.SelectedSlotId,
-            //    ServiceId = model.SelectedServiceId,
-            //    Date = DateOnly.FromDateTime(model.AppointmentDate),
-            //    Status = "Pending",
-            //};
+            // Cập nhật trong DB
+            using (var context = new HospitalManagementContext())
+            {
+                var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+                if (dbUser != null)
+                {
+                    dbUser.PasswordHash = _passwordHasher.HashPassword(null, model.NewPassword);
+                    context.SaveChanges();
+                    HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(dbUser));
 
-            //_context.Appointments.Add(appointment);
-            //_context.SaveChanges();
-            //return RedirectToAction("ViewBookingAppointment");
+                }
+            }
+
+            // Cập nhật lại session
+            TempData["success"] = "Change password successful!";
             return View();
         }
 
-        public IActionResult ViewBookingAppointment(string searchName, string timeFilter, DateTime? dateFilter, string statusFilter)
+
+        [HttpPost]
+        public async Task<IActionResult> UploadPhoto(IFormFile photo)
         {
-            var appointments = _context.Appointments
-            .Include(a => a.Patient)
-            .Include(a => a.Doctor)
-            .Include(a => a.Slot)
-            .AsQueryable();
+            // check login
+            var userJson = HttpContext.Session.GetString("PatientSession");
+            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
 
-            // Lọc theo thời gian slot
+            // get user from session
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
 
-            if (!string.IsNullOrEmpty(timeFilter) && TimeOnly.TryParse(timeFilter, out var parsedTime))
+
+            if (photo != null && photo.Length > 0)
             {
-                appointments = appointments.Where(a => a.Slot.StartTime == parsedTime);
+                // convert img -> Byte ->  Base64String
+                using var ms = new MemoryStream();
+                await photo.CopyToAsync(ms);
+                var imageBytes = ms.ToArray();
+                user.ProfileImage = Convert.ToBase64String(imageBytes);
+
+                // add in database
+                using (var context = new HospitalManagementContext())
+                {
+                    var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+                    if (dbUser != null)
+                    {
+                        dbUser.ProfileImage = user.ProfileImage;
+                        context.SaveChanges();
+                    }
+                }
+
+                // Cập nhật lại session
+                HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));
+                TempData["success"] = "Update successful!";
+                return RedirectToAction("UpdateProfile");
+
             }
 
-            // Lọc theo ngày
-            if (dateFilter.HasValue)
+            // do nothing
+            TempData["success"] = null;
+            return RedirectToAction("UpdateProfile");
+        }
+        [HttpPost]
+        public IActionResult UpdateProfile(Patient model)
+        {
+            // check login
+            var userJson = HttpContext.Session.GetString("PatientSession");
+            if (string.IsNullOrEmpty(userJson))
             {
-                var filterDate = DateOnly.FromDateTime(dateFilter.Value);
-                appointments = appointments.Where(a => a.Date == filterDate);
+                return RedirectToAction("Login", "Auth");
             }
 
-            // Lọc theo trạng thái
-            if (!string.IsNullOrEmpty(statusFilter))
-            {
-                appointments = appointments.Where(a => a.Status == statusFilter);
-            }
+            // get user
+            var sessionUser = JsonConvert.DeserializeObject<Patient>(userJson);
 
-            return View(appointments.ToList());
+            using (var context = new HospitalManagementContext())
+            {
+                var curUser = context.Patients.FirstOrDefault(u => u.PatientId == sessionUser.PatientId);
+                if (curUser != null)
+                {
+                    // check if phone start with 0 and 9 digits back
+                    if (model.PhoneNumber == null)
+                    {
+                        TempData["error"] = "Phone number is invalid.";
+                        return RedirectToAction("UpdateProfile");
+                    }
+
+                    if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
+                    {
+                        TempData["error"] = "Phone number is invalid.";
+                        return RedirectToAction("UpdateProfile");
+                    }
+
+                    //check if phone is non - number
+                    foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
+                            {
+                                TempData["error"] = "Phone number is invalid.";
+                                return RedirectToAction("UpdateProfile");
+                            }
+
+                    // check phone is used(not this user)
+                    var phoneOwner = context.Patients.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+
+                    if (phoneOwner != null && phoneOwner.PatientId != curUser.PatientId)
+                    {
+                        TempData["error"] = "This phone number was used before.";
+                        return RedirectToAction("UpdateProfile");
+                    }
+
+
+                    // update info user and session
+                    sessionUser.FullName = curUser.FullName = model.FullName;
+                    sessionUser.Gender =  curUser.Gender = model.Gender;
+                    sessionUser.PhoneNumber = curUser.PhoneNumber = model.PhoneNumber;
+                    sessionUser.Dob = curUser.Dob = model.Dob;
+                    sessionUser.Address = curUser.Address = model.Address;
+                    sessionUser.HealthInsurance = curUser.HealthInsurance = model.HealthInsurance;
+                    sessionUser.BloodGroup = curUser.BloodGroup = model.BloodGroup;
+
+                    // luu lai user vao database
+                    context.SaveChanges();
+
+                    // reset session
+                    HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(sessionUser));
+                }
+            }
+            TempData["success"] = "Update successful!";
+
+            return RedirectToAction("UpdateProfile");
         }
 
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            // Xóa toàn bộ session
+            HttpContext.Session.Clear();
+            TempData["success"] = "Logout successful!";
 
-       
-
-
+            return RedirectToAction("Index", "Home");
+        }
     }
-
 }
