@@ -1,11 +1,5 @@
 
-﻿
-using System.Collections.Generic;
-using System.Linq;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-﻿using System.Threading.Tasks;
-using HospitalManagement.Data;
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using HospitalManagement.Models;
 using HospitalManagement.Data;
@@ -13,23 +7,32 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using HospitalManagement.ViewModels;
-
+using Microsoft.AspNetCore.Mvc.Rendering;
+using HospitalManagement.Repositories;
 namespace HospitalManagement.Controllers
 {
     public class PatientController : Controller
     {
         private readonly PasswordHasher<Patient> _passwordHasher;
+        private readonly IBookingAppointmentRepository _doctorRepo;
+        private readonly IBookingAppointmentRepository _slotRepo;
+        private readonly IBookingAppointmentRepository _patientRepo;
+        private readonly IBookingAppointmentRepository _appointmentRepo;
 
-        public PatientController(HospitalManagementContext context)
+     
+        public PatientController(HospitalManagementContext context, IBookingAppointmentRepository doctorRepo,
+            IBookingAppointmentRepository slotRepo,
+            IBookingAppointmentRepository patientRepo,
+            IBookingAppointmentRepository appointmentRepo)
         {
             _passwordHasher = new PasswordHasher<Patient>();
+            _doctorRepo = doctorRepo;
+            _slotRepo = slotRepo;
+            _patientRepo = patientRepo;
+            _appointmentRepo = appointmentRepo;
         }
 
-
-        public IActionResult ViewBookingAppointment(string searchName, string timeFilter, DateTime? dateFilter, string statusFilter)
-
         [HttpGet]
-
 
         public IActionResult ViewProfile()
         {
@@ -55,27 +58,6 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-
-            var model = new RequestConsultantViewModel
-
-            {
-                var filterDate = DateOnly.FromDateTime(dateFilter.Value);
-                appointments = appointments.Where(a => a.Date == filterDate);
-            }
-
-            // Lọc theo trạng thái
-            if (!string.IsNullOrEmpty(statusFilter))
-            {
-                appointments = appointments.Where(a => a.Status == statusFilter);
-            }
-
-            return View(appointments.ToList());
-        }
-
-
-        [HttpPost]
-        public IActionResult RequestConsultant(RequestConsultantViewModel model)
-
             var user = JsonConvert.DeserializeObject<Patient>(userJson);
             return View(user);
         }
@@ -83,7 +65,6 @@ namespace HospitalManagement.Controllers
 
         [HttpGet]
         public IActionResult ChangePassword()
-
         {
             // Load profile data from sesion
             var userJson = HttpContext.Session.GetString("PatientSession");
@@ -215,10 +196,10 @@ namespace HospitalManagement.Controllers
 
                     //check if phone is non - number
                     foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
-                            {
-                                TempData["error"] = "Phone number is invalid.";
-                                return RedirectToAction("UpdateProfile");
-                            }
+                        {
+                            TempData["error"] = "Phone number is invalid.";
+                            return RedirectToAction("UpdateProfile");
+                        }
 
                     // check phone is used(not this user)
                     var phoneOwner = context.Patients.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
@@ -232,7 +213,7 @@ namespace HospitalManagement.Controllers
 
                     // update info user and session
                     sessionUser.FullName = curUser.FullName = model.FullName;
-                    sessionUser.Gender =  curUser.Gender = model.Gender;
+                    sessionUser.Gender = curUser.Gender = model.Gender;
                     sessionUser.PhoneNumber = curUser.PhoneNumber = model.PhoneNumber;
                     sessionUser.Dob = curUser.Dob = model.Dob;
                     sessionUser.Address = curUser.Address = model.Address;
@@ -260,7 +241,71 @@ namespace HospitalManagement.Controllers
 
             return RedirectToAction("Index", "Home");
         }
-       
+        [HttpGet]
+        public async Task<IActionResult> BookingAppointment(int? doctorId)
+        {
+            var userJson = HttpContext.Session.GetString("PatientSession");
+            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            if (user == null) return RedirectToAction("Login", "Auth");
+
+            var model = new BookingApointment
+            {
+                Name = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                DoctorOptions = await _doctorRepo.GetDoctorSelectListAsync(),
+                SlotOptions = await _slotRepo.GetSlotSelectListAsync(),
+                AppointmentDate = DateTime.Today,
+                SelectedDoctorId = doctorId ?? 0
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BookingAppointment(BookingApointment model)
+        {
+            ModelState.Remove(nameof(model.DoctorOptions));
+            ModelState.Remove(nameof(model.SlotOptions));
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                foreach (var error in errors)
+                    Console.WriteLine(error);
+
+                model.DoctorOptions = await _doctorRepo.GetDoctorSelectListAsync();
+                model.SlotOptions = await _slotRepo.GetSlotSelectListAsync();
+                return View(model);
+            }
+
+            var userJson = HttpContext.Session.GetString("PatientSession");
+            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+
+            var user = JsonConvert.DeserializeObject<Patient>(userJson);
+            if (user == null) return RedirectToAction("Login", "Auth");
+
+            var patient = await _patientRepo.GetPatientByPatientIdAsync(user.PatientId);
+            if (patient == null) return BadRequest("Patient not found");
+
+            var appointment = new Appointment
+            {
+                PatientId = patient.PatientId,
+                DoctorId = model.SelectedDoctorId,
+                Note = model.Note,
+                SlotId = model.SelectedSlotId,
+                ServiceId = model.SelectedServiceId,
+                Date = DateOnly.FromDateTime(model.AppointmentDate),
+                Status = "Pending"
+            };
+
+            await _appointmentRepo.AddAppointmentAsync(appointment);
+            await _appointmentRepo.SaveChangesAsync();
+
+            return RedirectToAction("ViewBookingAppointment");
+        }
+
     }
 }
-
