@@ -110,8 +110,17 @@ namespace HospitalManagement.Controllers
                     TempData["error"] = "Email or password is invalid.";
                     return View(LogInfo);
                 }
-                var userJson = JsonConvert.SerializeObject(user);
-                HttpContext.Session.SetString("DoctorSession", userJson);
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, "Doctor"),
+                        new Claim("DoctorID", user.DoctorId.ToString())
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                 // Đăng nhập thành công
                 TempData["success"] = "Doctor Login successful!";
