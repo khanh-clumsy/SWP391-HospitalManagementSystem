@@ -107,6 +107,7 @@
 
   <ItemGroup>
     <Folder Include="Data\" />
+    <Folder Include="Views\Appointment\" />
   </ItemGroup>
 
 </Project>
