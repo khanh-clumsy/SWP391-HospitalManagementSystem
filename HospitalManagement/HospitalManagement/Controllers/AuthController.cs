@@ -62,11 +62,33 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(ViewModels.Login LogInfo)
         {
-            //check role pick
+            // Staff
             if (LogInfo.Role == "Staff")
             {
-                TempData["error"] = "Hải chưa làm phần này T.T";
-                return View(LogInfo);
+                var user = _context.Staff.SingleOrDefault(u => u.Email == LogInfo.Email);
+                PasswordHasher<Staff> localHasher = new PasswordHasher<Staff>();
+
+                if (user == null || localHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+                {
+                    TempData["error"] = "Email or password is invalid.";
+                    return View(LogInfo);
+                }
+
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, "Staff"), 
+                        new Claim("StaffID", user.StaffId.ToString()),
+                        new Claim("RoleName", user.RoleName) 
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                TempData["success"] = "Login successful!";
+                return RedirectToAction("Index", "Home");
             }
 
             if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))

@@ -24,4 +24,19 @@ public partial class Staff
     public string? ProfileImage { get; set; }
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    public string GetFullGender()
+    {
+        if (this.Gender == "M")
+        {
+            return "Male";
+        }
+        else if (this.Gender == "F")
+        {
+            return "Female";
+        }
+        else
+        {
+            return "Other";
+        }
+    }
 }

@@ -1,0 +1,238 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+    @model HospitalManagement.ViewModels.AccountListViewModel
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Klinik - Clinic Website Template</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+		.popup-alert {
+			position: fixed;
+			text-align: center;
+			top: 5px;
+			right: 5px;
+		}
+    </style>
+</head>
+
+<body>
+    
+    <div>
+		@if (TempData["error"] != null)
+		{
+			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+				<div>@TempData["error"]</div>
+			</div>
+		}
+		@if (TempData["success"] != null)
+		{
+			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+				<div>@TempData["success"]</div>
+			</div>
+		}
+	</div>
+    <div class="container-xxl py-5">
+        <div class="container">
+            <!-- Choose type table -->
+            <div class="mb-4">
+                <h2 class="text-primary">Account List</h2>
+                <div class="btn-group mt-2" role="group">
+                    <a href="?type=Patient" class="btn btn-outline-primary @(Model.AccountType == "Patient" ? "active" : "")">Patient</a>
+                    <a href="?type=Doctor" class="btn btn-outline-success @(Model.AccountType == "Doctor" ? "active" : "")">Doctor</a>
+                    <a href="?type=Staff" class="btn btn-outline-warning @(Model.AccountType == "Staff" ? "active" : "")">Staff</a>
+                </div>
+            </div>
+            <!-- Account Table -->
+            <!-- Patient -->
+            @if (Model.AccountType == "Patient") 
+            {
+                <form asp-action="UpdatePatientStatus" method="post">
+                    <table class="table table-bordered text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Gender</th>
+                                <th>Email</th>
+                                <th>Phone Number</th>
+                                <th>Active</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Patients.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        @Model.Patients[i].PatientId
+                                        <input type="hidden" name="patients[@i].PatientId" value="@Model.Patients[i].PatientId" />
+                                    </td>
+                                    <td>@Model.Patients[i].FullName</td>
+                                    <td>@Model.Patients[i].GetFullGender()</td>
+                                    <td>@Model.Patients[i].Email</td>
+                                    <td>@Model.Patients[i].PhoneNumber</td>
+                                    <td>
+                                        
+                                        <input type="checkbox"
+                                               name="patients[@i].IsActive"
+                                               value="true"
+                                               @(Model.Patients[i].IsActive ? "checked" : "") />
+                                               <input type="hidden" name="patients[@i].IsActive" value="false" />
+                                        
+                                    </td>
+                                    <td>
+                                        <a href="/User/DetailPatient?id=@Model.Patients[i].PatientId" class="btn btn-sm btn-outline-secondary">Detail</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+
+            }
+            else if (Model.AccountType == "Doctor")
+            {
+                <form asp-action="UpdateDoctorStatus" method="post">
+                <table class="table table-bordered text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Full Name</th>
+                            <th>Gender</th>
+                            <th>Email</th>
+                            <th>Phone Number</th>
+                            <th>Department</th>
+                            <th>Department Head</th>
+                            <th>Active</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                            @for(int i = 0;i<Model.Doctors.Count;i++)
+                            {
+                            <tr>
+                                <td>@Model.Doctors[i].DoctorId
+                                    <input type="hidden" name="doctors[@i].DoctorId" value="@Model.Doctors[i].DoctorId" />
+                                </td>
+                                <td>@Model.Doctors[i].FullName</td>
+                                <td>@Model.Doctors[i].GetFullGender()</td>
+                                <td>@Model.Doctors[i].Email</td>
+                                <td>@Model.Doctors[i].PhoneNumber</td>
+                                <td>@Model.Doctors[i].DepartmentName</td>
+                                <td>@Model.Doctors[i].IsDepartmentHead</td>
+                                <td>
+                                    <input type="checkbox"
+                                               name="doctors[@i].IsActive"
+                                               value="true"
+                                               @(Model.Doctors[i].IsActive ? "checked" : "") />
+                                    <input type="hidden" name="doctors[@i].IsActive" value="false" />
+                                </td>
+                                <td>
+                                    <a href="/User/DetailDoctor?id=@Model.Doctors[i].DoctorId" class="btn btn-sm btn-outline-secondary">Detail</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            }
+            else if (Model.AccountType == "Staff")
+            {
+                <form asp-action="UpdateStaffStatus" method="post">
+                    <table class="table table-bordered text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Gender</th>
+                                <th>Email</th>
+                                <th>Phone Number</th>
+                                <th>Active</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for(int i = 0; i<Model.Staffs.Count;i++)
+                            {
+                                <tr>
+                                    <td>@Model.Staffs[i].StaffId
+                                        <input type="hidden" name="staffs[@i].StaffId" value="@Model.Staffs[i].StaffId" />
+                                    </td>
+                                    <td>@Model.Staffs[i].FullName</td>
+                                    <td>@Model.Staffs[i].GetFullGender()</td>
+                                    <td>@Model.Staffs[i].Email</td>
+                                    <td>@Model.Staffs[i].PhoneNumber</td>
+                                    <td>
+                                        
+                                        <input type="checkbox"
+                                                   name="staffs[@i].IsActive"
+                                                   value="true"
+                                                   @(Model.Staffs[i].IsActive ? "checked" : "") />
+                                        <input type="hidden" name="staffs[@i].IsActive" value="false" />
+                                    </td>
+                                    <td>
+                                        <a href="/User/DetailStaff?id=@Model.Staffs[i].StaffId" class="btn btn-sm btn-outline-secondary">Detail</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                    </form>
+            }
+
+        </div>
+    </div>
+
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+    <script>
+		// Auto-hide popup alerts after 3 seconds
+		window.setTimeout(function () {
+			const alertBox = document.getElementById('popup-alert');
+			if (alertBox) {
+				alertBox.classList.remove('show');
+				alertBox.classList.add('hide');
+				setTimeout(() => alertBox.remove(), 500);
+			}
+		}, 3000);
+	</script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/lib/easing/easing.min.js"></script>
+    <script src="/lib/waypoints/waypoints.min.js"></script>
+    <script src="/lib/counterup/counterup.min.js"></script>
+    <script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="~/js/main.js"></script>
+</body>
+</html>
