@@ -20,13 +20,13 @@ public partial class Doctor
 
     public bool? IsDepartmentHead { get; set; }
 
-    public int? ExperienceYear { get; set; }
+    public int ExperienceYear { get; set; }
 
     public string? Degree { get; set; }
 
     public bool IsActive { get; set; }
 
-    public bool? IsSpecial { get; set; }
+    public bool IsSpecial { get; set; }
 
     public string? Gender { get; set; }
 

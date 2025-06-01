@@ -1,10 +1,7 @@
 ﻿
 <!DOCTYPE html>
 <html lang="en">
-@{
-	var PatientSession = Context.Session.GetString("PatientSession");
-	var DoctorSession = Context.Session.GetString("DoctorSession");
-}
+
 <head>
 	<meta charset="utf-8">
 	<title>Klinik - Clinic Website Template</title>
@@ -120,10 +117,8 @@
 					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
 					<a asp-action="ViewDoctors" asp-controller="Home" class="nav-item nav-link">Doctors</a>
 
-					@if (!string.IsNullOrEmpty(PatientSession))
+					@if (User.IsInRole("Patient"))
 					{
-						var user = Newtonsoft.Json.JsonConvert.DeserializeObject<Patient>(PatientSession);
-
 						<!-- Patient -->
 						<div class="nav-item dropdown">
 							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
@@ -139,8 +134,7 @@
 
 
 					}
-					else if(!string.IsNullOrEmpty(DoctorSession)){
-						var user = Newtonsoft.Json.JsonConvert.DeserializeObject<Patient>(DoctorSession);
+					else if(User.IsInRole("Doctor")){
 
 						<!-- Doctor -->
 						<div class="nav-item dropdown">
@@ -154,7 +148,7 @@
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Logout</a>
 							</div>
 						</div>
-						
+
 						<a href="#"  class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
 
 					}
@@ -253,10 +247,36 @@
 			}
 		}, 3000);
 	</script>
+	<!--Start of Tawk.to Script-->
+	<script type="text/javascript">
+		var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+		(function(){
+		var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+		s1.async=true;
+		s1.src='https://embed.tawk.to/68366006f5baba190a23b03c/1isflcvrj';
+		s1.charset='UTF-8';
+		s1.setAttribute('crossorigin','*');
+		s0.parentNode.insertBefore(s1,s0);
+		})();
+	</script>
+	<!--End of Tawk.to Script-->
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/lib/wow/wow.min.js"></script>
+	<script src="/lib/easing/easing.min.js"></script>
+	<script src="/lib/waypoints/waypoints.min.js"></script>
+	<script src="/lib/counterup/counterup.min.js"></script>
+	<script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+	<script src="/lib/tempusdominus/js/moment.min.js"></script>
+	<script src="/lib/tempusdominus/js/moment-timezone.min.js"></script>
+	<script src="/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+	<script src="~/js/main.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
 
 </body>
+
 </html>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
 

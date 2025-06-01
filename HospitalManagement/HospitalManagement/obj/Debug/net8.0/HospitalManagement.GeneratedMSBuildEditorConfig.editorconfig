@@ -56,12 +56,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXEFwcG9pbnRtZW50TGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Doctor/Appointments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXEFwcG9pbnRtZW50cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Doctor/ChangePassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXENoYW5nZVBhc3N3b3JkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Doctor/ConsultationList.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXENvbnN1bHRhdGlvbkxpc3QuY3NodG1s
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Doctor/Dashboard.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXERhc2hib2FyZC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Doctor/Schedule.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRG9jdG9yXFNjaGVkdWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Doctor/UpdateProfile.cshtml]
@@ -108,8 +116,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFxVcGRhdGVQcm9maWxlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Patient/ViewBookingAppointment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFxWaWV3Qm9va2luZ0FwcG9pbnRtZW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Patient/ViewProfile.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF0aWVudFxWaWV3UHJvZmlsZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Sales/CreateAppointment.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNcQ3JlYXRlQXBwb2ludG1lbnQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Sales/ViewCompletedConsultations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNcVmlld0NvbXBsZXRlZENvbnN1bHRhdGlvbnMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Shared/_ValidationScriptsPartial.cshtml]

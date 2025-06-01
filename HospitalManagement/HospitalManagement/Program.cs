@@ -4,6 +4,8 @@ using HospitalManagement.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using HospitalManagement.Services;
+using HospitalManagement.Models;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
@@ -20,7 +22,7 @@ builder.Services.AddAuthentication(options =>
 .AddCookie(options =>
 {
     options.LoginPath = "/Auth/Login";
-    options.AccessDeniedPath = "/Auth/AccessDenied";
+    options.AccessDeniedPath = "/Home/AccessDenied";
 })
 .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
 {
@@ -63,6 +65,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
 var app = builder.Build();
 
@@ -107,6 +110,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Sales}/{action=CreateAppointment}/{id?}");
 
 app.Run();
