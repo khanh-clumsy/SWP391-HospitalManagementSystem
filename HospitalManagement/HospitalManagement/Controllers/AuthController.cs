@@ -62,11 +62,32 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(ViewModels.Login LogInfo)
         {
-            //check role pick
+            //Check role pick
             if (LogInfo.Role == "Staff")
             {
-                TempData["error"] = "Hải chưa làm phần này T.T";
-                return View(LogInfo);
+                var user = _context.Staff.SingleOrDefault(u => u.Email == LogInfo.Email);
+                PasswordHasher<Staff> localHasher = new PasswordHasher<Staff>();
+
+                if (user == null || localHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+                {
+                    TempData["error"] = "Email or password is invalid.";
+                    return View(LogInfo);
+                }
+
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim(ClaimTypes.Role, user.RoleName),
+                        new Claim("StaffID", user.StaffId.ToString()),
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                TempData["success"] = "Login successful!";
+                return RedirectToAction("Index", "Home");
             }
 
             if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))
@@ -397,7 +418,7 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(string email)
         {
-            var user = await _context.Patients.FirstOrDefaultAsync(x => x.Email == email);
+            var user = await _context.Staff.FirstOrDefaultAsync(x => x.Email == email);
             if (user == null)
             {
                 TempData["error"] = "Email không tồn tại.";
@@ -462,14 +483,14 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("ForgotPassword");
             }
 
-            var user = await _context.Patients.FirstOrDefaultAsync(x => x.Email == reset.Email);
+            var user = await _context.Staff.FirstOrDefaultAsync(x => x.Email == reset.Email);
             if (user == null)
             {
                 TempData["error"] = "Không tìm thấy tài khoản.";
                 return RedirectToAction("ForgotPassword");
             }
 
-            var hasher = new PasswordHasher<Patient>();
+            var hasher = new PasswordHasher<Staff>();
             user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
             _context.PasswordResets.Remove(reset);
             await _context.SaveChangesAsync();
