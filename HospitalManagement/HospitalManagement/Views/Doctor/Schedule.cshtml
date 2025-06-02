@@ -1,0 +1,579 @@
+﻿@{
+	Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Schedule - Doctor Dashboard - Klinik</title>
+	<meta content="width=device-width, initial-scale=1.0" name="viewport">
+	<meta content="" name="keywords">
+	<meta content="" name="description">
+
+	<!-- Favicon -->
+	<link href="/img/favicon.ico" rel="icon">
+
+	<!-- Google Web Fonts -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+
+	<!-- Icon Font Stylesheet -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+	<!-- Bootstrap CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<style>
+		:root {
+			--primary: #0463FA;
+			--light: #EFF5FF;
+			--dark: #1B2C51;
+		}
+
+		body {
+			font-family: 'Open Sans', sans-serif;
+			background-color: #f8f9fa;
+		}
+
+		.sidebar {
+			position: fixed;
+			top: 0;
+			left: 0;
+			height: 100vh;
+			width: 280px;
+			background: linear-gradient(135deg, var(--primary) 0%, var(--dark) 100%);
+			padding: 0;
+			z-index: 1000;
+			box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+		}
+
+		.sidebar-header {
+			padding: 1.5rem;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+		}
+
+			.sidebar-header h3 {
+				color: white;
+				margin: 0;
+				font-weight: 700;
+				display: flex;
+				align-items: center;
+			}
+
+			.sidebar-header img {
+				width: 40px;
+				height: 40px;
+				margin-right: 10px;
+				border-radius: 8px;
+			}
+
+		.sidebar-menu {
+			padding: 1rem 0;
+		}
+
+		.menu-item {
+			display: block;
+			padding: 0.75rem 1.5rem;
+			color: rgba(255, 255, 255, 0.8);
+			text-decoration: none;
+			transition: all 0.3s ease;
+			border: none;
+			background: none;
+			width: 100%;
+			text-align: left;
+		}
+
+			.menu-item:hover, .menu-item.active {
+				background: rgba(255, 255, 255, 0.1);
+				color: white;
+				padding-left: 2rem;
+			}
+
+			.menu-item i {
+				width: 20px;
+				margin-right: 10px;
+			}
+
+		.main-content {
+			margin-left: 280px;
+			padding: 0;
+			min-height: 100vh;
+		}
+
+		.top-navbar {
+			background: white;
+			padding: 1rem 2rem;
+			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+			margin-bottom: 2rem;
+		}
+
+		.content-area {
+			padding: 0 2rem 2rem;
+		}
+
+		.user-info {
+			display: flex;
+			align-items: center;
+		}
+
+		.user-avatar {
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			margin-right: 10px;
+		}
+
+		.notification-bell {
+			position: relative;
+			margin-right: 1rem;
+		}
+
+		.notification-badge {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			background: #dc3545;
+			color: white;
+			border-radius: 50%;
+			width: 18px;
+			height: 18px;
+			font-size: 0.7rem;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		/* Schedule Styles */
+		.schedule-container {
+			background: white;
+			border-radius: 10px;
+			box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+			overflow: hidden;
+		}
+
+		.schedule-header {
+			background: var(--primary);
+			color: white;
+			padding: 1.5rem;
+			display: flex;
+			justify-content: between;
+			align-items: center;
+		}
+
+		.week-navigation {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+		}
+
+		.week-nav-btn {
+			background: rgba(255, 255, 255, 0.2);
+			border: none;
+			color: white;
+			padding: 0.5rem;
+			border-radius: 50%;
+			width: 40px;
+			height: 40px;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+
+			.week-nav-btn:hover {
+				background: rgba(255, 255, 255, 0.3);
+			}
+
+		.schedule-table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+
+			.schedule-table th {
+				background: var(--light);
+				padding: 1rem;
+				text-align: center;
+				font-weight: 600;
+				color: var(--dark);
+				border-bottom: 2px solid #dee2e6;
+			}
+
+			.schedule-table td {
+				padding: 0;
+				border: 1px solid #e9ecef;
+				height: 60px;
+				vertical-align: top;
+				position: relative;
+			}
+
+		.time-slot {
+			background: #f8f9fa;
+			font-weight: 500;
+			color: var(--dark);
+			text-align: center;
+			vertical-align: middle;
+			width: 100px;
+			border-right: 2px solid #dee2e6;
+		}
+
+		.appointment-slot {
+			cursor: pointer;
+			transition: all 0.3s ease;
+			position: relative;
+		}
+
+			.appointment-slot:hover {
+				background: rgba(4, 99, 250, 0.1);
+			}
+
+		.appointment {
+			position: absolute;
+			top: 2px;
+			left: 2px;
+			right: 2px;
+			bottom: 2px;
+			border-radius: 4px;
+			padding: 0.25rem;
+			font-size: 0.8rem;
+			color: white;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+		}
+
+		.appointment-booked {
+			background: var(--primary);
+		}
+
+		.appointment-urgent {
+			background: #dc3545;
+		}
+
+		.appointment-completed {
+			background: #28a745;
+		}
+
+		.appointment-break {
+			background: #6c757d;
+		}
+
+		.schedule-legend {
+			padding: 1rem;
+			background: #f8f9fa;
+			border-top: 1px solid #dee2e6;
+			display: flex;
+			gap: 2rem;
+			flex-wrap: wrap;
+		}
+
+		.legend-item {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+
+		.legend-color {
+			width: 16px;
+			height: 16px;
+			border-radius: 3px;
+		}
+
+		.btn-primary {
+			background-color: var(--primary);
+			border-color: var(--primary);
+			font-weight: 500;
+		}
+
+			.btn-primary:hover {
+				background-color: var(--dark);
+				border-color: var(--dark);
+			}
+
+		.schedule-actions {
+			padding: 1rem;
+			border-bottom: 1px solid #dee2e6;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+	</style>
+</head>
+
+<body>
+	<!-- Sidebar -->
+	<div class="sidebar">
+		<div class="sidebar-header">
+			<h3>
+				<img src="/img/logo.jpg" alt="Logo">
+				Klinik Doctor
+			</h3>
+		</div>
+		<div class="sidebar-menu">
+			<a href="#" class="menu-item">
+				<i class="fas fa-tachometer-alt"></i>
+				Dashboard
+			</a>
+			<a href="#" class="menu-item">
+				<i class="fas fa-calendar-alt"></i>
+				Appointments
+			</a>
+			<a href="#" class="menu-item active">
+				<i class="fas fa-calendar-week"></i>
+				Schedule
+			</a>
+			<a href="#" class="menu-item">
+				<i class="fas fa-users"></i>
+				Patients
+			</a>
+			<a href="#" class="menu-item">
+				<i class="fas fa-stethoscope"></i>
+				Consultations
+			</a>
+			<a href="#" class="menu-item">
+				<i class="fas fa-prescription-bottle-alt"></i>
+				Prescriptions
+			</a>
+			<a href="#" class="menu-item">
+				<i class="fas fa-chart-line"></i>
+				Reports
+			</a>
+			<a href="#" class="menu-item">
+				<i class="fas fa-cog"></i>
+				Settings
+			</a>
+			<div style="margin-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1rem;">
+				<a href="#" class="menu-item">
+					<i class="fas fa-user"></i>
+					Profile
+				</a>
+				<a href="#" class="menu-item">
+					<i class="fas fa-sign-out-alt"></i>
+					Logout
+				</a>
+			</div>
+		</div>
+	</div>
+
+	<!-- Main Content -->
+	<div class="main-content">
+		<!-- Top Navbar -->
+		<div class="top-navbar">
+			<div class="d-flex justify-content-between align-items-center">
+				<div>
+					<h4 class="mb-0">Weekly Schedule</h4>
+					<small class="text-muted">Manage your appointments and availability</small>
+				</div>
+				<div class="d-flex align-items-center">
+					<div class="notification-bell">
+						<i class="fas fa-bell fa-lg text-muted"></i>
+						<span class="notification-badge">3</span>
+					</div>
+					<div class="user-info">
+						<img src="https://via.placeholder.com/40x40/0463FA/FFFFFF?text=DS" alt="Doctor" class="user-avatar">
+						<div>
+							<div class="fw-bold">Dr. Smith</div>
+							<small class="text-muted">Cardiologist</small>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Content Area -->
+		<div class="content-area">
+			<div class="schedule-container">
+				<!-- Schedule Header -->
+				<div class="schedule-header">
+					<h5 class="mb-0">Weekly Schedule</h5>
+					<div class="week-navigation">
+						<button class="week-nav-btn" onclick="previousWeek()">
+							<i class="fas fa-chevron-left"></i>
+						</button>
+						<span id="current-week" class="fw-bold">Dec 02 - Dec 08, 2024</span>
+						<button class="week-nav-btn" onclick="nextWeek()">
+							<i class="fas fa-chevron-right"></i>
+						</button>
+					</div>
+				</div>
+
+				<!-- Schedule Actions -->
+				<div class="schedule-actions">
+					<div>
+						<button class="btn btn-primary btn-sm me-2">
+							<i class="fas fa-plus me-1"></i>Add Appointment
+						</button>
+						<button class="btn btn-outline-primary btn-sm">
+							<i class="fas fa-download me-1"></i>Export
+						</button>
+					</div>
+					<div>
+						<button class="btn btn-outline-secondary btn-sm">
+							<i class="fas fa-cog me-1"></i>Settings
+						</button>
+					</div>
+				</div>
+
+				<!-- Schedule Table -->
+				<div class="table-responsive">
+					<table class="schedule-table">
+						<thead>
+							<tr>
+								<th>Time</th>
+								<th>Monday<br><small class="text-muted">Dec 02</small></th>
+								<th>Tuesday<br><small class="text-muted">Dec 03</small></th>
+								<th>Wednesday<br><small class="text-muted">Dec 04</small></th>
+								<th>Thursday<br><small class="text-muted">Dec 05</small></th>
+								<th>Friday<br><small class="text-muted">Dec 06</small></th>
+								<th>Saturday<br><small class="text-muted">Dec 07</small></th>
+								<th>Sunday<br><small class="text-muted">Dec 08</small></th>
+							</tr>
+						</thead>
+						<tbody id="schedule-body">
+							<!-- Schedule rows will be generated by JavaScript -->
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Legend -->
+				<div class="schedule-legend">
+					<div class="legend-item">
+						<div class="legend-color" style="background: var(--primary);"></div>
+						<span>Scheduled Appointment</span>
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: #dc3545;"></div>
+						<span>Urgent Appointment</span>
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: #28a745;"></div>
+						<span>Completed</span>
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: #6c757d;"></div>
+						<span>Break/Unavailable</span>
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: white; border: 1px solid #dee2e6;"></div>
+						<span>Available</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script>
+		// Sample appointment data
+		const sampleAppointments = {
+			'mon-09': { patient: 'John Doe', type: 'booked', time: '9:00 AM' },
+			'mon-10': { patient: 'Jane Smith', type: 'urgent', time: '10:00 AM' },
+			'mon-14': { patient: 'Lunch Break', type: 'break', time: '2:00 PM' },
+			'tue-08': { patient: 'Robert Johnson', type: 'booked', time: '8:00 AM' },
+			'tue-11': { patient: 'Mary Wilson', type: 'completed', time: '11:00 AM' },
+			'wed-10': { patient: 'David Brown', type: 'booked', time: '10:00 AM' },
+			'wed-15': { patient: 'Sarah Davis', type: 'urgent', time: '3:00 PM' },
+			'thu-09': { patient: 'Michael Miller', type: 'booked', time: '9:00 AM' },
+			'thu-13': { patient: 'Lunch Break', type: 'break', time: '1:00 PM' },
+			'fri-08': { patient: 'Lisa Garcia', type: 'booked', time: '8:00 AM' },
+			'fri-16': { patient: 'James Rodriguez', type: 'booked', time: '4:00 PM' }
+		};
+
+		// Time slots from 7 AM to 5 PM
+		const timeSlots = [
+			'07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
+			'13:00', '14:00', '15:00', '16:00', '17:00'
+		];
+
+		const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+		const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+		function generateSchedule() {
+			const scheduleBody = document.getElementById('schedule-body');
+			scheduleBody.innerHTML = '';
+
+			timeSlots.forEach((time, timeIndex) => {
+				const row = document.createElement('tr');
+
+				// Time column
+				const timeCell = document.createElement('td');
+				timeCell.className = 'time-slot';
+				const hour = parseInt(time.split(':')[0]);
+				const displayTime = hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`;
+				timeCell.textContent = displayTime;
+				row.appendChild(timeCell);
+
+				// Day columns
+				days.forEach(day => {
+					const dayCell = document.createElement('td');
+					dayCell.className = 'appointment-slot';
+
+					const slotKey = `${day}-${time.split(':')[0].padStart(2, '0')}`;
+
+					if (sampleAppointments[slotKey]) {
+						const appointment = sampleAppointments[slotKey];
+						const appointmentDiv = document.createElement('div');
+						appointmentDiv.className = `appointment appointment-${appointment.type}`;
+						appointmentDiv.innerHTML = `
+							<div style="font-weight: 600;">${appointment.patient}</div>
+							<div style="font-size: 0.7rem; opacity: 0.9;">${appointment.time}</div>
+						`;
+						dayCell.appendChild(appointmentDiv);
+					}
+
+					// Add click event for booking
+					dayCell.addEventListener('click', function() {
+						if (!this.querySelector('.appointment')) {
+							bookAppointment(day, time, displayTime);
+						}
+					});
+
+					row.appendChild(dayCell);
+				});
+
+				scheduleBody.appendChild(row);
+			});
+		}
+
+		function bookAppointment(day, time, displayTime) {
+			const patientName = prompt(`Book appointment for ${dayNames[days.indexOf(day)]} at ${displayTime}:\n\nEnter patient name:`);
+
+			if (patientName && patientName.trim()) {
+				const slotKey = `${day}-${time.split(':')[0].padStart(2, '0')}`;
+				sampleAppointments[slotKey] = {
+					patient: patientName.trim(),
+					type: 'booked',
+					time: displayTime
+				};
+				generateSchedule();
+			}
+		}
+
+		function previousWeek() {
+			// In a real application, this would update the week dates and reload data
+			console.log('Previous week clicked');
+		}
+
+		function nextWeek() {
+			// In a real application, this would update the week dates and reload data
+			console.log('Next week clicked');
+		}
+
+		// Initialize schedule on page load
+		document.addEventListener('DOMContentLoaded', function() {
+			generateSchedule();
+		});
+
+		// Mobile sidebar toggle (if needed)
+		function toggleSidebar() {
+			const sidebar = document.querySelector('.sidebar');
+			sidebar.classList.toggle('show');
+		}
+	</script>
+</body>
+</html>
