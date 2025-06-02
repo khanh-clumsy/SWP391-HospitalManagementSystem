@@ -191,7 +191,7 @@
                                                 Type = "Patient",
 											    page = Model.Patients.PageNumber - 1,
 											    name = ViewBag.Name,
-											    department = ViewBag.Department}) : "#")" tabindex="-1">Previous</a>
+											    gender = ViewBag.Gender}) : "#")" tabindex="-1">Previous</a>
 						    </li>
 
 						    @* Trang đầu nếu startPage > 1 và dấu "..." *@
@@ -202,7 +202,7 @@
                                                 Type = "Patient",
 											    page = 1,
 											    name = ViewBag.Name,
-											    department = ViewBag.Department})">1</a>
+											    gender = ViewBag.Gender})">1</a>
 							    </li>
 							    @if (startPage > 2)
 							    {
@@ -218,7 +218,7 @@
                                                 Type = "Patient",
 											    page = i,
 											    name = ViewBag.Name,
-											    department = ViewBag.Department})">@i</a>
+											    gender = ViewBag.Gender})">@i</a>
 							    </li>
 						    }
 
@@ -234,7 +234,7 @@
                                                 Type = "Patient",
 											    page = Model.Patients.PageCount, 
 											    name = ViewBag.Name,
-											    department = ViewBag.Department})">@Model.Patients.PageCount</a>
+											    gender = ViewBag.Gender})">@Model.Patients.PageCount</a>
 							    </li>
 						    }
 
@@ -244,7 +244,7 @@
                                                 Type = "Patient",
 										        page = Model.Patients.PageNumber + 1,
 										        name = ViewBag.Name,
-										        department = ViewBag.Department}) : "#")">Next</a>
+										        gender = ViewBag.Gender}) : "#")">Next</a>
 						    </li>
 
 					    </ul>
@@ -534,7 +534,7 @@
                                                 Type = "Staff",
 											    page = Model.Staffs.PageNumber - 1,
 											    name = ViewBag.Name,
-											    department = ViewBag.Department}) : "#")" tabindex="-1">Previous</a>
+											    roleName = ViewBag.Role}) : "#")" tabindex="-1">Previous</a>
 						    </li>
 
 						    @* Trang đầu nếu startPage > 1 và dấu "..." *@
@@ -545,7 +545,7 @@
                                                 Type = "Staff",
 											    page = 1,
 											    name = ViewBag.Name,
-											    department = ViewBag.Department})">1</a>
+											    roleName = ViewBag.Role})">1</a>
 							    </li>
 							    @if (startPage > 2)
 							    {
@@ -561,7 +561,7 @@
                                                 Type = "Staff",
 											    page = i,
 											    name = ViewBag.Name,
-											    department = ViewBag.Department})">@i</a>
+											    roleName = ViewBag.Role})">@i</a>
 							    </li>
 						    }
 
@@ -577,7 +577,7 @@
                                                 Type = "Staff",
 											    page = Model.Staffs.PageCount, 
 											    name = ViewBag.Name,
-											    department = ViewBag.Department})">@Model.Staffs.PageCount</a>
+											    roleName = ViewBag.Role})">@Model.Staffs.PageCount</a>
 							    </li>
 						    }
 
@@ -587,7 +587,7 @@
                                                 Type = "Staff",
 										        page = Model.Staffs.PageNumber + 1,
 										        name = ViewBag.Name,
-										        department = ViewBag.Department}) : "#")">Next</a>
+										        roleName = ViewBag.Role}) : "#")">Next</a>
 						    </li>
 
 					    </ul>
