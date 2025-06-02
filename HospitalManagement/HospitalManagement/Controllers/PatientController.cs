@@ -24,7 +24,7 @@ namespace HospitalManagement.Controllers
         private readonly HospitalManagementContext _context;
 
 
-     
+
         public PatientController(HospitalManagementContext context, IBookingAppointmentRepository doctorRepo,
             IBookingAppointmentRepository slotRepo,
             IBookingAppointmentRepository patientRepo,
@@ -37,6 +37,7 @@ namespace HospitalManagement.Controllers
             _patientRepo = patientRepo;
             _appointmentRepo = appointmentRepo;
         }
+
 
         [HttpGet]
         public IActionResult ViewProfile()
@@ -225,57 +226,7 @@ namespace HospitalManagement.Controllers
             var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
             if (user == null)
             {
-                var curUser = context.Patients.FirstOrDefault(u => u.PatientId == sessionUser.PatientId);
-                if (curUser != null)
-                {
-                    // check if phone start with 0 and 9 digits back
-                    if (model.PhoneNumber == null)
-                    {
-                        TempData["error"] = "Phone number is invalid.";
-                        return RedirectToAction("UpdateProfile");
-                    }
-
-                    if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
-                    {
-                        TempData["error"] = "Phone number is invalid.";
-                        return RedirectToAction("UpdateProfile");
-                    }
-
-                    //check if phone is non - number
-                    foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
-                        {
-                            TempData["error"] = "Phone number is invalid.";
-                            return RedirectToAction("UpdateProfile");
-                        }
-
-                    // check phone is used(not this user)
-                    var phoneOwner = context.Patients.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
-
-                    if (phoneOwner != null && phoneOwner.PatientId != curUser.PatientId)
-                    {
-                        TempData["error"] = "This phone number was used before.";
-                        return RedirectToAction("UpdateProfile");
-                    }
-
-
-                    // update info user and session
-                    sessionUser.FullName = curUser.FullName = model.FullName;
-                    sessionUser.Gender = curUser.Gender = model.Gender;
-                    sessionUser.PhoneNumber = curUser.PhoneNumber = model.PhoneNumber;
-                    sessionUser.Dob = curUser.Dob = model.Dob;
-                    sessionUser.Address = curUser.Address = model.Address;
-                    sessionUser.HealthInsurance = curUser.HealthInsurance = model.HealthInsurance;
-                    sessionUser.BloodGroup = curUser.BloodGroup = model.BloodGroup;
-
-                    // luu lai user vao database
-                    context.SaveChanges();
-
-                    // reset session
-                    HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(sessionUser));
-                }
-
                 return RedirectToAction("Login", "Auth");
-
             }
 
 
@@ -332,7 +283,7 @@ namespace HospitalManagement.Controllers
 
             return RedirectToAction("UpdateProfile");
         }
-     
+
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
@@ -365,12 +316,14 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
+        [Authorize(Roles = "Patient")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BookingAppointment(BookingApointment model)
         {
             ModelState.Remove(nameof(model.DoctorOptions));
             ModelState.Remove(nameof(model.SlotOptions));
+
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
@@ -382,14 +335,18 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            var userJson = HttpContext.Session.GetString("PatientSession");
-            if (string.IsNullOrEmpty(userJson)) return RedirectToAction("Login", "Auth");
+            // Lấy PatientId từ Claim
+            var patientIdClaim = User.Claims.FirstOrDefault(c => c.Type == "PatientId")?.Value;
 
-            var user = JsonConvert.DeserializeObject<Patient>(userJson);
-            if (user == null) return RedirectToAction("Login", "Auth");
+            if (string.IsNullOrEmpty(patientIdClaim))
+                return RedirectToAction("Login", "Auth");
 
-            var patient = await _patientRepo.GetPatientByPatientIdAsync(user.PatientId);
-            if (patient == null) return BadRequest("Patient not found");
+            if (!int.TryParse(patientIdClaim, out int patientId))
+                return BadRequest("Invalid patient ID");
+
+            var patient = await _patientRepo.GetPatientByPatientIdAsync(patientId);
+            if (patient == null)
+                return BadRequest("Patient not found");
 
             var appointment = new Appointment
             {
