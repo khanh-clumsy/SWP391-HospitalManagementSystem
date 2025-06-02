@@ -28,10 +28,6 @@ build_property._RazorSourceGeneratorDebug =
 build_property.EffectiveAnalysisLevelStyle = 8.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Auth/DoctorRegister.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxEb2N0b3JSZWdpc3Rlci5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Auth/ForgotPassword.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXV0aFxGb3Jnb3RQYXNzd29yZC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -134,6 +130,18 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/AddDoctorAccount.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxBZGREb2N0b3JBY2NvdW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/AddPatientAccount.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxBZGRQYXRpZW50QWNjb3VudC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/AddStaffAccount.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxBZGRTdGFmZkFjY291bnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/ManageAccount.cshtml]

@@ -152,11 +152,30 @@
 						<a href="#"  class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
 
 					}
+					else if(User.IsInRole("Admin")){
+
+						<!-- Admin -->
+						<div class="nav-item dropdown">
+							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
+							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
+								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Manage Account</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewProfile">View Profile</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewConsultations">View Consultations</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewBookingAppointment">View Appointments</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="UpdateProfile">Update Profile</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ChangePassword">Change Password</a>
+								<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
+							</div>
+						</div>
+
+						<a href="#"  class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
+
+					}
 
 					else
 					{
 						<!-- Nếu chưa đăng nhập -->
-						<a asp-action="DoctorRegister" asp-controller="Auth" class="nav-item nav-link">Doctor Register</a>
+						@* <a asp-action="DoctorRegister" asp-controller="Auth" class="nav-item nav-link">Doctor Register</a> *@
 						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
 						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Register</a>
 						<a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>

@@ -41,11 +41,7 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult DoctorRegister()
-        {
-            return View();
-        }
+ 
 
         private readonly HospitalManagementContext _context;
         private readonly PasswordHasher<Patient> _passwordHasher;
@@ -77,9 +73,8 @@ namespace HospitalManagement.Controllers
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, "Staff"), 
+                        new Claim(ClaimTypes.Role, user.RoleName), 
                         new Claim("StaffID", user.StaffId.ToString()),
-                        new Claim("RoleName", user.RoleName) 
                     };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -503,84 +498,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        [HttpPost]
-        public async Task<IActionResult> DoctorRegister(ViewModels.Register model)
-        {
-            // check if mail is used
-            var existingAccount = await _context.Patients.FirstOrDefaultAsync(a => a.Email == model.Email);
-            if (existingAccount != null)
-            {
-
-                TempData["error"] = "Email is already registered.";
-                return View(model);
-            }
-
-            //check phone valid
-
-            // check if phone start with 0 and 9 digits back
-            if (model.PhoneNumber == null)
-            {
-                TempData["error"] = "Phone number is invalid.";
-                return View(model);
-            }
-
-            if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
-            {
-                TempData["error"] = "Phone number is invalid.";
-                return View(model);
-            }
-
-            // check if phone is non-number
-            foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
-                {
-                    TempData["error"] = "Phone number is invalid.";
-                    return View(model);
-                }
-
-            // check phone is used(not this user)
-            var phoneOwner = _context.Doctors.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
-
-            if (phoneOwner != null)
-            {
-                TempData["error"] = "This phone number was used before.";
-                return View(model);
-            }
-
-            var doctor = new Models.Doctor
-            {
-                Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
-                FullName = model.FullName,
-                PhoneNumber = model.PhoneNumber,
-                Gender = model.Gender,
-                IsActive = true,
-                DepartmentName = model.DepartmentName,
-                IsDepartmentHead = model.IsDepartmentHead,
-                ExperienceYear = model.ExperienceYear ?? 0,
-                Degree = model.Degree,
-                IsSpecial = model.IsSpecial ?? false,
-                ProfileImage = model.ProfileImage
-            };
-
-            _context.Doctors.Add(doctor);
-            await _context.SaveChangesAsync();
-
-            // Lưu session sau khi đăng nhập
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email, doctor.Email),
-                new Claim(ClaimTypes.Role, "Doctor"),
-                new Claim("DoctorId", doctor.DoctorId.ToString())
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-            TempData["success"] = "Doctor registered successfully!";
-            return RedirectToAction("Index", "Home");
-        }
+        
 
     }
 }

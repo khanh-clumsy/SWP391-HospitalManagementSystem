@@ -1,11 +1,12 @@
 ﻿using HospitalManagement.Models;
+using X.PagedList;
 namespace HospitalManagement.ViewModels
 {
     public class AccountListViewModel
     {
-        public List<Patient> Patients { get; set; }
-        public List<Doctor> Doctors { get; set; }
-        public List<Staff> Staffs { get; set; }
+        public StaticPagedList<Patient> Patients { get; set; }
+        public StaticPagedList<Doctor> Doctors { get; set; }
+        public StaticPagedList<Staff> Staffs { get; set; }
         public string AccountType { get; set; }
         
 

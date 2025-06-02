@@ -63,6 +63,54 @@
             <!-- Patient -->
             @if (Model.AccountType == "Patient") 
             {
+				<a asp-action="AddPatientAccount" asp-controller="User" class="btn btn-primary mb-3">Add Account</a>
+				<!-- Search & Filter Form -->
+				<form method="get" asp-action="ManageAccount" asp-controller="User">
+					<input type="hidden" name="type" value="Patient" />
+					<div class="row g-2 wow fadeInUp" data-wow-delay="0.2s">
+
+						<!-- Search by name -->
+						<div class="col-md-2">
+							<input type="text" name="name" class="form-control" placeholder="Name"
+								   value="@(ViewBag.Name ?? "")" />
+						</div>
+
+						<!-- Filter by Gender -->
+						<div class="col-md-2">
+							<select class="form-select" name="gender">
+								<option value="">Gender</option>
+									@if ((string)ViewBag.Gender == null)
+									{
+										<option value="M" >Male</option>
+										<option value="F" >Female</option>
+										<option value="O" >Other</option>
+									}
+									else if ((string)ViewBag.Gender == "F")
+									{
+										<option value="M" >Male</option>
+										<option value="F" selected>Female</option>
+										<option value="O" >Other</option>
+									}
+									else if((string)ViewBag.Gender == "M")
+									{
+										<option value="M" selected>Male</option>
+										<option value="F" >Female</option>
+										<option value="O" >Other</option>
+									}
+									else
+									{
+										<option value="M" >Male</option>
+										<option value="F" >Female</option>
+										<option value="O" selected>Other</option>
+									}
+
+							</select>
+						</div>
+						<!-- Search Button -->
+						<div class="col-md-2 d-grid">
+							<button class="btn btn-primary" type="submit">Search</button>
+						</div>
+				</form>
                 <form asp-action="UpdatePatientStatus" method="post">
                     <table class="table table-bordered text-center">
                         <thead class="table-light">
@@ -70,6 +118,7 @@
                                 <th>ID</th>
                                 <th>Full Name</th>
                                 <th>Gender</th>
+                                <th>Date of birth</th>
                                 <th>Email</th>
                                 <th>Phone Number</th>
                                 <th>Active</th>
@@ -86,6 +135,7 @@
                                     </td>
                                     <td>@Model.Patients[i].FullName</td>
                                     <td>@Model.Patients[i].GetFullGender()</td>
+                                    <td>@(Model.Patients[i].Dob?.ToString("dd/MM/yyyy") ?? "")</td>
                                     <td>@Model.Patients[i].Email</td>
                                     <td>@Model.Patients[i].PhoneNumber</td>
                                     <td>
@@ -109,10 +159,128 @@
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
+                <!-- Pagination start -->
+			
+				int maxPagesToShow = 5;
+				int startPage = Model.Patients.PageNumber - maxPagesToShow / 2;
+				if (startPage < 1) startPage = 1;
+
+				int endPage = startPage + maxPagesToShow - 1;
+				if (endPage > Model.Patients.PageCount)
+				{
+					endPage = Model.Patients.PageCount;
+					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+				}
+			
+
+			    <div class="d-flex justify-content-center mt-5">
+				    <nav>
+					    <ul class="pagination">
+
+						    @* Previous button *@
+						    <li class="page-item @(Model.Patients.HasPreviousPage ? "" : "disabled")">
+							    <a class="page-link" href="@(Model.Patients.HasPreviousPage ? Url.Action("ManageAccount", new {
+                                                Type = "Patient",
+											    page = Model.Patients.PageNumber - 1,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department}) : "#")" tabindex="-1">Previous</a>
+						    </li>
+
+						    @* Trang đầu nếu startPage > 1 và dấu "..." *@
+						    @if (startPage > 1)
+						    {
+							    <li class="page-item">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = "Patient",
+											    page = 1,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">1</a>
+							    </li>
+							    @if (startPage > 2)
+							    {
+								    <li class="page-item disabled"><span class="page-link">...</span></li>
+							    }
+						    }
+
+						    @* Các trang hiển thị trong khoảng từ startPage đến endPage *@
+						    @for (int i = startPage; i <= endPage; i++)
+						    {
+							    <li class="page-item @(i == Model.Patients.PageNumber ? "active" : "")">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = "Patient",
+											    page = i,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">@i</a>
+							    </li>
+						    }
+
+						    @* Trang cuối nếu endPage < total pages và dấu "..." *@
+						    @if (endPage < Model.Patients.PageCount)
+						    {
+							    if (endPage < Model.Patients.PageCount - 1)
+							    {
+								    <li class="page-item disabled"><span class="page-link">...</span></li>
+							    }
+							    <li class="page-item">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new { 
+                                                Type = "Patient",
+											    page = Model.Patients.PageCount, 
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">@Model.Patients.PageCount</a>
+							    </li>
+						    }
+
+						    @* Next button *@
+						    <li class="page-item @(Model.Patients.HasNextPage ? "" : "disabled")">
+							    <a class="page-link" href="@(Model.Patients.HasNextPage ? Url.Action("ManageAccount", new { 
+                                                Type = "Patient",
+										        page = Model.Patients.PageNumber + 1,
+										        name = ViewBag.Name,
+										        department = ViewBag.Department}) : "#")">Next</a>
+						    </li>
+
+					    </ul>
+				    </nav>
+			    </div>
+			<!-- Pagination end -->
 
             }
             else if (Model.AccountType == "Doctor")
             {
+				<a asp-action="AddDoctorAccount" asp-controller="User" class="btn btn-primary mb-3">Add Account</a>
+				<!-- Search & Filter Form -->
+				<form method="get" asp-action="ManageAccount" asp-controller="User">
+					<input type="hidden" name="type" value="Doctor" />
+					<div class="row g-2 wow fadeInUp" data-wow-delay="0.2s">
+
+						<!-- Search by name -->
+						<div class="col-md-2">
+							<input type="text" name="name" class="form-control" placeholder="Name"
+								   value="@(ViewBag.Name ?? "")" />
+						</div>
+
+						<!-- Filter by Department -->
+						<div class="col-md-2">
+							<select class="form-select" name="department">
+								<option value="">Department</option>
+								@foreach (var dept in ViewBag.Departments as List<string>)
+								{
+									if ((string)ViewBag.Department == dept)
+									{
+										<option value="@dept" selected>@dept</option>
+									}
+									else
+									{
+										<option value="@dept">@dept</option>
+									}
+								}
+							</select>
+						</div>
+						<!-- Search Button -->
+						<div class="col-md-2 d-grid">
+							<button class="btn btn-primary" type="submit">Search</button>
+						</div>
+				</form>
                 <form asp-action="UpdateDoctorStatus" method="post">
                 <table class="table table-bordered text-center">
                     <thead class="table-light">
@@ -139,8 +307,16 @@
                                 <td>@Model.Doctors[i].GetFullGender()</td>
                                 <td>@Model.Doctors[i].Email</td>
                                 <td>@Model.Doctors[i].PhoneNumber</td>
-                                <td>@Model.Doctors[i].DepartmentName</td>
-                                <td>@Model.Doctors[i].IsDepartmentHead</td>
+                                <td>
+                                    @Model.Doctors[i].DepartmentName
+                                </td>
+                                <td>
+                                    <input type="checkbox"
+                                               name="doctors[@i].IsDepartmentHead"
+                                               value="true"
+                                               @(Model.Doctors[i].IsDepartmentHead == true ? "checked" : "") />
+                                    <input type="hidden" name="doctors[@i].IsDepartmentHead" value="false" />
+                                </td>
                                 <td>
                                     <input type="checkbox"
                                                name="doctors[@i].IsActive"
@@ -159,9 +335,127 @@
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
+                <!-- Pagination start -->
+			
+				int maxPagesToShow = 5;
+				int startPage = Model.Doctors.PageNumber - maxPagesToShow / 2;
+				if (startPage < 1) startPage = 1;
+
+				int endPage = startPage + maxPagesToShow - 1;
+				if (endPage > Model.Doctors.PageCount)
+				{
+					endPage = Model.Doctors.PageCount;
+					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+				}
+			
+
+			    <div class="d-flex justify-content-center mt-5">
+				    <nav>
+					    <ul class="pagination">
+
+						    @* Previous button *@
+						    <li class="page-item @(Model.Doctors.HasPreviousPage ? "" : "disabled")">
+							    <a class="page-link" href="@(Model.Doctors.HasPreviousPage ? Url.Action("ManageAccount", new {
+                                                Type = "Doctor",
+											    page = Model.Doctors.PageNumber - 1,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department}) : "#")" tabindex="-1">Previous</a>
+						    </li>
+
+						    @* Trang đầu nếu startPage > 1 và dấu "..." *@
+						    @if (startPage > 1)
+						    {
+							    <li class="page-item">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = "Doctor",
+											    page = 1,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">1</a>
+							    </li>
+							    @if (startPage > 2)
+							    {
+								    <li class="page-item disabled"><span class="page-link">...</span></li>
+							    }
+						    }
+
+						    @* Các trang hiển thị trong khoảng từ startPage đến endPage *@
+						    @for (int i = startPage; i <= endPage; i++)
+						    {
+							    <li class="page-item @(i == Model.Doctors.PageNumber ? "active" : "")">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = "Doctor",
+											    page = i,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">@i</a>
+							    </li>
+						    }
+
+						    @* Trang cuối nếu endPage < total pages và dấu "..." *@
+						    @if (endPage < Model.Doctors.PageCount)
+						    {
+							    if (endPage < Model.Doctors.PageCount - 1)
+							    {
+								    <li class="page-item disabled"><span class="page-link">...</span></li>
+							    }
+							    <li class="page-item">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new { 
+                                                Type = "Doctor",
+											    page = Model.Doctors.PageCount, 
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">@Model.Doctors.PageCount</a>
+							    </li>
+						    }
+
+						    @* Next button *@
+						    <li class="page-item @(Model.Doctors.HasNextPage ? "" : "disabled")">
+							    <a class="page-link" href="@(Model.Doctors.HasNextPage ? Url.Action("ManageAccount", new { 
+                                                Type = "Doctor",
+										        page = Model.Doctors.PageNumber + 1,
+										        name = ViewBag.Name,
+										        department = ViewBag.Department}) : "#")">Next</a>
+						    </li>
+
+					    </ul>
+				    </nav>
+			    </div>
+			<!-- Pagination end -->
             }
             else if (Model.AccountType == "Staff")
             {
+				<a asp-action="AddStaffAccount" asp-controller="User" class="btn btn-primary mb-3">Add Account</a>
+				<!-- Search & Filter Form -->
+				<form method="get" asp-action="ManageAccount" asp-controller="User">
+					<input type="hidden" name="type" value="Staff" />
+					<div class="row g-2 wow fadeInUp" data-wow-delay="0.2s">
+
+						<!-- Search by name -->
+						<div class="col-md-2">
+							<input type="text" name="name" class="form-control" placeholder="Name"
+								   value="@(ViewBag.Name ?? "")" />
+						</div>
+
+						<!-- Filter by Role -->
+						<div class="col-md-2">
+							<select class="form-select" name="roleName">
+								<option value="">Role</option>
+								@foreach (var rol in ViewBag.Roles as List<string>)
+								{
+									if ((string)ViewBag.Role == rol)
+									{
+										<option value="@rol" selected>@rol</option>
+									}
+									else
+									{
+										<option value="@rol">@rol</option>
+									}
+								}
+							</select>
+						</div>
+						<!-- Search Button -->
+						<div class="col-md-2 d-grid">
+							<button class="btn btn-primary" type="submit">Search</button>
+						</div>
+				</form>
                 <form asp-action="UpdateStaffStatus" method="post">
                     <table class="table table-bordered text-center">
                         <thead class="table-light">
@@ -171,6 +465,7 @@
                                 <th>Gender</th>
                                 <th>Email</th>
                                 <th>Phone Number</th>
+                                <th>Role</th>
                                 <th>Active</th>
                                 <th>Action</th>
                             </tr>
@@ -186,6 +481,7 @@
                                     <td>@Model.Staffs[i].GetFullGender()</td>
                                     <td>@Model.Staffs[i].Email</td>
                                     <td>@Model.Staffs[i].PhoneNumber</td>
+                                    <td>@Model.Staffs[i].RoleName</td>
                                     <td>
                                         
                                         <input type="checkbox"
@@ -205,6 +501,91 @@
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                     </form>
+
+                <!-- Pagination start -->
+			
+				int maxPagesToShow = 5;
+				int startPage = Model.Staffs.PageNumber - maxPagesToShow / 2;
+				if (startPage < 1) startPage = 1;
+
+				int endPage = startPage + maxPagesToShow - 1;
+				if (endPage > Model.Staffs.PageCount)
+				{
+					endPage = Model.Staffs.PageCount;
+					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+				}
+			
+
+			    <div class="d-flex justify-content-center mt-5">
+				    <nav>
+					    <ul class="pagination">
+
+						    @* Previous button *@
+						    <li class="page-item @(Model.Staffs.HasPreviousPage ? "" : "disabled")">
+							    <a class="page-link" href="@(Model.Staffs.HasPreviousPage ? Url.Action("ManageAccount", new {
+                                                Type = "Staff",
+											    page = Model.Staffs.PageNumber - 1,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department}) : "#")" tabindex="-1">Previous</a>
+						    </li>
+
+						    @* Trang đầu nếu startPage > 1 và dấu "..." *@
+						    @if (startPage > 1)
+						    {
+							    <li class="page-item">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = "Staff",
+											    page = 1,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">1</a>
+							    </li>
+							    @if (startPage > 2)
+							    {
+								    <li class="page-item disabled"><span class="page-link">...</span></li>
+							    }
+						    }
+
+						    @* Các trang hiển thị trong khoảng từ startPage đến endPage *@
+						    @for (int i = startPage; i <= endPage; i++)
+						    {
+							    <li class="page-item @(i == Model.Staffs.PageNumber ? "active" : "")">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = "Staff",
+											    page = i,
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">@i</a>
+							    </li>
+						    }
+
+						    @* Trang cuối nếu endPage < total pages và dấu "..." *@
+						    @if (endPage < Model.Staffs.PageCount)
+						    {
+							    if (endPage < Model.Staffs.PageCount - 1)
+							    {
+								    <li class="page-item disabled"><span class="page-link">...</span></li>
+							    }
+							    <li class="page-item">
+								    <a class="page-link" href="@Url.Action("ManageAccount", new { 
+                                                Type = "Staff",
+											    page = Model.Staffs.PageCount, 
+											    name = ViewBag.Name,
+											    department = ViewBag.Department})">@Model.Staffs.PageCount</a>
+							    </li>
+						    }
+
+						    @* Next button *@
+						    <li class="page-item @(Model.Staffs.HasNextPage ? "" : "disabled")">
+							    <a class="page-link" href="@(Model.Staffs.HasNextPage ? Url.Action("ManageAccount", new { 
+                                                Type = "Staff",
+										        page = Model.Staffs.PageNumber + 1,
+										        name = ViewBag.Name,
+										        department = ViewBag.Department}) : "#")">Next</a>
+						    </li>
+
+					    </ul>
+				    </nav>
+			    </div>
+			<!-- Pagination end -->
             }
 
         </div>
