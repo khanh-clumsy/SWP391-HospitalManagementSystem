@@ -3,7 +3,7 @@
     var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
     var isReadonly = !string.IsNullOrEmpty(Model.Name);
 }
-@model BookingApointment
+@model BookingApointmentViewModel
 <!DOCTYPE html>
 
 <html lang="en">
@@ -52,7 +52,7 @@
                 <!-- Form Request Consultant -->
                 <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
                     <div class="bg-light rounded h-100 d-flex align-items-center p-5">
-                        <form asp-action="BookingAppointment" asp-controller="Patient" method="post" style="width: 100%;">
+                        <form asp-action="Booking" asp-controller="Appointment" method="post" style="width: 100%;">
                             <div class="row g-3">
                                 <!-- Name field - Full width -->
                                 <div class="col-12">
@@ -95,6 +95,8 @@
                                         <select asp-for="SelectedDoctorId" asp-items="Model.DoctorOptions" class="form-select" required>
                                             <option value="">-- Select Doctor --</option>
                                         </select>
+                                        <span asp-validation-for="SelectedDoctorId" class="text-danger"></span>
+
                                     </div>
 
                                     <!-- Slot Dropdown -->
@@ -102,6 +104,8 @@
                                         <select asp-for="SelectedSlotId" asp-items="Model.SlotOptions" class="form-select" required>
                                             <option value="">-- Select Slot --</option>
                                         </select>
+                                        <span asp-validation-for="SelectedSlotId" class="text-danger"></span>
+
                                     </div>
                                 </div>
 
@@ -112,28 +116,18 @@
                                 </div>
 
 
-                                <!-- Radio buttons for Service -->
                                 <div class="col-12">
-                                    <div class="d-flex align-items-center justify-content-between" style="height: 55px; border: 2px solid #ddd; border-radius: 4px; padding: 0 15px;">
-                                        <label class="form-label mb-0 me-4" style="font-weight: 500;">Service:</label>
-
-                                        <div class="d-flex align-items-center gap-4">
-                                            <div class="form-check mb-0">
-                                                <input class="form-check-input" type="radio" asp-for="SelectedServiceId" value="3" id="common" checked />
-                                                <label class="form-check-label" for="common">Common Examination</label>
-                                            </div>
-                                            <div class="form-check mb-0">
-                                                <input class="form-check-input" type="radio" asp-for="SelectedServiceId" value="4" id="advanced" />
-                                                <label class="form-check-label" for="advanced">Advanced Examination</label>
-                                            </div>
-                                            <span asp-validation-for="SelectedServiceId" class="text-danger"></span>
-                                        </div>
-                                    </div>
+                                    <select asp-for="SelectedServiceId" asp-items="Model.ServiceOptions" class="form-select">
+                                        <option value="">-- Select Service --</option>
+                                    </select>
+                                    <span asp-validation-for="SelectedServiceId" class="text-danger"></span>
                                 </div>
 
                                 <!-- Large text area -->
                                 <div class="col-12">
                                     <textarea asp-for="Note" class="form-control" rows="8" placeholder="Describe your problem"></textarea>
+                                    <span asp-validation-for="Note" class="text-danger"></span>
+
                                 </div>
 
                                 <!-- Submit button -->

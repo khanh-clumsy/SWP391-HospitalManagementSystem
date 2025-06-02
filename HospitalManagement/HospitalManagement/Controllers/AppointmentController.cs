@@ -1,5 +1,6 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using HospitalManagement.Repositories;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,17 +16,58 @@ namespace HospitalManagement.Controllers
     {
         private readonly HospitalManagementContext _context;
         private readonly PasswordHasher<Patient> _passwordHasher;
-
-        public AppointmentController(HospitalManagementContext context)
+        private readonly IAppointmentRepository _appointmentRepository;
+        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
+            _appointmentRepository = appointmentRepository;
 
         }
         [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
             return View();
+        }
+
+        [Authorize(Roles = "Patient, Sales, Doctor")]
+        [HttpGet]
+        public async Task<IActionResult> MyAppointments()
+        {
+            var SlotOptions = await _context.Slots.ToListAsync();
+            ViewBag.SlotOptions = SlotOptions;
+            string role = "";
+            if (User.IsInRole("Patient")) role = "Patient";
+            else if (User.IsInRole("Sales")) role = "Sales";
+            else if (User.IsInRole("Doctor")) role = "Doctor";
+
+            var appointment = new List<Appointment>();
+            switch (role)
+            {
+                case "Patient":
+                    var patientIdClaim = User.FindFirst("PatientID")?.Value;
+                    if (patientIdClaim == null) return RedirectToAction("Login", "Auth");
+                    int PatientID = int.Parse(patientIdClaim);
+                    appointment = await _appointmentRepository.GetAppointmentByPatientIDAsync(PatientID);
+                    return View(appointment);
+                case "Sales":
+                    break;
+                case "Doctor":
+                    break;
+                default:
+                    break;
+            }
+            return View();
+        }
+
+        [Authorize(Roles = "Patient, Sales, Doctor")]
+        [HttpGet]
+        public async Task<IActionResult> Filter(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter)
+        {
+            var SlotOptions = await _context.Slots.ToListAsync();
+            ViewBag.SlotOptions = SlotOptions;
+            var result = await _appointmentRepository.Filter(SearchName, SlotFilter, DateFilter, StatusFilter);
+            return View("MyAppointments", result);
         }
 
         [Authorize(Roles = "Sales")]
@@ -109,7 +151,7 @@ namespace HospitalManagement.Controllers
             };
             _context.Appointments.Add(newAppointment);
             await _context.SaveChangesAsync();
-            return RedirectToAction("ViewCompletedConsultations", "Sales");
+            return RedirectToAction("MyAppointments", "Appointment");
         }
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()
@@ -150,7 +192,7 @@ namespace HospitalManagement.Controllers
         }
         [Authorize(Roles = "Patient")]
         [HttpGet]
-        public async Task<IActionResult> BookingAppointment(int? doctorId)
+        public async Task<IActionResult> Booking(int? doctorId)
         {
             // Lấy PatientId từ Claims
             var patientIdClaim = User.FindFirst("PatientID")?.Value;
@@ -169,7 +211,13 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            var model = new BookingApointment
+            if (string.IsNullOrEmpty(user.PhoneNumber)) 
+            { 
+                TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                return RedirectToAction("UpdateProfile", "Patient");
+            }
+
+            var model = new BookingApointmentViewModel
             {
                 Name = user.FullName,
                 Email = user.Email,
@@ -185,7 +233,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Patient")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BookingAppointment(BookingApointment model)
+        public async Task<IActionResult> Booking(BookingApointmentViewModel model)
         {
             ModelState.Remove(nameof(model.DoctorOptions));
             ModelState.Remove(nameof(model.SlotOptions));
@@ -228,6 +276,7 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Login", "Auth");
 
             }
+
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
