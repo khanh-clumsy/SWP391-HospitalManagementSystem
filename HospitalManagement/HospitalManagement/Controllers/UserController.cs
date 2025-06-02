@@ -371,6 +371,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("ManageAccount", new { type = "Staff" });
 
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PatientDetail(int id)
         {
             var patient = await _patientRepo.GetByIdAsync(id);
@@ -381,6 +382,7 @@ namespace HospitalManagement.Controllers
             return View(patient);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DoctorDetail(int id)
         {
             var doctor = await _doctorRepo.GetByIdAsync(id);
@@ -390,6 +392,7 @@ namespace HospitalManagement.Controllers
             }
             return View(doctor);
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> StaffDetail(int id)
         {
             var staff = await _staffRepo.GetByIdAsync(id);
