@@ -25,6 +25,7 @@ namespace HospitalManagement.Controllers
             _appointmentRepository = appointmentRepository;
 
         }
+        [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
@@ -155,7 +156,8 @@ namespace HospitalManagement.Controllers
 
             var isExistedAppointment = await _context.Appointments
             .AnyAsync(a => a.Date == model.AppointmentDate && a.PatientId == patient.PatientId);
-
+            
+            
             if (isExistedAppointment)
             {
                 ViewBag.ErrorMessage = "Không thể tạo cuộc hẹn mới trong cùng 1 ngày!.";
@@ -290,6 +292,8 @@ namespace HospitalManagement.Controllers
             _context.SaveChanges();
             return RedirectToAction("MyAppointments");
         }
+
+        
 
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()

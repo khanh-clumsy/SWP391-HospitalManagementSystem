@@ -1,0 +1,286 @@
+﻿@model Medicine
+
+<!-- Medicine Details Start -->
+<div class="container-xxl medicine-profile py-5">
+	<div class="container">
+
+		<div class="row mb-4">
+			<div class="col-12">
+				<a asp-controller="Medicine" asp-action="Index" class="back-to-list">
+					<i class="fas fa-arrow-left"></i>
+					Back to Medicine List
+				</a>
+			</div>
+		</div>
+
+		<div class="row g-4 align-items-stretch">
+			<!-- Image -->
+			<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
+				<div class="profile-card text-center">
+					<!-- Medicine Image -->
+					<div class="profile-image">
+						<img src="@(Model.Image != null
+								 ? $"data:image/png;base64,{Model.Image}"
+								 : Url.Content("~/img/logo.jpg"))"
+							 alt="@Model.Name" class="shadow mb-2" />
+					</div>
+
+					<!-- Medicine Name Badge -->
+					<div class="mb-3">
+						<h2 class="text-primary me-2">@Model.Name</h2>
+					</div>
+					<!-- Medicine Type Badge -->
+					<div class="mb-3">
+						<span class="badge bg-primary fs-6 px-3 py-2">@Model.MedicineType</span>
+					</div>
+
+					<!-- Action Buttons -->
+					@if (User.IsInRole("Admin"))
+					{
+						<div class="profile-buttons">
+							<div class="d-flex gap-2 justify-content-center flex-wrap">
+								<a class="btn btn-warning flex-fill text-center" asp-controller="Medicine" asp-action="Edit" asp-route-id="@Model.MedicineId">
+									<i class="fas fa-edit"></i> Edit Medicine
+								</a>
+								<a class="btn btn-outline-danger flex-fill text-center" asp-controller="Medicine" asp-action="Delete" asp-route-id="@Model.MedicineId"
+								   onclick="return confirm('Are you sure you want to delete this medicine?')">
+									<i class="fas fa-trash"></i> Delete
+								</a>
+							</div>
+						</div>
+					}
+
+				</div>
+			</div>
+
+			<!-- Medicine Information -->
+			<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
+				<div class="profile-card">
+					<div class="profile-info">
+						<h2><i class="fas fa-pills text-primary me-2"></i>Medicine Details</h2>
+
+						<div class="info-item">
+							<div class="info-icon">
+								<i class="fas fa-id-badge"></i>
+							</div>
+							<div class="info-content">
+								<h5>Medicine ID</h5>
+								<p>#@Model.MedicineId</p>
+							</div>
+						</div>
+
+						<div class="info-item">
+							<div class="info-icon">
+								<i class="fas fa-capsules"></i>
+							</div>
+							<div class="info-content">
+								<h5>Medicine Name</h5>
+								<p class="fw-bold text-primary">@Model.Name</p>
+							</div>
+						</div>
+
+						<div class="info-item">
+							<div class="info-icon">
+								<i class="fas fa-pills"></i>
+							</div>
+							<div class="info-content">
+								<h5>Type</h5>
+								<p>@Model.MedicineType</p>
+							</div>
+						</div>
+
+						<div class="info-item">
+							<div class="info-icon">
+								<i class="fas fa-dollar-sign"></i>
+							</div>
+							<div class="info-content">
+								<h5>Price</h5>
+								<p>@Model.Price.ToString("0")VND/@Model.Unit</p>
+							</div>
+						</div>
+
+						<div class="info-item">
+							<div class="info-icon">
+								<i class="fas fa-balance-scale"></i>
+							</div>
+							<div class="info-content">
+								<h5>Unit</h5>
+								<p>@Model.Unit</p>
+							</div>
+						</div>
+
+						<div class="info-item">
+							<div class="info-icon">
+								<i class="fas fa-file-alt"></i>
+							</div>
+							<div class="info-content">
+								<h5>Description</h5>
+								<p class="text-justify">@Model.Description</p>
+							</div>
+						</div>
+
+						<!-- Action Buttons for Mobile -->
+						<div class="mobile-actions mt-4 d-lg-none">
+							<div class="d-flex gap-2 flex-wrap">
+								<a class="btn btn-warning flex-fill" asp-controller="Medicine" asp-action="Edit" asp-route-id="@Model.MedicineId">
+									<i class="fas fa-edit"></i> Edit
+								</a>
+								<a class="btn btn-outline-danger flex-fill" asp-controller="Medicine" asp-action="Delete" asp-route-id="@Model.MedicineId"
+								   onclick="return confirm('Are you sure you want to delete this medicine?')">
+									<i class="fas fa-trash"></i> Delete
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+<style>
+	:root {
+		--primary: #0463FA;
+		--light: #EFF5FF;
+		--dark: #1B2C51;
+	}
+
+	.medicine-profile {
+		background: linear-gradient(135deg, var(--light) 0%, #ffffff 100%);
+		min-height: 100vh;
+		padding-top: 2rem;
+		padding-bottom: 2rem;
+	}
+
+	.back-to-list {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--dark);
+		text-decoration: none;
+		font-weight: 500;
+		transition: all 0.3s ease;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		background: white;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	}
+
+		.back-to-list:hover {
+			color: var(--primary);
+			transform: translateX(-5px);
+			box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+		}
+
+	.profile-card {
+		background: white;
+		border-radius: 1rem;
+		padding: 2rem;
+		height: 100%;
+		box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+		transition: all 0.3s ease;
+	}
+
+		.profile-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+		}
+
+	.profile-image {
+		position: relative;
+		margin-bottom: 1.5rem;
+	}
+
+		.profile-image img {
+			width: 200px;
+			height: 200px;
+			object-fit: cover;
+			border-radius: 1rem;
+			border: 4px solid var(--light);
+			transition: all 0.3s ease;
+		}
+
+			.profile-image img:hover {
+				transform: scale(1.05);
+			}
+
+	.price-highlight {
+		background: var(--primary) !important;
+		animation: pulse 2s infinite;
+	}
+
+	.profile-info h2 {
+		color: var(--primary);
+		margin-bottom: 2rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 2px solid var(--light);
+	}
+
+	.info-item {
+		display: flex;
+		align-items: flex-start;
+		margin-bottom: 1.5rem;
+		padding: 1rem;
+		background: var(--light);
+		border-radius: 0.5rem;
+		transition: all 0.3s ease;
+	}
+
+		.info-item:hover {
+			background: #d6e8ff;
+			transform: translateX(5px);
+		}
+
+	.info-icon {
+		flex-shrink: 0;
+		width: 50px;
+		height: 50px;
+		background: var(--primary);
+		color: white;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: 1rem;
+		font-size: 1.2rem;
+	}
+
+	.info-content h5 {
+		color: var(--dark);
+		margin-bottom: 0.5rem;
+		font-weight: 600;
+		font-size: 0.9rem;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.info-content p {
+		color: var(--dark);
+		margin-bottom: 0;
+		font-size: 1.1rem;
+		font-weight: 500;
+	}
+
+	.info-content .text-primary {
+		color: var(--primary) !important;
+	}
+
+	.profile-buttons .btn {
+		border-radius: 0.5rem;
+		font-weight: 600;
+		padding: 0.75rem 1.5rem;
+		transition: all 0.3s ease;
+	}
+
+		.profile-buttons .btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+		}
+
+	.badge.bg-primary {
+		background-color: var(--primary) !important;
+	}
+
+</style>
