@@ -13,12 +13,16 @@ namespace HospitalManagement.Repositories
             _context = context;
         }
 
-        public async Task<List<Appointment>> Filter(int id, string? Name, string? slotId, string? Date, string? Status)
+        public async Task<List<Appointment>> Filter(string RoleKey, int UserID, string? Name, string? slotId, string? Date, string? Status)
         {
             var query = _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
+                .Where(a =>
+                    (RoleKey == "PatientID" && a.PatientId == UserID) ||
+                    (RoleKey == "StaffID" && a.StaffId == UserID) ||
+                    (RoleKey == "DoctorID" && a.DoctorId == UserID))
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(Name))

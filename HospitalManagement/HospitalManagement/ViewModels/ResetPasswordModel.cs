@@ -14,6 +14,8 @@ namespace HospitalManagement.ViewModels
         [DataType(DataType.Password)]
         [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; }
+
+        public string Role { get; set; }
     }
 
 }

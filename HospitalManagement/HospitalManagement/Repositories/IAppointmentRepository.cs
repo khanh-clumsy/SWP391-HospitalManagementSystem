@@ -8,6 +8,6 @@ namespace HospitalManagement.Repositories
         Task<List<Appointment>> GetAppointmentByDoctorIDAsync(int DoctorID);
         Task<List<Appointment>> GetAppointmentBySalesIDAsync(int SalesID);
 
-        Task<List<Appointment>> Filter(string? Name, string? Slot, string? Date, string? Status);
+        Task<List<Appointment>> Filter(string RoleKey, int UserID, string? Name, string? Slot, string? Date, string? Status);
     }
 }
