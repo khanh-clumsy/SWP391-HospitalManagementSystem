@@ -483,7 +483,7 @@
                             {
                                 <tr>
                                     <td>@Model.Staffs[i].StaffId
-                                        <input type="hidden" name="staffs[@i].StaffId" value="@Model.Staffs[i].StaffId" />
+                                        <input type="hidden" name="Staff[@(i)].StaffId" value="@Model.Staffs[i].StaffId" />
                                     </td>
                                     <td>@Model.Staffs[i].FullName</td>
                                     <td>@Model.Staffs[i].GetFullGender()</td>
@@ -492,11 +492,11 @@
                                     <td>@Model.Staffs[i].RoleName</td>
                                     <td>
                                         
-                                        <input type="checkbox"
-                                                   name="staffs[@i].IsActive"
-                                                   value="true"
-                                                   @(Model.Staffs[i].IsActive ? "checked" : "") />
-                                        <input type="hidden" name="staffs[@i].IsActive" value="false" />
+										<input type="checkbox"
+                                               name="Staff[@(i)].IsActive"
+                                               value="true"
+                                               @(Model.Staffs[i].IsActive ? "checked" : "") />
+										<input type="hidden" name="Staff[@(i)].IsActive" value="false" />
                                     </td>
                                     <td>
                                         <a href="/User/StaffDetail?id=@Model.Staffs[i].StaffId" class="btn btn-sm btn-outline-secondary">Detail</a>
