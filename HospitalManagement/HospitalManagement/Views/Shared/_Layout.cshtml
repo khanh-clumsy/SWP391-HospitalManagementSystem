@@ -152,20 +152,24 @@
 						<a href="#"  class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
 
 					}
-					else if(User.IsInRole("Admin")){
+					else if (User.IsInRole("Admin"))
+					{
 
 						<!-- Admin -->
 						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hello Admin!</a>
+							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="Sales" asp-action="ViewProfile">View Profile</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">My Appointments</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Update Profile</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Change Password</a>
-								<a class="dropdown-item" asp-controller="Sales" asp-action="Logout">Logout</a>
+								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Manage Account</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewProfile">View Profile</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewConsultations">View Consultations</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewBookingAppointment">View Appointments</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="UpdateProfile">Update Profile</a>
+								<a class="dropdown-item" asp-controller="Admin" asp-action="ChangePassword">Change Password</a>
+								<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
 							</div>
 						</div>
-						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Admin</a>
+
+						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Admin </a>
 
 					}
 					else if (User.IsInRole("Sales"))

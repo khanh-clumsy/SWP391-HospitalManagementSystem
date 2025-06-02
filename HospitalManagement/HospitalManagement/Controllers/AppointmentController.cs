@@ -26,8 +26,11 @@ namespace HospitalManagement.Controllers
 
         }
         [Authorize(Roles = "Admin")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            //Lấy danh sách 
+            var SlotOptions = await _context.Slots.ToListAsync();
+            ViewBag.SlotOptions = SlotOptions;
             return View();
         }
 
@@ -35,13 +38,17 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> MyAppointments()
         {
+            //Lấy danh sách SlotOptions để hiển thị trong ViewBag
             var SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SlotOptions = SlotOptions;
+
+            //Lấy role của người dùng hiện tại
             string role = "";
             if (User.IsInRole("Patient")) role = "Patient";
             else if (User.IsInRole("Sales")) role = "Sales";
             else if (User.IsInRole("Doctor")) role = "Doctor";
 
+            //Hiển thị danh sách cuộc hẹn dựa trên role
             var appointment = new List<Appointment>();
             switch (role)
             {
@@ -58,31 +65,15 @@ namespace HospitalManagement.Controllers
                     appointment = await _appointmentRepository.GetAppointmentBySalesIDAsync(StaffID);
                     return View(appointment);
                 case "Doctor":
-                    break;
+                    var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
+                    if (doctorIdClaim == null) return RedirectToAction("Login", "Auth");
+                    int DoctorID = int.Parse(doctorIdClaim);
+                    appointment = await _appointmentRepository.GetAppointmentByDoctorIDAsync(DoctorID);
+                    return View(appointment);
                 default:
                     break;
             }
             return View();
-        }
-
-        private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
-        {
-            if (user.IsInRole("Patient"))
-                return ("PatientID", GetUserIdFromClaim(user, "PatientID"));
-            if (user.IsInRole("Sales"))
-                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
-            if (user.IsInRole("Doctor"))
-                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
-
-            return default;
-        }
-
-        private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
-        {
-            var claim = user.FindFirst(claimType);
-            if (claim == null) return null;
-
-            return int.TryParse(claim.Value, out var id) ? id : null;
         }
 
         [Authorize(Roles = "Patient, Sales, Doctor")]
@@ -93,9 +84,11 @@ namespace HospitalManagement.Controllers
             var (roleKey, userId) = GetUserRoleAndId(User);
             if (userId == null) return RedirectToAction("Login", "Auth");
 
+            //Lấy danh sách SlotOptions để hiển thị trong ViewBag
             var SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SlotOptions = SlotOptions;
-            
+
+            //Trả về danh sách cuộc hẹn đã filter
             var result = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
             return View("MyAppointments", result);
         }
@@ -194,43 +187,7 @@ namespace HospitalManagement.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction("MyAppointments", "Appointment");
         }
-        //Lấy service cho vào SelectListItem để hiện ra ở form
-        private async Task<List<SelectListItem>> GetServiceListAsync()
-        {
-            return await _context.Services
-                .Select(s => new SelectListItem
-                {
-                    Value = s.ServiceId.ToString(),
-                    Text = $"{s.ServiceType} - {s.ServicePrice.ToString("0")}k"
-                })
-                .ToListAsync();
-        }
-
-
-        //Lấy slot cho vào SelectListItem để hiện ra ở form
-        private async Task<List<SelectListItem>> GetSlotListAsync()
-        {
-            return await _context.Slots
-                .Select(s => new SelectListItem
-                {
-                    Value = s.SlotId.ToString(),
-                    Text = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}"
-                })
-                .ToListAsync();
-        }
-
-        //Lấy doctor cho vào SelectListItem để hiện ra ở form
-        private async Task<List<SelectListItem>> GetDoctorListAsync()
-        {
-            return await _context.Doctors
-                                .Where(d => d.IsActive)
-                                .Select(d => new SelectListItem
-                                {
-                                    Value = d.DoctorId.ToString(),
-                                    Text = d.FullName
-                                })
-                                .ToListAsync();
-        }
+        
         [Authorize(Roles = "Patient")]
         [HttpGet]
         public async Task<IActionResult> Booking(int? doctorId)
@@ -332,6 +289,64 @@ namespace HospitalManagement.Controllers
             _context.Appointments.Add(appointment);
             _context.SaveChanges();
             return RedirectToAction("MyAppointments");
+        }
+
+        //Lấy service cho vào SelectListItem để hiện ra ở form
+        private async Task<List<SelectListItem>> GetServiceListAsync()
+        {
+            return await _context.Services
+                .Select(s => new SelectListItem
+                {
+                    Value = s.ServiceId.ToString(),
+                    Text = $"{s.ServiceType} - {s.ServicePrice.ToString("0")}k"
+                })
+                .ToListAsync();
+        }
+
+
+        //Lấy slot cho vào SelectListItem để hiện ra ở form
+        private async Task<List<SelectListItem>> GetSlotListAsync()
+        {
+            return await _context.Slots
+                .Select(s => new SelectListItem
+                {
+                    Value = s.SlotId.ToString(),
+                    Text = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}"
+                })
+                .ToListAsync();
+        }
+
+        //Lấy doctor cho vào SelectListItem để hiện ra ở form
+        private async Task<List<SelectListItem>> GetDoctorListAsync()
+        {
+            return await _context.Doctors
+                                .Where(d => d.IsActive)
+                                .Select(d => new SelectListItem
+                                {
+                                    Value = d.DoctorId.ToString(),
+                                    Text = d.FullName
+                                })
+                                .ToListAsync();
+        }
+
+        private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
+        {
+            if (user.IsInRole("Patient"))
+                return ("PatientID", GetUserIdFromClaim(user, "PatientID"));
+            if (user.IsInRole("Sales"))
+                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
+            if (user.IsInRole("Doctor"))
+                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
+
+            return default;
+        }
+
+        private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
+        {
+            var claim = user.FindFirst(claimType);
+            if (claim == null) return null;
+
+            return int.TryParse(claim.Value, out var id) ? id : null;
         }
     }
 }
