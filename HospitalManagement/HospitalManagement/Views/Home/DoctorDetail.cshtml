@@ -28,7 +28,6 @@
 		</div>
 	</div>
 	<!-- Page Header End -->
-	<!-- Appointment Start -->
 	<div class="container-xxl doctor-profile py-5">
 		<div class="container">
 			<div class="row mb-4">
@@ -47,6 +46,11 @@
 							<img src="@(Model.ProfileImage != null
 									 			? $"data:image/png;base64,{Model.ProfileImage}"
 									 			: Url.Content("~/img/logo.jpg"))" alt="Doctor's Photo">
+						</div>
+						<div class="profile-buttons">
+							<div class="d-flex gap-2 justify-content-center flex-wrap">
+								<a href="#" class="btn btn-primary">Book Appointment</a>
+							</div>
 						</div>
 					</div>
 				</div>

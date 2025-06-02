@@ -144,8 +144,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxBZGRTdGFmZkFjY291bnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/DoctorDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxEb2N0b3JEZXRhaWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/ManageAccount.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxNYW5hZ2VBY2NvdW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/PatientDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxQYXRpZW50RGV0YWlsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/User/StaffDetail.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlclxTdGFmZkRldGFpbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/Admin/Documents/GitHub/SWP391-HospitalManagementSystem/HospitalManagement/HospitalManagement/Views/_ViewImports.cshtml]

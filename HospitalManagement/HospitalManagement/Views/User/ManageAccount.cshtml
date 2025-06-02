@@ -48,8 +48,16 @@
 			</div>
 		}
 	</div>
+	
     <div class="container-xxl py-5">
         <div class="container">
+			<div class="row mb-4">
+				<div class="col-12">
+					<a asp-action="Index" asp-controller="Home" class="btn btn-outline-primary">
+						<i class="fas fa-arrow-left"></i> Back to Home
+					</a>
+				</div>
+			</div>
             <!-- Choose type table -->
             <div class="mb-4">
                 <h2 class="text-primary">Account List</h2>
@@ -148,7 +156,7 @@
                                         
                                     </td>
                                     <td>
-                                        <a href="/User/DetailPatient?id=@Model.Patients[i].PatientId" class="btn btn-sm btn-outline-secondary">Detail</a>
+                                        <a href="/User/PatientDetail?id=@Model.Patients[i].PatientId" class="btn btn-sm btn-outline-secondary">Detail</a>
                                     </td>
                                 </tr>
                             }
@@ -325,7 +333,7 @@
                                     <input type="hidden" name="doctors[@i].IsActive" value="false" />
                                 </td>
                                 <td>
-                                    <a href="/User/DetailDoctor?id=@Model.Doctors[i].DoctorId" class="btn btn-sm btn-outline-secondary">Detail</a>
+                                    <a href="/User/DoctorDetail?id=@Model.Doctors[i].DoctorId" class="btn btn-sm btn-outline-secondary">Detail</a>
                                 </td>
                             </tr>
                         }
@@ -491,7 +499,7 @@
                                         <input type="hidden" name="staffs[@i].IsActive" value="false" />
                                     </td>
                                     <td>
-                                        <a href="/User/DetailStaff?id=@Model.Staffs[i].StaffId" class="btn btn-sm btn-outline-secondary">Detail</a>
+                                        <a href="/User/StaffDetail?id=@Model.Staffs[i].StaffId" class="btn btn-sm btn-outline-secondary">Detail</a>
                                     </td>
                                 </tr>
                             }

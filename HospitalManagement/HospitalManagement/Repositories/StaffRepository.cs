@@ -52,5 +52,9 @@ namespace HospitalManagement.Repositories
 
             return await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
+        public async Task<Staff?> GetByIdAsync(int id)
+        {
+            return await _context.Staff.FirstOrDefaultAsync(s => s.StaffId == id);
+        }
     }
 }

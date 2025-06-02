@@ -7,5 +7,6 @@ namespace HospitalManagement.Repositories
         Task<List<Staff>> SearchAsync(string? name, string? roleName, int page, int pageSize);
         Task<int> CountAsync(string? name, string? roleName);
         Task<List<string>> GetDistinctRole();
+        Task<Staff> GetByIdAsync(int id);
     }
 }

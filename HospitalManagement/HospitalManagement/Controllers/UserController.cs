@@ -371,6 +371,34 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("ManageAccount", new { type = "Staff" });
 
         }
+        public async Task<IActionResult> PatientDetail(int id)
+        {
+            var patient = await _patientRepo.GetByIdAsync(id);
+            if (patient == null)
+            {
+                return NotFound();
+            }
+            return View(patient);
+        }
+
+        public async Task<IActionResult> DoctorDetail(int id)
+        {
+            var doctor = await _doctorRepo.GetByIdAsync(id);
+            if (doctor == null)
+            {
+                return NotFound();
+            }
+            return View(doctor);
+        }
+        public async Task<IActionResult> StaffDetail(int id)
+        {
+            var staff = await _staffRepo.GetByIdAsync(id);
+            if (staff == null)
+            {
+                return NotFound();
+            }
+            return View(staff);
+        }
 
         [HttpGet]
         public async Task<IActionResult> Logout()

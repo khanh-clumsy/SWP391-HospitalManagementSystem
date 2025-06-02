@@ -29,6 +29,10 @@ namespace HospitalManagement.Repositories
             return await query.CountAsync();
         }
 
+        public async Task<Patient?> GetByIdAsync(int id)
+        {
+            return await _context.Patients.FirstOrDefaultAsync(p => p.PatientId == id);
+        }
         public async Task<List<Patient>> SearchAsync(string? name, string? gender, int page, int pageSize)
         {
             var query = _context.Patients.AsQueryable();
