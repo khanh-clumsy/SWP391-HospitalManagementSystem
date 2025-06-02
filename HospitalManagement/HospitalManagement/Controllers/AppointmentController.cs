@@ -1,10 +1,14 @@
-﻿using HospitalManagement.Data;
+﻿using System.Security.Claims;
+using HospitalManagement.Data;
 using HospitalManagement.Models;
+using HospitalManagement.Repositories;
+using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace HospitalManagement.Controllers
 {
@@ -13,17 +17,80 @@ namespace HospitalManagement.Controllers
     {
         private readonly HospitalManagementContext _context;
         private readonly PasswordHasher<Patient> _passwordHasher;
-
-        public AppointmentController(HospitalManagementContext context)
+        private readonly IAppointmentRepository _appointmentRepository;
+        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
+            _appointmentRepository = appointmentRepository;
 
         }
         [Authorize(Roles = "Admin")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            //Lấy danh sách 
+            var SlotOptions = await _context.Slots.ToListAsync();
+            ViewBag.SlotOptions = SlotOptions;
             return View();
+        }
+
+        [Authorize(Roles = "Patient, Sales, Doctor")]
+        [HttpGet]
+        public async Task<IActionResult> MyAppointments()
+        {
+            //Lấy danh sách SlotOptions để hiển thị trong ViewBag
+            var SlotOptions = await _context.Slots.ToListAsync();
+            ViewBag.SlotOptions = SlotOptions;
+
+            //Lấy role của người dùng hiện tại
+            string role = "";
+            if (User.IsInRole("Patient")) role = "Patient";
+            else if (User.IsInRole("Sales")) role = "Sales";
+            else if (User.IsInRole("Doctor")) role = "Doctor";
+
+            //Hiển thị danh sách cuộc hẹn dựa trên role
+            var appointment = new List<Appointment>();
+            switch (role)
+            {
+                case "Patient":
+                    var patientIdClaim = User.FindFirst("PatientID")?.Value;
+                    if (patientIdClaim == null) return RedirectToAction("Login", "Auth");
+                    int PatientID = int.Parse(patientIdClaim);
+                    appointment = await _appointmentRepository.GetAppointmentByPatientIDAsync(PatientID);
+                    return View(appointment);
+                case "Sales":
+                    var staffIdClaim = User.FindFirst("StaffID")?.Value;
+                    if (staffIdClaim == null) return RedirectToAction("Login", "Auth");
+                    int StaffID = int.Parse(staffIdClaim);
+                    appointment = await _appointmentRepository.GetAppointmentBySalesIDAsync(StaffID);
+                    return View(appointment);
+                case "Doctor":
+                    var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
+                    if (doctorIdClaim == null) return RedirectToAction("Login", "Auth");
+                    int DoctorID = int.Parse(doctorIdClaim);
+                    appointment = await _appointmentRepository.GetAppointmentByDoctorIDAsync(DoctorID);
+                    return View(appointment);
+                default:
+                    break;
+            }
+            return View();
+        }
+
+        [Authorize(Roles = "Patient, Sales, Doctor")]
+        [HttpGet]
+        public async Task<IActionResult> Filter(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter)
+        {
+            //Lấy role và id hiện tại của người dùng
+            var (roleKey, userId) = GetUserRoleAndId(User);
+            if (userId == null) return RedirectToAction("Login", "Auth");
+
+            //Lấy danh sách SlotOptions để hiển thị trong ViewBag
+            var SlotOptions = await _context.Slots.ToListAsync();
+            ViewBag.SlotOptions = SlotOptions;
+
+            //Trả về danh sách cuộc hẹn đã filter
+            var result = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
+            return View("MyAppointments", result);
         }
 
         [Authorize(Roles = "Sales")]
@@ -95,6 +162,16 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
             //Sau đó mới tạo 1 bản ghi cho appointment và add vào DB
+            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            if (staffIdClaim == null) return RedirectToAction("Login", "Auth");
+
+            int StaffID = int.Parse(staffIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == StaffID);
+            if (user == null) return RedirectToAction("Login", "Auth");
+
             var newAppointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -103,12 +180,117 @@ namespace HospitalManagement.Controllers
                 ServiceId = model.SelectedServiceId,
                 Note = model.Note,
                 Date = model.AppointmentDate,
-                Status = "Pending"
+                Status = "Pending",
+                StaffId = StaffID
             };
             _context.Appointments.Add(newAppointment);
             await _context.SaveChangesAsync();
-            return RedirectToAction("ViewCompletedConsultations", "Sales");
+            return RedirectToAction("MyAppointments", "Appointment");
         }
+        
+        [Authorize(Roles = "Patient")]
+        [HttpGet]
+        public async Task<IActionResult> Booking(int? doctorId)
+        {
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                return RedirectToAction("UpdateProfile", "Patient");
+            }
+
+            var model = new BookingApointmentViewModel
+            {
+                Name = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                DoctorOptions = await GetDoctorListAsync(),
+                SlotOptions = await GetSlotListAsync(),
+                ServiceOptions = await GetServiceListAsync(),
+                AppointmentDate = DateOnly.FromDateTime(DateTime.Today),
+            };
+            return View(model);
+        }
+
+        [Authorize(Roles = "Patient")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Booking(BookingApointmentViewModel model)
+        {
+            ModelState.Remove(nameof(model.DoctorOptions));
+            ModelState.Remove(nameof(model.SlotOptions));
+            ModelState.Remove(nameof(model.ServiceOptions));
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                foreach (var error in errors)
+                {
+                    // Ghi log các lỗi
+                    Console.WriteLine(error);
+                }
+                // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
+                model.DoctorOptions = await GetDoctorListAsync();
+                model.SlotOptions = await GetSlotListAsync();
+                model.ServiceOptions = await GetServiceListAsync();
+                return View(model);
+            }
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var patient = _context.Patients.FirstOrDefault(p => p.PatientId == user.PatientId);
+
+            if (patient == null)
+            {
+                return RedirectToAction("Login", "Auth");
+
+            }
+
+            var appointment = new Appointment
+            {
+                PatientId = patient.PatientId,
+                DoctorId = model.SelectedDoctorId,
+                Note = model.Note,
+                SlotId = model.SelectedSlotId,
+                ServiceId = model.SelectedServiceId,
+                Date = model.AppointmentDate,
+                Status = "Pending",
+            };
+
+            _context.Appointments.Add(appointment);
+            _context.SaveChanges();
+            return RedirectToAction("MyAppointments");
+        }
+
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()
         {
@@ -147,5 +329,24 @@ namespace HospitalManagement.Controllers
                                 .ToListAsync();
         }
 
+        private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
+        {
+            if (user.IsInRole("Patient"))
+                return ("PatientID", GetUserIdFromClaim(user, "PatientID"));
+            if (user.IsInRole("Sales"))
+                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
+            if (user.IsInRole("Doctor"))
+                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
+
+            return default;
+        }
+
+        private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
+        {
+            var claim = user.FindFirst(claimType);
+            if (claim == null) return null;
+
+            return int.TryParse(claim.Value, out var id) ? id : null;
+        }
     }
 }
