@@ -1,4 +1,5 @@
-﻿using HospitalManagement.Data;
+﻿using System.Security.Claims;
+using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using HospitalManagement.ViewModels;
@@ -51,7 +52,11 @@ namespace HospitalManagement.Controllers
                     appointment = await _appointmentRepository.GetAppointmentByPatientIDAsync(PatientID);
                     return View(appointment);
                 case "Sales":
-                    break;
+                    var staffIdClaim = User.FindFirst("StaffID")?.Value;
+                    if (staffIdClaim == null) return RedirectToAction("Login", "Auth");
+                    int StaffID = int.Parse(staffIdClaim);
+                    appointment = await _appointmentRepository.GetAppointmentBySalesIDAsync(StaffID);
+                    return View(appointment);
                 case "Doctor":
                     break;
                 default:
@@ -60,13 +65,38 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
+        private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
+        {
+            if (user.IsInRole("Patient"))
+                return ("PatientID", GetUserIdFromClaim(user, "PatientID"));
+            if (user.IsInRole("Sales"))
+                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
+            if (user.IsInRole("Doctor"))
+                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
+
+            return default;
+        }
+
+        private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
+        {
+            var claim = user.FindFirst(claimType);
+            if (claim == null) return null;
+
+            return int.TryParse(claim.Value, out var id) ? id : null;
+        }
+
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
         public async Task<IActionResult> Filter(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter)
         {
+            //Lấy role và id hiện tại của người dùng
+            var (roleKey, userId) = GetUserRoleAndId(User);
+            if (userId == null) return RedirectToAction("Login", "Auth");
+
             var SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SlotOptions = SlotOptions;
-            var result = await _appointmentRepository.Filter(SearchName, SlotFilter, DateFilter, StatusFilter);
+            
+            var result = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
             return View("MyAppointments", result);
         }
 
@@ -139,6 +169,16 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
             //Sau đó mới tạo 1 bản ghi cho appointment và add vào DB
+            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            if (staffIdClaim == null) return RedirectToAction("Login", "Auth");
+
+            int StaffID = int.Parse(staffIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == StaffID);
+            if (user == null) return RedirectToAction("Login", "Auth");
+
             var newAppointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -147,7 +187,8 @@ namespace HospitalManagement.Controllers
                 ServiceId = model.SelectedServiceId,
                 Note = model.Note,
                 Date = model.AppointmentDate,
-                Status = "Pending"
+                Status = "Pending",
+                StaffId = StaffID
             };
             _context.Appointments.Add(newAppointment);
             await _context.SaveChangesAsync();
@@ -211,8 +252,8 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            if (string.IsNullOrEmpty(user.PhoneNumber)) 
-            { 
+            if (string.IsNullOrEmpty(user.PhoneNumber))
+            {
                 TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
                 return RedirectToAction("UpdateProfile", "Patient");
             }
@@ -225,7 +266,7 @@ namespace HospitalManagement.Controllers
                 DoctorOptions = await GetDoctorListAsync(),
                 SlotOptions = await GetSlotListAsync(),
                 ServiceOptions = await GetServiceListAsync(),
-                AppointmentDate =DateOnly.FromDateTime(DateTime.Today),
+                AppointmentDate = DateOnly.FromDateTime(DateTime.Today),
             };
             return View(model);
         }
