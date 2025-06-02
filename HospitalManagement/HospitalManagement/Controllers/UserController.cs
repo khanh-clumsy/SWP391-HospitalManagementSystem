@@ -141,12 +141,6 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult UpdateStaffStatus(List<Staff> staff)
         {
-            if(staff==null || !staff.Any())
-            {
-         
-                    Console.WriteLine($"///////////////////////////////////////////////////////////////////////");
-        
-            }
             foreach (var updated in staff)
             {
                 var existing = _context.Staff.FirstOrDefault(s => s.StaffId == updated.StaffId);
