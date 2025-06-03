@@ -90,7 +90,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
+        Console.WriteLine("Error Exception when connecting to database: " + ex.ToString());
     }
 }
 
