@@ -91,6 +91,10 @@ namespace HospitalManagement.Controllers
             //Lấy danh sách SlotOptions để hiển thị trong ViewBag
             var SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SlotOptions = SlotOptions;
+            ViewBag.SearchName = SearchName;
+            ViewBag.SlotFilter = SlotFilter;
+            ViewBag.DateFilter = DateFilter;
+            ViewBag.StatusFilter = StatusFilter;
 
             //Trả về danh sách cuộc hẹn đã filter
             var result = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);

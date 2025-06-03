@@ -17,6 +17,8 @@ builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+
 
 
 
@@ -90,7 +92,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Console.WriteLine("Error Exception when connecting to database: " + ex.ToString());
+        Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
     }
 }
 

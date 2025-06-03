@@ -34,14 +34,14 @@
 
 			<select name="TypeFilter" class="form-select" style="width: 180px;">
 				<option value="">All Types</option>
-				@* <option value="Tablet" @(ViewBag.TypeFilter == "Tablet" ? "selected" : "")>Tablet</option> *@
-				@* <option value="Capsule" @(ViewBag.TypeFilter == "Capsule" ? "selected" : "")>Capsule</option> *@
-				@* <option value="Syrup" @(ViewBag.TypeFilter == "Syrup" ? "selected" : "")>Syrup</option> *@
-				@* <option value="Injection" @(ViewBag.TypeFilter == "Injection" ? "selected" : "")>Injection</option> *@
-				@* <option value="Cream" @(ViewBag.TypeFilter == "Cream" ? "selected" : "")>Cream</option> *@
-				@* <option value="Drops" @(ViewBag.TypeFilter == "Drops" ? "selected" : "")>Drops</option> *@
+				@if (ViewBag.MedicineTypes != null)
+				{
+					foreach (var type in ViewBag.MedicineTypes as List<string>)
+					{
+						<option value="@type">@type</option>
+					}
+				}
 			</select>
-
 
 
 			<button type="submit" class="btn btn-primary">
@@ -113,9 +113,12 @@
 						<i class="fas fa-pills fa-5x text-muted mb-3"></i>
 						<h4 class="text-muted">No medicines found</h4>
 						<p class="text-muted">Try adjusting your search criteria or add a new medicine.</p>
-						<a href="@Url.Action("Create", "Medicine")" class="btn btn-primary">
-							<i class="fas fa-plus me-2"></i>Add First Medicine
-						</a>
+						@if (User.IsInRole("Admin"))
+						{
+							<a href="@Url.Action("Create", "Medicine")" class="btn btn-primary">
+								<i class="fas fa-plus me-2"></i>Add First Medicine
+							</a>
+						}
 					</div>
 				</div>
 			}

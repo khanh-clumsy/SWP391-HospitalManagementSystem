@@ -1,5 +1,6 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,32 +11,34 @@ namespace HospitalManagement.Controllers
     public class MedicineController : Controller
     {
         private readonly HospitalManagementContext _context;
-        public MedicineController(HospitalManagementContext context)
+        private readonly IMedicineRepository _medicineRepository;
+
+        public MedicineController(HospitalManagementContext context, IMedicineRepository medicineRepository)
         {
             _context = context;
+            _medicineRepository = medicineRepository;
         }
 
-        [Authorize(Roles = "Patient, Sales, Doctor, Admin")]
+
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            // Xác định role người dùng
-            string role = "";
-            if (User.IsInRole("Patient")) role = "Patient";
-            else if (User.IsInRole("Sales")) role = "Sales";
-            else if (User.IsInRole("Doctor")) role = "Doctor";
-            else if (User.IsInRole("Admin")) role = "Admin";
-
             // Lấy danh sách thuốc
             var medicines = await _context.Medicines.ToListAsync();
 
-            // Đưa thông tin role cho View để ẩn/hiện nút sửa xóa
-            ViewBag.IsAdmin = (role == "Admin");
+            // Lấy danh sách MedicineType không trùng
+            var medicineTypes = await _context.Medicines
+                .Select(m => m.MedicineType)
+                .Distinct()
+                .ToListAsync();
+
+            // Đưa thông tin loại thuốc cho dropdown lọc
+            ViewBag.MedicineTypes = medicineTypes;
 
             return View(medicines);
         }
 
-        [Authorize(Roles = "Patient, Sales, Doctor, Admin")]
+
         [HttpGet]
         public async Task<IActionResult> Detail(int id)
         {
@@ -159,6 +162,21 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Filter(string? SearchName, string? TypeFilter)
+        {
+            var types = await _context.Medicines
+                .Select(m => m.MedicineType)
+                .Distinct()
+                .ToListAsync();
+
+            ViewBag.MedicineTypes = types;
+            ViewBag.TypeFilter = TypeFilter;
+            ViewBag.SearchName = SearchName;
+
+            var result = await _medicineRepository.Filter(SearchName, TypeFilter);
+            return View("Index", result);
+        }
     }
 }
 
