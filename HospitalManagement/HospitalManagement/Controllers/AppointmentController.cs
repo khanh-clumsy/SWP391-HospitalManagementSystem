@@ -112,7 +112,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Sales")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateAppointmentViewModel model)
+        public async Task<IActionResult> Create(CreateAppointmentViewModel model)                                                                                 
         {
             //Nếu không hợp lệ thì trả về View với các options luôn
             model.DoctorOptions = await GetDoctorListAsync();
