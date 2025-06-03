@@ -146,6 +146,11 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
+            if (model.Price <= 0)
+            {
+                TempData["error"] = "Price can't be negative!";
+                return RedirectToAction("Edit", "Medicine");
+            }
             // Nếu có ảnh thì convert sang base64 và gán vào model.Image
             if (photo != null && photo.Length > 0)
             {

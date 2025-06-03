@@ -80,26 +80,6 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
-        private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
-        {
-            if (user.IsInRole("Patient"))
-                return ("PatientID", GetUserIdFromClaim(user, "PatientID"));
-            if (user.IsInRole("Sales"))
-                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
-            if (user.IsInRole("Doctor"))
-                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
-
-            return default;
-        }
-
-        private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
-        {
-            var claim = user.FindFirst(claimType);
-            if (claim == null) return null;
-
-            return int.TryParse(claim.Value, out var id) ? id : null;
-        }
-
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
         public async Task<IActionResult> Filter(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter)
@@ -242,12 +222,13 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
                 return RedirectToAction("UpdateProfile", "Patient");
             }
-
+            var doctor = _context.Doctors.FirstOrDefault(d => d.DoctorId == doctorId);
             var model = new BookingApointmentViewModel
             {
                 Name = user.FullName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
+                SelectedDoctorId = doctorId ?? 0,
                 DoctorOptions = await GetDoctorListAsync(),
                 SlotOptions = await GetSlotListAsync(),
                 ServiceOptions = await GetServiceListAsync(),

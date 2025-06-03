@@ -48,16 +48,11 @@ namespace HospitalManagement.Repositories
             return await query.ToListAsync();
         }
         public async Task<List<Appointment>> FilterForAdmin(string? Name, string? slotId, string? Date, string? Status)
-
         {
             var query = _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
-                .Where(a =>
-                    (RoleKey == "PatientID" && a.PatientId == UserID) ||
-                    (RoleKey == "StaffID" && a.StaffId == UserID) ||
-                    (RoleKey == "DoctorID" && a.DoctorId == UserID))
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(Name))
@@ -84,6 +79,7 @@ namespace HospitalManagement.Repositories
             return await query.ToListAsync();
         }
 
+       
         public async Task<List<Appointment>> GetAppointmentByDoctorIDAsync(int DoctorID)
         {
             return await _context.Appointments
