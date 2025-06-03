@@ -141,16 +141,5 @@
 
 	</div>
 </div>
-	</div>
 
 <!-- Appointment End -->
-<!-- Back to Top -->
-<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
-
-<script>
-		   $(document).ready(function () {
-		const tomorrow = new Date();
-		tomorrow.setDate(tomorrow.getDate() + 1);
-		$("#appointmentDate").attr('min', tomorrow.toISOString().split("T")[0]);
-	});
-</script>

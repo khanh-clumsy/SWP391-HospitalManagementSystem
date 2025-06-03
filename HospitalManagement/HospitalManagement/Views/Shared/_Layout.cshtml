@@ -134,7 +134,8 @@
 
 
 					}
-					else if(User.IsInRole("Doctor")){
+					else if (User.IsInRole("Doctor"))
+					{
 
 						<!-- Doctor -->
 						<div class="nav-item dropdown">
@@ -149,7 +150,7 @@
 						</div>
 
 
-						<a href="#"  class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
+						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
 
 					}
 					else if (User.IsInRole("Admin"))
@@ -196,7 +197,7 @@
 						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
 						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Register</a>
 						<a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
-					
+
 					}
 
 				</div>
@@ -284,19 +285,21 @@
 		}, 3000);
 	</script>
 	<!--Start of Tawk.to Script-->
-	<script type="text/javascript">
-		var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-		(function(){
-		var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-		s1.async=true;
-		s1.src='https://embed.tawk.to/68366006f5baba190a23b03c/1isflcvrj';
-		s1.charset='UTF-8';
-		s1.setAttribute('crossorigin','*');
-		s0.parentNode.insertBefore(s1,s0);
-		})();
-	</script>
-	<!--End of Tawk.to Script-->
-
+	@if (!User.Identity.IsAuthenticated || User.IsInRole("Patient"))
+	{
+		<script type="text/javascript">
+			var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+			(function(){
+			var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+			s1.async=true;
+			s1.src='https://embed.tawk.to/68366006f5baba190a23b03c/1isflcvrj';
+			s1.charset='UTF-8';
+			s1.setAttribute('crossorigin','*');
+			s0.parentNode.insertBefore(s1,s0);
+			})();
+		</script>
+		<!--End of Tawk.to Script-->
+	}
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="/lib/wow/wow.min.js"></script>

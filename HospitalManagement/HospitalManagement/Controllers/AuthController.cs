@@ -59,6 +59,12 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> Login(ViewModels.Login LogInfo)
         {
 
+            if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))
+            {
+                TempData["error"] = "Please enter Email and password.";
+
+                return View(LogInfo);
+            }
             // Staff
             if (LogInfo.Role == "Staff")
             {
@@ -87,13 +93,6 @@ namespace HospitalManagement.Controllers
 
                 TempData["success"] = "Login successful!";
                 return RedirectToAction("Index", "Home");
-            }
-
-            if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))
-            {
-                TempData["error"] = "Please enter Email and password.";
-
-                return View(LogInfo);
             }
             //Patient
             if (LogInfo.Role == "Patient")
