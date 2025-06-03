@@ -49,9 +49,10 @@ namespace HospitalManagement.Controllers
         public IActionResult UpdateProfile()
         {
 
-            // Lấy DoctorID từ Claims
+
             var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
             if (doctorIdClaim == null)
+
             {
                 return RedirectToAction("Login", "Auth");
             }

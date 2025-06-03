@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HospitalManagement.Controllers
 {
@@ -27,12 +28,14 @@ namespace HospitalManagement.Controllers
         }
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchName, string? timeFilter, string? dateFilter, string? statusFilter)
         {
-            //Lấy danh sách 
-            var SlotOptions = await _context.Slots.ToListAsync();
-            ViewBag.SlotOptions = SlotOptions;
-            return View();
+            var appointments = await _appointmentRepository.FilterForAdmin(searchName, timeFilter, dateFilter, statusFilter);
+
+            var slots = await _context.Slots.ToListAsync();
+            ViewBag.SlotOptions = slots;
+
+            return View(appointments);
         }
 
         [Authorize(Roles = "Patient, Sales, Doctor")]
