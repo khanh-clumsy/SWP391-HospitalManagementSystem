@@ -80,6 +80,26 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
+        private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
+        {
+            if (user.IsInRole("Patient"))
+                return ("PatientID", GetUserIdFromClaim(user, "PatientID"));
+            if (user.IsInRole("Sales"))
+                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
+            if (user.IsInRole("Doctor"))
+                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
+
+            return default;
+        }
+
+        private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
+        {
+            var claim = user.FindFirst(claimType);
+            if (claim == null) return null;
+
+            return int.TryParse(claim.Value, out var id) ? id : null;
+        }
+
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
         public async Task<IActionResult> Filter(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter)
@@ -96,7 +116,6 @@ namespace HospitalManagement.Controllers
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
 
-            //Trả về danh sách cuộc hẹn đã filter
             var result = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
             return View("MyAppointments", result);
         }

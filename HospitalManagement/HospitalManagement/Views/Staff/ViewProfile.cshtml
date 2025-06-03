@@ -3,3 +3,109 @@
 *@
 @{
 }
+
+﻿@model HospitalManagement.Models.Staff
+@{
+    ViewData["Title"] = "View Profile";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <link href="/css/doctorprofile.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container-xxl doctor-profile py-5">
+        <div class="container">
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <a asp-controller="Home" asp-action="Index" class="back-to-list">
+                        <i class="fas fa-arrow-left"></i> Back to Home Page
+                    </a>
+                </div>
+            </div>
+
+            <div class="row g-4 align-items-stretch">
+                <!-- Image Section -->
+                <div class="col-lg-4">
+                    <div class="profile-card text-center">
+                        <div class="profile-image">
+                            <img src="@(Model.ProfileImage != null
+                                         ? $"data:image/png;base64,{Model.ProfileImage}"
+                                         : Url.Content("~/img/logo.jpg"))"
+                                 alt="Profile Image"
+                                 class="shadow mb-2" />
+                        </div>
+                        <div class="profile-buttons">
+                            <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                <a class="btn btn-primary flex-fill" asp-controller="Staff" asp-action="UpdateProfile">Update Profile</a>
+                                <a class="btn btn-primary flex-fill" asp-controller="Staff" asp-action="ChangePassword">Change Password</a>
+                                <a class="btn btn-outline-primary flex-fill" asp-controller="Staff" asp-action="Logout">Logout</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Information Section -->
+                <div class="col-lg-8">
+                    <div class="profile-card">
+                        <div class="profile-info">
+                            <h2>Profile Details</h2>
+
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-user"></i></div>
+                                <div class="info-content">
+                                    <h5>Full Name</h5>
+                                    <p>@Model.FullName</p>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-envelope"></i></div>
+                                <div class="info-content">
+                                    <h5>Email</h5>
+                                    <p>@Model.Email</p>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-phone"></i></div>
+                                <div class="info-content">
+                                    <h5>Phone Number</h5>
+                                    <p>@Model.PhoneNumber</p>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-venus-mars"></i></div>
+                                <div class="info-content">
+                                    <h5>Gender</h5>
+                                    <p>@Model.GetFullGender()</p>
+                                </div>
+                            </div>
+
+                            <div class="info-item">
+                                <div class="info-icon"><i class="fas fa-briefcase"></i></div>
+                                <div class="info-content">
+                                    <h5>Role</h5>
+                                    <p>@Model.RoleName</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
+
