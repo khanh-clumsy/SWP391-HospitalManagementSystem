@@ -23,8 +23,9 @@ namespace HospitalManagement.Controllers
     public class AuthController : Controller
     {
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? error)
         {
+            if (!string.IsNullOrEmpty(error)) TempData["error"] = error;
             return View(new ViewModels.Login());
         }
         [HttpGet]
