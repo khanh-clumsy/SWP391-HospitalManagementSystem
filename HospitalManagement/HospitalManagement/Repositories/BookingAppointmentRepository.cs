@@ -37,7 +37,7 @@ namespace HospitalManagement.Repositories
 
         public async Task<Patient?> GetPatientByPatientIdAsync(int accountId)
         {
-            return await _context.Patients.FirstOrDefaultAsync(p => p.PatientId == accountId);
+           return await _context.Patients.FirstOrDefaultAsync(p => p.PatientId == accountId);
         }
 
         public async Task AddAppointmentAsync(Appointment appointment)

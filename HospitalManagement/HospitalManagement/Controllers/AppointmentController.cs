@@ -37,6 +37,18 @@ namespace HospitalManagement.Controllers
             return View(appointments);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAppointment(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+            await _appointmentRepository.DeleteAsync(appointment);
+            return RedirectToAction(nameof(Index));
+        }
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
         public async Task<IActionResult> MyAppointments()
