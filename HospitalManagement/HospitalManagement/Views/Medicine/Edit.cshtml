@@ -97,7 +97,7 @@
                                         <div class="mb-2">
                                             <label for="photo" class="form-label fw-bold">Upload New Image</label>
                                             <input type="file" class="form-control" name="photo" id="photo"
-                                                   accept=".jpg,.jpeg,.png,.gif" onchange="previewImage(this)" />
+                                                   accept=".jpg, .jpeg,.png,.gif" onchange="previewImage(this)" />
                                             <small class="text-muted">Supported formats: JPG, JPEG, PNG, GIF (Max: 5MB)</small>
                                         </div>
                                     </div>
@@ -148,17 +148,6 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
-
-    // Form submission with loading overlay
-    document.getElementById('medicineEditForm').addEventListener('submit', function(e) {
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.classList.remove('d-none');
-
-        // Hide loading overlay after 3 seconds in case of slow response
-        setTimeout(() => {
-            loadingOverlay.classList.add('d-none');
-        }, 3000);
-    });
 </script>
 
 <style>
