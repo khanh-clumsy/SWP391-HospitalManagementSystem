@@ -13,7 +13,7 @@ namespace HospitalManagement.Repositories
             _context = context;
         }
 
-        public async Task<List<Medicine>> Filter(string? searchName, string? typeFilter)
+        public async Task<List<Medicine>> Filter(string? searchName, string? typeFilter, string? unitFilter)
         {
             var query = _context.Medicines.AsQueryable();
 
@@ -22,6 +22,9 @@ namespace HospitalManagement.Repositories
 
             if (!string.IsNullOrEmpty(typeFilter))
                 query = query.Where(m => m.MedicineType == typeFilter);
+
+            if (!string.IsNullOrEmpty(unitFilter))
+                query = query.Where(m => m.Unit == unitFilter);
 
             return await query.ToListAsync();
         }

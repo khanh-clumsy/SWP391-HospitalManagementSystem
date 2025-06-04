@@ -25,6 +25,12 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            // Lấy danh sách đơn vị thuốc và loại thuốc để hiển thị trong dropdown
+            List<SelectListItem> UnitList = GetUnitList();
+            List<SelectListItem> TypeList = GetMedicineTypeList();
+            ViewBag.Units = UnitList;
+            ViewBag.Types = TypeList;
+
             // Lấy danh sách thuốc
             var medicines = await _context.Medicines.ToListAsync();
 
@@ -40,106 +46,78 @@ namespace HospitalManagement.Controllers
             return View(medicines);
         }
 
-
-        [HttpGet]
-        public async Task<IActionResult> Detail(int id)
-        {
-            var medicine = await _context.Medicines.FindAsync(id);
-            if (medicine == null) return NotFound();
-
-            return View(medicine);
-        }
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var medicine = await _context.Medicines.FindAsync(id);
-            if (medicine == null) return NotFound();
-            // Xóa thuốc
-            _context.Medicines.Remove(medicine);
-            await _context.SaveChangesAsync();
-            TempData["success"] = "Medicine deleted successfully!";
-            return RedirectToAction("Index");
-        }
-
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
+            List<SelectListItem> UnitList = GetUnitList();
+            List<SelectListItem> TypeList = GetMedicineTypeList();
+            ViewBag.Units = UnitList;
+            ViewBag.Types = TypeList;
             var medicine = await _context.Medicines.FindAsync(id);
             if (medicine == null) return NotFound();
             return View(medicine);
         }
 
-        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Medicine model)
+        public async Task<IActionResult> Edit(Medicine model, IFormFile photo)
         {
-            var medicine = await _context.Medicines.FindAsync(model.MedicineId);
-
+            List<SelectListItem> UnitList = GetUnitList();
+            List<SelectListItem> TypeList = GetMedicineTypeList();
+            ViewBag.Units = UnitList;
+            ViewBag.Types = TypeList;
+            
+            //Nếu giá âm hoặc = 0
             if (model.Price <= 0)
             {
                 TempData["error"] = "Price can't be negative!";
                 return RedirectToAction("Edit", "Medicine");
             }
 
-            if (!User.IsInRole("Admin"))
+            //Validate model
+            ModelState.Remove("photo");
+            if (!ModelState.IsValid)
             {
-                TempData["error"] = "You do not have permission to edit this information.";
-                return RedirectToAction("Edit", new { id = model.MedicineId });
-            }
-
-            if (medicine != null)
-            {
-                medicine.Name = model.Name;
-                medicine.MedicineType = model.MedicineType;
-                medicine.Price = model.Price;
-                medicine.Description = model.Description;
-                medicine.Unit = model.Unit;
-
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index", "Medicine");
-            }
-            else
-            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                TempData["error"] = "Validation failed: " + string.Join(", ", errors);
                 return View(model);
             }
-        }
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public async Task<IActionResult> UploadPhoto(IFormFile photo, Medicine model)
-        {
+            var medicine = await _context.Medicines.FindAsync(model.MedicineId);
+            if (medicine == null) { return View(new Medicine()); }
+
+            medicine.Name = model.Name;
+            medicine.MedicineType = model.MedicineType;
+            medicine.Price = model.Price;
+            medicine.Description = model.Description;
+            medicine.Unit = model.Unit;
+
             if (photo != null && photo.Length > 0)
             {
-                // Convert img -> Byte ->  Base64String
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                var imageBytes = ms.ToArray();
-                model.Image = Convert.ToBase64String(imageBytes);
-
-                // Add in database
-                var medicine = await _context.Medicines.FindAsync(model.MedicineId);
-
-                if (medicine != null)
+                if (photo.Length > 5 * 1024 * 1024)
                 {
-                    medicine.Image = model.Image;
-                    await _context.SaveChangesAsync();
+                    TempData["error"] = "Photo size exceeds 5MB limit!";
+                    return View(model);
                 }
 
-                TempData["success"] = "Update photo successful!";
-                return RedirectToAction("Index", "Medicine");
+                using var ms = new MemoryStream();
+                await photo.CopyToAsync(ms);
+                medicine.Image = Convert.ToBase64String(ms.ToArray());
             }
 
-            // Do nothing
-            TempData["error"] = "Photo is invalid!";
+            await _context.SaveChangesAsync();
+            TempData["success"] = $"Updated {medicine.Name} successfully!";
             return RedirectToAction("Index", "Medicine");
-        }
 
+        }
+      
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Create()
         {
+            List<SelectListItem> UnitList = GetUnitList();
+            List<SelectListItem> TypeList = GetMedicineTypeList();
+            ViewBag.Units = UnitList;
+            ViewBag.Types = TypeList;
             return View(new Medicine());
         }
 
@@ -148,8 +126,17 @@ namespace HospitalManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Medicine model, IFormFile photo)
         {
+            List<SelectListItem> UnitList = GetUnitList();
+            List<SelectListItem> TypeList = GetMedicineTypeList();
+            ViewBag.Units = UnitList;
+            ViewBag.Types = TypeList;
+
+            ModelState.Remove("photo");
+
             if (!ModelState.IsValid)
             {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                TempData["error"] = "Validation failed: " + string.Join(", ", errors);
                 return View(model);
             }
 
@@ -158,9 +145,15 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Price can't be negative!";
                 return RedirectToAction("Edit", "Medicine");
             }
+
             // Nếu có ảnh thì convert sang base64 và gán vào model.Image
             if (photo != null && photo.Length > 0)
             {
+                if (photo.Length > 5 * 1024 * 1024)
+                {
+                    TempData["error"] = "Photo size exceeds 5MB limit!";
+                    return View(model);
+                }
                 using var ms = new MemoryStream();
                 await photo.CopyToAsync(ms);
                 model.Image = Convert.ToBase64String(ms.ToArray());
@@ -175,44 +168,44 @@ namespace HospitalManagement.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Filter(string? SearchName, string? TypeFilter)
+        public async Task<IActionResult> Filter(string? SearchName, string? TypeFilter, string? UnitFilter)
         {
-            var types = await _context.Medicines
-                .Select(m => m.MedicineType)
-                .Distinct()
-                .ToListAsync();
+            //Lấy ra danh sách đơn vị thuốc và loại thuốc để hiển thị trong dropdown
+            List<SelectListItem> UnitList = GetUnitList();
+            List<SelectListItem> TypeList = GetMedicineTypeList();
 
-            ViewBag.MedicineTypes = types;
-            ViewBag.TypeFilter = TypeFilter;
+            // Gán giá trị cho ViewBag để sử dụng trong View, xử lý lưu lại những lựa chọn đã chọn sau khi filter
+            ViewBag.Units = new SelectList(UnitList, "Value", "Text", UnitFilter);
+            ViewBag.Types = new SelectList(TypeList, "Value", "Text", TypeFilter);
             ViewBag.SearchName = SearchName;
 
-            var result = await _medicineRepository.Filter(SearchName, TypeFilter);
+            var result = await _medicineRepository.Filter(SearchName, TypeFilter, UnitFilter);
             return View("Index", result);
         }
 
-        public List<SelectListItem> GetUnitList()
+        private List<SelectListItem> GetUnitList()
         {
             return new List<SelectListItem>
             {
-                new SelectListItem("Viên", "pill"),
-                new SelectListItem("Lọ", "bottle"),
-                new SelectListItem("Hộp", "box"),
-                new SelectListItem("Tuýp", "tube"),
-                new SelectListItem("Ống", "vial"),
-                new SelectListItem("Vỉ", "pack"),
+                new SelectListItem("Viên", "Viên"),
+                new SelectListItem("Lọ", "Lọ"),
+                new SelectListItem("Hộp", "Hộp"),
+                new SelectListItem("Tuýp", "Tuýp"),
+                new SelectListItem("Ống", "Ống"),
+                new SelectListItem("Vỉ", "Vỉ"),
             };
         }
 
-        public List<SelectListItem> GetMedicineTypeList()
+        private List<SelectListItem> GetMedicineTypeList()
         {
             return new List<SelectListItem>
             {
-                new SelectListItem("Thuốc uống", "oral"),
-                new SelectListItem("Thuốc tiêm", "injection"),
-                new SelectListItem("Thuốc bôi", "topical"),
-                new SelectListItem("Thuốc nhỏ", "drops"),
-                new SelectListItem("Thuốc xịt", "spray"),
-                new SelectListItem("Khác", "other"),
+                new SelectListItem("Thuốc uống", "Thuốc uống"),
+                new SelectListItem("Thuốc tiêm", "Thuốc tiêm"),
+                new SelectListItem("Thuốc bôi", "Thuốc bôi"),
+                new SelectListItem("Thuốc nhỏ", "Thuốc nhỏ"),
+                new SelectListItem("Thuốc xịt", "Thuốc xịt"),
+                new SelectListItem("Khác", "Khác"),
             };
         }
 

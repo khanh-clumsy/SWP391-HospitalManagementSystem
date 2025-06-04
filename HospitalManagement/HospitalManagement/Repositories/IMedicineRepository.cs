@@ -4,7 +4,7 @@ namespace HospitalManagement.Repositories
 {
     public interface IMedicineRepository
     {
-        Task<List<Medicine>> Filter(string? searchName, string? typeFilter);
+        Task<List<Medicine>> Filter(string? searchName, string? typeFilter, string? unitFilter);
     }
 
 }

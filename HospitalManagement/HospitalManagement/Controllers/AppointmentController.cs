@@ -2,6 +2,7 @@
 using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
+using HospitalManagement.Services;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,12 +20,14 @@ namespace HospitalManagement.Controllers
         private readonly HospitalManagementContext _context;
         private readonly PasswordHasher<Patient> _passwordHasher;
         private readonly IAppointmentRepository _appointmentRepository;
-        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository)
+        private readonly EmailService _emailService;
+
+        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository, EmailService emailService)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
             _appointmentRepository = appointmentRepository;
-
+            _emailService = emailService;
         }
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -112,10 +115,18 @@ namespace HospitalManagement.Controllers
             };
             return View(model);
         }
+        private string GenerateRandomPassword(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+            var random = new Random();
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
         [Authorize(Roles = "Sales")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateAppointmentViewModel model)                                                                                 
+        public async Task<IActionResult> Create(CreateAppointmentViewModel model)
         {
             //Nếu không hợp lệ thì trả về View với các options luôn
             model.DoctorOptions = await GetDoctorListAsync();
@@ -140,11 +151,37 @@ namespace HospitalManagement.Controllers
                     PhoneNumber = model.PhoneNumber,
                     IsActive = true,
                 };
-                var fixedPassword = "A12345678";
+                var fixedPassword = GenerateRandomPassword(12);
                 patient.PasswordHash = _passwordHasher.HashPassword(patient, fixedPassword);
                 _context.Patients.Add(patient);
                 await _context.SaveChangesAsync();
-                TempData["success"] = $"Tạo tài khoản bệnh nhân thành công với email là {patient.Email}.";
+
+                try
+                {
+                    var emailBody = $@"
+                    <h3>🔐 Thông tin tài khoản truy cập hệ thống</h3>
+                    <p>Kính gửi <strong>{patient.FullName}</strong>,</p>
+                    <p>Bạn đã được tạo tài khoản thành công trên hệ thống của chúng tôi với thông tin đăng nhập như sau:</p>
+                    <ul>
+                        <li><strong>Email:</strong> {patient.Email}</li>
+                        <li><strong>Mật khẩu:</strong> {fixedPassword}</li>
+                    </ul>
+                    <p>Vui lòng đăng nhập và đổi mật khẩu ngay sau lần đăng nhập đầu tiên để đảm bảo bảo mật.</p>
+                    <p>Trân trọng,</p>
+                    <p>Đội ngũ hỗ trợ</p>";
+
+                    await _emailService.SendEmailAsync(
+                        toEmail: patient.Email,
+                        subject: "✅ Fmec System - New Account",
+                        body: emailBody
+                    );
+
+                    TempData["success"] = "✅ Appointment confirmation email sent successfully.";
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"❌ Failed to send appointment confirmation email: {ex.Message}";
+                }
             }
             else
             {
@@ -162,8 +199,7 @@ namespace HospitalManagement.Controllers
 
             var isExistedAppointment = await _context.Appointments
             .AnyAsync(a => a.Date == model.AppointmentDate && a.PatientId == patient.PatientId);
-            
-            
+
             if (isExistedAppointment)
             {
                 ViewBag.ErrorMessage = "Không thể tạo cuộc hẹn mới trong cùng 1 ngày!.";
@@ -179,7 +215,6 @@ namespace HospitalManagement.Controllers
             var context = new HospitalManagementContext();
             var user = context.Staff.FirstOrDefault(p => p.StaffId == StaffID);
             if (user == null) return RedirectToAction("Login", "Auth");
-
             var newAppointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -189,13 +224,55 @@ namespace HospitalManagement.Controllers
                 Note = model.Note,
                 Date = model.AppointmentDate,
                 Status = "Pending",
-                StaffId = StaffID
+                StaffId = StaffID,
             };
             _context.Appointments.Add(newAppointment);
             await _context.SaveChangesAsync();
+
+            var savedAppointment = await _context.Appointments
+                .Include(a => a.Doctor)
+                .Include(a => a.Service)
+                .Include(a => a.Staff)
+                .Include(a => a.Patient)
+                .Include(a => a.Slot)
+                .FirstOrDefaultAsync(a => a.AppointmentId == newAppointment.AppointmentId);
+
+            if (savedAppointment == null)
+            {
+                TempData["error"] = $"Error!";
+                return View(model);
+            }
+
+            try
+            {
+                var emailBody = $@"
+                <h3>✅ New Appointment Successfully Booked!</h3>
+                <p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>
+                <p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>
+                <p><strong>Doctor:</strong> {savedAppointment.Doctor.FullName}</p>
+                <p><strong>Time:</strong> {savedAppointment.Slot.StartTime} - {savedAppointment.Slot.EndTime}</p>
+                <p><strong>Department:</strong> {savedAppointment.Doctor.DepartmentName}</p>
+                <p><strong>Service:</strong> {savedAppointment.Service.ServiceType}</p>
+                <p><strong>Note:</strong> {savedAppointment.Note}</p>
+                <p><strong>Sales:</strong> {savedAppointment.Staff?.FullName}</p>
+                ";
+
+                await _emailService.SendEmailAsync(
+                    toEmail: patient.Email,
+                    subject: "✅ Appointment Confirmation",
+                    body: emailBody
+                );
+
+                TempData["success"] = "✅ Appointment confirmation email sent successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"❌ Failed to send appointment confirmation email: {ex.Message}";
+            }
+
             return RedirectToAction("MyAppointments", "Appointment");
         }
-        
+
         [Authorize(Roles = "Patient")]
         [HttpGet]
         public async Task<IActionResult> Booking(int? doctorId)
@@ -284,6 +361,15 @@ namespace HospitalManagement.Controllers
 
             }
 
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.SelectedDoctorId);
+            var service = await _context.Services.FirstOrDefaultAsync(s => s.ServiceId == model.SelectedServiceId);
+            if (doctor == null || service == null)
+            {
+                TempData["error"] = "Invalid doctor or service selection!";
+                return View(model);
+
+            }
+
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -293,14 +379,76 @@ namespace HospitalManagement.Controllers
                 ServiceId = model.SelectedServiceId,
                 Date = model.AppointmentDate,
                 Status = "Pending",
+                Doctor = doctor,
+                Service = service
             };
 
             _context.Appointments.Add(appointment);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
+
+            var savedAppointment = await _context.Appointments
+                .Include(a => a.Doctor)
+                .Include(a => a.Service)
+                .Include(a => a.Staff)
+                .Include(a => a.Patient)
+                .Include(a => a.Slot)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
+
+            if (savedAppointment == null)
+            {
+                TempData["error"] = $"Error!";
+                return View(model);
+            }
+
+            try
+            {
+
+                var emailBody = $@"
+                <h3>✅ New Appointment Successfully Booked!</h3>
+                <p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>
+                <p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>
+                <p><strong>Doctor:</strong> {savedAppointment.Doctor.FullName}</p>
+                <p><strong>Time:</strong> {savedAppointment.Slot.StartTime} - {savedAppointment.Slot.EndTime}</p>
+                <p><strong>Department:</strong> {savedAppointment.Doctor.DepartmentName}</p>
+                <p><strong>Service:</strong> {savedAppointment.Service.ServiceType}</p>
+                <p><strong>Note:</strong> {savedAppointment.Note}</p>
+                <p><strong>Sales:</strong> {savedAppointment.Staff?.FullName}</p>
+                ";
+
+                await _emailService.SendEmailAsync(
+                    toEmail: patient.Email,
+                    subject: "✅ Appointment Confirmation",
+                    body: emailBody
+                );
+
+                TempData["success"] = "✅ Appointment confirmation email sent successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"❌ Failed to send confirmation email: {ex.Message}";
+            }
+
             return RedirectToAction("MyAppointments");
         }
 
-        
+        [HttpGet]
+        public async Task<IActionResult> GetDoctorsByDate(DateOnly date)
+        {
+            var doctors = await _context.Schedules
+                                        .Where(s => s.Day == date)
+                                        .Select(s => new
+                                        {
+                                            s.DoctorId,
+                                            DoctorName = s.Doctor.FullName
+                                        })
+                                        .Distinct()
+                                        .ToListAsync();
+
+            Console.WriteLine("Doctors: " + string.Join(", ", doctors.Select(d => d.DoctorName)));
+            return Json(doctors);
+        }
+
+
 
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()
