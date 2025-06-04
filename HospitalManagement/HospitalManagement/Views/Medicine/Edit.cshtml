@@ -40,14 +40,14 @@
 								<div class="col-md-8">
 									<div class="mb-3">
 										<label asp-for="Name" class="form-label fw-bold">Medicine Name <span class="text-danger">*</span></label>
-										<input asp-for="Name" class="form-control form-control-lg" placeholder="Enter medicine name" required readonly="@(isReadonly ? "readonly" : "" )" />
+										<input asp-for="Name" class="form-control form-control-lg" placeholder="Enter medicine name" required readonly="@(isReadonly ? "readonly" : null )" />
 										<span asp-validation-for="Name" class="text-danger"></span>
 									</div>
 
 									<div class="mb-3">
 										<label asp-for="MedicineType" class="form-label fw-bold">Medicine Type <span class="text-danger">*</span></label>
 										<input type="hidden" asp-for="MedicineType"/>
-										<select asp-for="MedicineType" disabled="@(isReadonly ? "disabled" : "" )" class="form-select form-select-lg" required>
+										<select asp-for="MedicineType" disabled="@(isReadonly ? "disabled" : null )" class="form-select form-select-lg" required>
 											<option value="">-- Select Medicine Type --</option>
 											<option value="Tablet">Tablet</option>
 											<option value="Capsule">Capsule</option>
@@ -65,14 +65,14 @@
 											<label asp-for="Price" class="form-label fw-bold">Price (VND) <span class="text-danger">*</span></label>
 											<div class="input-group">
 												<span class="input-group-text">₫</span>
-												<input asp-for="Price" readonly="@(isReadonly ? "readonly" : "" )" class="form-control" placeholder="Enter price" type="number" step="0.01" min="0" required />
+												<input asp-for="Price" readonly="@(isReadonly ? "readonly" : null )" class="form-control" placeholder="Enter price" type="number" step="0.01" min="0" required />
 											</div>
 											<span asp-validation-for="Price" class="text-danger"></span>
 										</div>
 										<div class="col-md-6 mb-3">
 											<label asp-for="Unit" class="form-label fw-bold">Unit <span class="text-danger">*</span></label>
 											<input type="hidden" asp-for="Unit" />
-											<select asp-for="Unit" disabled="@(isReadonly ? "disabled" : "")" class="form-select" required>
+											<select asp-for="Unit" disabled="@(isReadonly ? "disabled" : null)" class="form-select" required>
 												<option value="">-- Select Unit --</option>
 												<option value="pill">Pill</option>
 												<option value="bottle">Bottle</option>
@@ -87,7 +87,7 @@
 
 									<div class="mb-3">
 										<label asp-for="Description" class="form-label fw-bold">Description</label>
-										<textarea asp-for="Description" readonly="@(isReadonly ? "readonly" : "" )" class="form-control" rows="4" placeholder="Enter medicine description and usage instructions"></textarea>
+										<textarea asp-for="Description" readonly="@(isReadonly ? "readonly" : null )" class="form-control" rows="4" placeholder="Enter medicine description and usage instructions"></textarea>
 										<span asp-validation-for="Description" class="text-danger"></span>
 									</div>
 								</div>

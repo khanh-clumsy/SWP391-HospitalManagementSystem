@@ -2,7 +2,9 @@
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 
@@ -82,9 +84,14 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Edit", "Medicine");
             }
 
+            if (!User.IsInRole("Admin"))
+            {
+                TempData["error"] = "You do not have permission to edit this information.";
+                return RedirectToAction("Edit", new { id = model.MedicineId });
+            }
+
             if (medicine != null)
             {
-
                 medicine.Name = model.Name;
                 medicine.MedicineType = model.MedicineType;
                 medicine.Price = model.Price;
@@ -182,6 +189,33 @@ namespace HospitalManagement.Controllers
             var result = await _medicineRepository.Filter(SearchName, TypeFilter);
             return View("Index", result);
         }
+
+        public List<SelectListItem> GetUnitList()
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem("Viên", "pill"),
+                new SelectListItem("Lọ", "bottle"),
+                new SelectListItem("Hộp", "box"),
+                new SelectListItem("Tuýp", "tube"),
+                new SelectListItem("Ống", "vial"),
+                new SelectListItem("Vỉ", "pack"),
+            };
+        }
+
+        public List<SelectListItem> GetMedicineTypeList()
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem("Thuốc uống", "oral"),
+                new SelectListItem("Thuốc tiêm", "injection"),
+                new SelectListItem("Thuốc bôi", "topical"),
+                new SelectListItem("Thuốc nhỏ", "drops"),
+                new SelectListItem("Thuốc xịt", "spray"),
+                new SelectListItem("Khác", "other"),
+            };
+        }
+
     }
 }
 
