@@ -66,12 +66,24 @@
 								<td>@item.TestId</td>
 								<td>@item.Name</td>
 								<td>@item.Description</td>
-								<td>@item.Price.ToString("C")</td>
+								<td>@item.Price</td>
 								@if (isAdmin)
 								{
 									<td>
 										<a asp-action="Update" asp-route-id="@item.TestId" class="btn btn-sm btn-primary">Edit</a>
 									</td>
+									<td>
+										<form asp-action="Delete" method="post" onsubmit="return confirm('Are you sure you want to delete this Test?');">
+											@Html.AntiForgeryToken()
+											<input type="hidden" name="id" value="@item.TestId" />
+											<button type="submit" class="btn btn-sm btn-danger">
+												<i class="fas fa-trash-alt"></i> Delete
+											</button>
+
+
+										</form>
+									</td>
+									
 								}
 							</tr>
 						}

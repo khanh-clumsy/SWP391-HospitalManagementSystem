@@ -1,77 +1,77 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using HospitalManagement.Repositories;
+using Microsoft.EntityFrameworkCore;
 
-namespace HospitalManagement.Repositories
+public class TestRepository : ITestRepository
 {
-    public class TestRepository : ITestRepository
+    private readonly HospitalManagementContext _context;
+
+    public TestRepository(HospitalManagementContext context)
     {
-        private readonly HospitalManagementContext _context;
+        _context = context;
+    }
 
-        public TestRepository(HospitalManagementContext context)
+    public async Task<IEnumerable<Test>> GetAllAsync()
+    {
+        return await _context.Tests.ToListAsync();
+    }
+
+    public async Task<Test> GetByIdAsync(int id)
+    {
+        return await _context.Tests.FindAsync(id);
+    }
+
+    public async Task AddAsync(Test test)
+    {
+        await _context.Tests.AddAsync(test);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateAsync(Test test)
+    {
+        _context.Tests.Update(test);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteAsync(int id)
+    {
+        var test = await _context.Tests.FindAsync(id);
+        if (test != null)
         {
-            _context = context;
+            _context.Tests.Remove(test);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task<IEnumerable<Test>> SearchAsync(string name, string sortOrder, decimal? minPrice, decimal? maxPrice)
+    {
+        var query = _context.Tests.AsQueryable();
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            query = query.Where(t => t.Name.Contains(name));
         }
 
-        public IEnumerable<Test> GetAll()
+        if (minPrice.HasValue)
         {
-            return _context.Tests.ToList();
+            query = query.Where(t => t.Price >= minPrice.Value);
         }
 
-        public Test GetById(int id)
+        if (maxPrice.HasValue)
         {
-            return _context.Tests.Find(id);
+            query = query.Where(t => t.Price <= maxPrice.Value);
         }
 
-        public void Add(Test test)
+        if (sortOrder == "asc")
         {
-            _context.Tests.Add(test);
+            query = query.OrderBy(t => t.Price);
+        }
+        else if (sortOrder == "desc")
+        {
+            query = query.OrderByDescending(t => t.Price);
         }
 
-        public void Update(Test test)
-        {
-            _context.Tests.Update(test);
-        }
-
-        public void Delete(int id)
-        {
-            var test = _context.Tests.Find(id);
-            if (test != null)
-                _context.Tests.Remove(test);
-        }
-
-        public void Save()
-        {
-            _context.SaveChanges();
-        }
-        public IEnumerable<Test> Search(string name, string sortOrder, decimal? minPrice, decimal? maxPrice)
-        {
-            var query = _context.Tests.AsQueryable();
-
-            if (!string.IsNullOrEmpty(name))
-            {
-                query = query.Where(t => t.Name.Contains(name));
-            }
-
-            if (minPrice.HasValue)
-            {
-                query = query.Where(t => t.Price >= minPrice.Value);
-            }
-
-            if (maxPrice.HasValue)
-            {
-                query = query.Where(t => t.Price <= maxPrice.Value);
-            }
-
-            if (sortOrder == "asc")
-            {
-                query = query.OrderBy(t => t.Price);
-            }
-            else if (sortOrder == "desc")
-            {
-                query = query.OrderByDescending(t => t.Price);
-            }
-
-            return query.ToList();
-        }
+        return await query.ToListAsync();
     }
 }

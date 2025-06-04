@@ -1,7 +1,9 @@
-﻿using HospitalManagement.Models;
+﻿using System.Threading.Tasks;
+using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagement.Controllers
 {
@@ -14,9 +16,9 @@ namespace HospitalManagement.Controllers
             _testRepository = testRepository;
         }
 
-        public IActionResult Index(string searchName, string sortOrder, decimal? minPrice, decimal? maxPrice)
+        public async Task<IActionResult> Index(string searchName, string sortOrder, decimal? minPrice, decimal? maxPrice)
         {
-            var tests = _testRepository.Search(searchName, sortOrder, minPrice, maxPrice);
+            var tests = await _testRepository.SearchAsync(searchName, sortOrder, minPrice, maxPrice);
 
             ViewBag.SearchName = searchName;
             ViewBag.SortOrder = sortOrder;
@@ -25,6 +27,7 @@ namespace HospitalManagement.Controllers
 
             return View(tests);
         }
+
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
@@ -34,21 +37,26 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public IActionResult Create(Test test)
+        public async Task<IActionResult> Create(Test test)
         {
+            if (test.Price <= 0)
+            {
+                ModelState.AddModelError("Price", "Price must be greater than 0.");
+            }
+
             if (ModelState.IsValid)
             {
-                _testRepository.Add(test);
-                _testRepository.Save();
+                await _testRepository.AddAsync(test);
                 return RedirectToAction(nameof(Index));
             }
+
             return View(test);
         }
 
         [Authorize(Roles = "Admin")]
-        public IActionResult Update(int id)
+        public async Task<IActionResult> Update(int id)
         {
-            var test = _testRepository.GetById(id);
+            var test = await _testRepository.GetByIdAsync(id);
             if (test == null)
                 return NotFound();
 
@@ -58,17 +66,31 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public IActionResult Update(Test test)
+        public async Task<IActionResult> Update(Test test)
         {
             if (ModelState.IsValid)
             {
-                _testRepository.Update(test);
-                _testRepository.Save();
+                await _testRepository.UpdateAsync(test);
                 return RedirectToAction(nameof(Index));
             }
+
             return View(test);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var test = await _testRepository.GetByIdAsync(id);
+            if (test == null)
+            {
+                return NotFound();
+            }
+
+
+            await _testRepository.DeleteAsync(test);
+            return RedirectToAction(nameof(Index));
+        }
     }
-
 }
-
