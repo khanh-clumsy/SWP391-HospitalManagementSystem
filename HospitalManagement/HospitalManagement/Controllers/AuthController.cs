@@ -23,8 +23,9 @@ namespace HospitalManagement.Controllers
     public class AuthController : Controller
     {
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? error)
         {
+            if (!string.IsNullOrEmpty(error)) TempData["error"] = error;
             return View(new ViewModels.Login());
         }
         [HttpGet]
@@ -103,9 +104,16 @@ namespace HospitalManagement.Controllers
             if (LogInfo.Role == "Patient")
             {
                 var user = _context.Patients.SingleOrDefault(u => u.Email == LogInfo.Email);
+
                 if (user == null || _patientHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
                 {
                     TempData["error"] = "Email or password is invalid.";
+
+                    return View(LogInfo);
+                }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
 
                     return View(LogInfo);
                 }
@@ -133,6 +141,12 @@ namespace HospitalManagement.Controllers
                     TempData["error"] = "Email or password is invalid.";
                     return View(LogInfo);
                 }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return View(LogInfo);
+                }
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
@@ -158,7 +172,12 @@ namespace HospitalManagement.Controllers
                     TempData["error"] = "Email or password is invalid.";
                     return View(LogInfo);
                 }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
 
+                    return View(LogInfo);
+                }
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
@@ -389,6 +408,12 @@ namespace HospitalManagement.Controllers
                     user = await _context.Patients.FirstOrDefaultAsync(u => u.Email == email);
 
                 }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return RedirectToAction("Login");
+                }
                 // Tạo Claim và Identity cho Patient
                 var claims = new List<Claim>
                     {
@@ -416,6 +441,12 @@ namespace HospitalManagement.Controllers
                     return RedirectToAction("Login");
 
                 }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return RedirectToAction("Login");
+                }
                 // Tạo Claim và Identity cho Doctor
                 var claims = new List<Claim>
                     {
@@ -441,6 +472,12 @@ namespace HospitalManagement.Controllers
                     TempData["error"] = "Staff Email is invalid.";
                     return RedirectToAction("Login");
 
+                }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return RedirectToAction("Login");
                 }
                 // Tạo Claim và Identity cho Staff
                 var claims = new List<Claim>
