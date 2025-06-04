@@ -34,14 +34,11 @@ public class TestRepository : ITestRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(Test test)
     {
-        var test = await _context.Tests.FindAsync(id);
-        if (test != null)
-        {
+       
             _context.Tests.Remove(test);
             await _context.SaveChangesAsync();
-        }
     }
 
     public async Task<IEnumerable<Test>> SearchAsync(string name, string sortOrder, decimal? minPrice, decimal? maxPrice)

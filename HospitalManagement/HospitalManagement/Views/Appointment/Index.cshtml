@@ -75,7 +75,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						@if (Model != null)
+						@if (Model != null && Model.Count > 0)
 						{
 							foreach (var item in Model)
 							{
@@ -119,6 +119,12 @@
 									</td>
 								</tr>
 							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="12" class="text-center">No appointments found.</td>
+							</tr>
 						}
 					</tbody>
 				</table>

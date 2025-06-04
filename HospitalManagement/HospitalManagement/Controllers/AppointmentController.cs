@@ -30,9 +30,16 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> Index(string? searchName, string? timeFilter, string? dateFilter, string? statusFilter)
         {
             var appointments = await _appointmentRepository.FilterForAdmin(searchName, timeFilter, dateFilter, statusFilter);
-
+            if (appointments == null)
+            {
+                appointments = new List<Appointment>();
+            }
             var slots = await _context.Slots.ToListAsync();
-            ViewBag.SlotOptions = slots;
+            // Lưu lại các giá trị filter hiện tại vào ViewBag
+            ViewBag.SearchName = searchName;
+            ViewBag.TimeFilter = timeFilter;
+            ViewBag.DateFilter = dateFilter;
+            ViewBag.StatusFilter = statusFilter;
 
             return View(appointments);
         }

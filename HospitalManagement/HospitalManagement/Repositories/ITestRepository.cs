@@ -6,7 +6,7 @@ public interface ITestRepository
     Task<Test> GetByIdAsync(int id);
     Task AddAsync(Test test);
     Task UpdateAsync(Test test);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(Test test);
 
     Task<IEnumerable<Test>> SearchAsync(string name, string sortOrder, decimal? minPrice, decimal? maxPrice);
 }
