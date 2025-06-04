@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using X.PagedList;
@@ -100,6 +101,7 @@ namespace HospitalManagement.Controllers
                     {
                         existing.IsActive = updated.IsActive;
                         existing.IsDepartmentHead = updated.IsDepartmentHead;
+                        existing.IsSpecial = updated.IsSpecial;
                     }
                 }
 
@@ -159,6 +161,21 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult AddDoctorAccount()
         {
+            ViewBag.Units = new List<SelectListItem>
+            {
+                new("Nội tim mạch", "Nội tim mạch"),
+                new("Dị ứng", "Dị ứng"),
+                new("Truyền nhiễm", "Truyền nhiễm"),
+                new("Thần kinh", "Thần kinh"),
+                new("Phụ sản", "Phụ sản"),
+                new("Nhi", "Nhi"),
+                new("Ngoại tiêu hóa", "Ngoại tiêu hóa"),
+                new("Mắt", "Mắt"),
+                new("Y học hạt nhân", "Y học hạt nhân"),
+                new("Y học cổ truyền", "Y học cổ truyền"),
+                new("Tâm thần", "Tâm thần"),
+                new("Vật lý trị liệu", "Vật lý trị liệu"),
+            };
             return View();
         }
 

@@ -145,9 +145,12 @@
                         <span asp-validation-for="DepartmentName" class="text-danger small"></span>
                     </div>
                     <div class="wrap-input100 validate-input">
-                        <input asp-for="DepartmentName" class="input100" />
+                        <select asp-for="DepartmentName" class="input100 form-select" asp-items="ViewBag.Units">
+                            <option value="">Department</option>
+                        </select>
                         <span class="focus-input100"></span>
                     </div>
+
 
 
                     <!-- Experience Year -->
@@ -172,6 +175,7 @@
                         <input asp-for="Degree" class="input100" />
                         <span class="focus-input100"></span>
                     </div>
+
 
 
                     <!-- Submit button -->

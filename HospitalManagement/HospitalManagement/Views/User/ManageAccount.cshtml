@@ -300,6 +300,7 @@
                             <th>Phone Number</th>
                             <th>Department</th>
                             <th>Department Head</th>
+                            <th>Special</th>
                             <th>Active</th>
                             <th>Action</th>
                         </tr>
@@ -315,15 +316,21 @@
                                 <td>@Model.Doctors[i].GetFullGender()</td>
                                 <td>@Model.Doctors[i].Email</td>
                                 <td>@Model.Doctors[i].PhoneNumber</td>
-                                <td>
-                                    @Model.Doctors[i].DepartmentName
-                                </td>
+                                <td>@Model.Doctors[i].DepartmentName</td>
+								
                                 <td>
                                     <input type="checkbox"
                                                name="doctors[@i].IsDepartmentHead"
                                                value="true"
                                                @(Model.Doctors[i].IsDepartmentHead == true ? "checked" : "") />
                                     <input type="hidden" name="doctors[@i].IsDepartmentHead" value="false" />
+                                </td>
+								<td>
+                                    <input type="checkbox"
+                                               name="doctors[@i].IsSpecial"
+                                               value="true"
+                                               @(Model.Doctors[i].IsSpecial == true ? "checked" : "") />
+                                    <input type="hidden" name="doctors[@i].IsSpecial" value="false" />
                                 </td>
                                 <td>
                                     <input type="checkbox"
