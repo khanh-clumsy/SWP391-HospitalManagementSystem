@@ -140,72 +140,72 @@
 
 	</div>
 </div>
-@section Scripts {
-	<!-- Appointment End -->
-	<script>
-		$(document).ready(function() {
-			// Khi chọn ngày
-				$('#appointmentDate').on('change', function() {
-			var selectedDate = $(this).val(); // Lấy giá trị của ngày đã chọn
-			console.log("Selected Date: ", selectedDate); // Kiểm tra xem có lấy đúng ngày không
+@* @section Scripts { *@
+@* 	<!-- Appointment End --> *@
+@* 	<script> *@
+@* 		$(document).ready(function() { *@
+@* 			// Khi chọn ngày *@
+@* 				$('#appointmentDate').on('change', function() { *@
+@* 			var selectedDate = $(this).val();  *@
+@* 			console.log("Selected Date: ", selectedDate); *@
 
-			if (selectedDate) {
-				$.ajax({
-					url: '/Appointment/GetDoctorsByDate',  // Đảm bảo URL đúng
-					type: 'GET',
-					data: { date: selectedDate },
-					success: function(data) {
-						console.log(data);  // Kiểm tra dữ liệu trả về từ API
-						$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>');
-						$.each(data, function(i, doctor) {
-							$('#doctorSelect').append(`<option value="${doctor.doctorID}">${doctor.doctorName}</option>`);
-						});
-					},
-					error: function(xhr, status, error) {
-						console.log("AJAX Error: " + status + " - " + error);
-						console.log(xhr.responseText);  // Xem chi tiết lỗi trả về
-					}
-				});
-			}
-		});
+@* 			if (selectedDate) { *@
+@* 				$.ajax({ *@
+@* 					url: '/Appointment/GetDoctorsByDate',  // Đảm bảo URL đúng *@
+@* 					type: 'GET', *@
+@* 					data: { date: selectedDate }, *@
+@* 					success: function(data) { *@
+@* 						console.log(data);   *@
+@* 						$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
+@* 						$.each(data, function(i, doctor) { *@
+@* 							$('#doctorSelect').append(`<option value="${doctor.doctorID}">${doctor.doctorName}</option>`); *@
+@* 						}); *@
+@* 					}, *@
+@* 					error: function(xhr, status, error) { *@
+@* 						console.log("AJAX Error: " + status + " - " + error); *@
+@* 						console.log(xhr.responseText);  // Xem chi tiết lỗi trả về *@
+@* 					} *@
+@* 				}); *@
+@* 			} *@
+@* 		}); *@
 
-			// Khi chọn bác sĩ
-			$('#doctorSelect').on('change', function() {
-				var selectedDate = $('#appointmentDate').val();
-				var doctorId = $(this).val();
-				if (selectedDate && doctorId) {
-					$.ajax({
-						url: '/Appointment/GetSlotsByDoctorAndDate',
-						type: 'GET',
-						data: { date: selectedDate, doctorId: doctorId },
-						success: function(data) {
-							$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>');
-							$.each(data, function(i, slot) {
-								$('#slotSelect').append(`<option value="${slot.slotID}">${slot.slotTime}</option>`);
-							});
-						}
-					});
-				}
-			});
+@* 			// Khi chọn bác sĩ *@
+@* 			$('#doctorSelect').on('change', function() { *@
+@* 				var selectedDate = $('#appointmentDate').val(); *@
+@* 				var doctorId = $(this).val(); *@
+@* 				if (selectedDate && doctorId) { *@
+@* 					$.ajax({ *@
+@* 						url: '/Appointment/GetSlotsByDoctorAndDate', *@
+@* 						type: 'GET', *@
+@* 						data: { date: selectedDate, doctorId: doctorId }, *@
+@* 						success: function(data) { *@
+@* 							$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>'); *@
+@* 							$.each(data, function(i, slot) { *@
+@* 								$('#slotSelect').append(`<option value="${slot.slotID}">${slot.slotTime}</option>`); *@
+@* 							}); *@
+@* 						} *@
+@* 					}); *@
+@* 				} *@
+@* 			}); *@
 
-			// Khi chọn slot
-			$('#slotSelect').on('change', function() {
-				var selectedDate = $('#appointmentDate').val();
-				var slotId = $(this).val();
-				if (selectedDate && slotId) {
-					$.ajax({
-						url: '/Appointment/GetDoctorsBySlot',
-						type: 'GET',
-						data: { date: selectedDate, slotId: slotId },
-						success: function(data) {
-							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>');
-							$.each(data, function(i, doctor) {
-								$('#doctorSelect').append(`<option value="${doctor.doctorID}">${doctor.fullName}</option>`);
-							});
-						}
-					});
-				}
-			});
-		});
-	</script>
-}
+@* 			// Khi chọn slot *@
+@* 			$('#slotSelect').on('change', function() { *@
+@* 				var selectedDate = $('#appointmentDate').val(); *@
+@* 				var slotId = $(this).val(); *@
+@* 				if (selectedDate && slotId) { *@
+@* 					$.ajax({ *@
+@* 						url: '/Appointment/GetDoctorsBySlot', *@
+@* 						type: 'GET', *@
+@* 						data: { date: selectedDate, slotId: slotId }, *@
+@* 						success: function(data) { *@
+@* 							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
+@* 							$.each(data, function(i, doctor) { *@
+@* 								$('#doctorSelect').append(`<option value="${doctor.doctorID}">${doctor.fullName}</option>`); *@
+@* 							}); *@
+@* 						} *@
+@* 					}); *@
+@* 				} *@
+@* 			}); *@
+@* 		}); *@
+@* 	</script> *@
+@* } *@
