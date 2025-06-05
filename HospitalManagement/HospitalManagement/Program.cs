@@ -13,7 +13,8 @@ builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseS
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 
 
