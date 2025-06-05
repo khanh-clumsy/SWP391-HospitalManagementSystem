@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace HospitalManagement.Models;
 
-public partial class Doctor
+public partial class Account
 {
-    public int DoctorId { get; set; }
+    public int AccountId { get; set; }
 
     public string Email { get; set; } = null!;
 
@@ -15,26 +15,18 @@ public partial class Doctor
 
     public string? PhoneNumber { get; set; }
 
-    public string DepartmentName { get; set; } = null!;
-
-    public bool IsDepartmentHead { get; set; }
-
-    public int ExperienceYear { get; set; }
-
-    public string? Degree { get; set; }
+    public string? Gender { get; set; }
 
     public bool IsActive { get; set; }
 
-    public bool IsSpecial { get; set; }
+    public string RoleName { get; set; } = null!;
 
-    public string? Gender { get; set; }
+    public string? ProfileImagePath { get; set; }
 
-    public string? ProfileImage { get; set; }
+   
+    public virtual ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
 
-    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
-
-    public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
-
+    public virtual ICollection<Patient> Patients { get; set; } = new List<Patient>();
     public string GetFullGender()
     {
         if (this.Gender == "M")

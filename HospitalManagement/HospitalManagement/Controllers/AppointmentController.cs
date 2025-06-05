@@ -26,6 +26,7 @@ namespace HospitalManagement.Controllers
             _appointmentRepository = appointmentRepository;
 
         }
+        [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? searchName, string? timeFilter, string? dateFilter, string? statusFilter)
         {
@@ -110,8 +111,11 @@ namespace HospitalManagement.Controllers
             //Lấy danh sách SlotOptions để hiển thị trong ViewBag
             var SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SlotOptions = SlotOptions;
+            ViewBag.SearchName = SearchName;
+            ViewBag.SlotFilter = SlotFilter;
+            ViewBag.DateFilter = DateFilter;
+            ViewBag.StatusFilter = StatusFilter;
 
-            //Trả về danh sách cuộc hẹn đã filter
             var result = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
             return View("MyAppointments", result);
         }
@@ -131,7 +135,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Sales")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateAppointmentViewModel model)
+        public async Task<IActionResult> Create(CreateAppointmentViewModel model)                                                                                 
         {
             //Nếu không hợp lệ thì trả về View với các options luôn
             model.DoctorOptions = await GetDoctorListAsync();
@@ -178,7 +182,8 @@ namespace HospitalManagement.Controllers
 
             var isExistedAppointment = await _context.Appointments
             .AnyAsync(a => a.Date == model.AppointmentDate && a.PatientId == patient.PatientId);
-
+            
+            
             if (isExistedAppointment)
             {
                 ViewBag.ErrorMessage = "Không thể tạo cuộc hẹn mới trong cùng 1 ngày!.";
@@ -237,12 +242,13 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
                 return RedirectToAction("UpdateProfile", "Patient");
             }
-
+            var doctor = _context.Doctors.FirstOrDefault(d => d.DoctorId == doctorId);
             var model = new BookingApointmentViewModel
             {
                 Name = user.FullName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
+                SelectedDoctorId = doctorId ?? 0,
                 DoctorOptions = await GetDoctorListAsync(),
                 SlotOptions = await GetSlotListAsync(),
                 ServiceOptions = await GetServiceListAsync(),
@@ -313,6 +319,8 @@ namespace HospitalManagement.Controllers
             _context.SaveChanges();
             return RedirectToAction("MyAppointments");
         }
+
+        
 
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()

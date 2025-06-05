@@ -23,34 +23,39 @@ namespace HospitalManagement.Controllers
     public class AuthController : Controller
     {
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? error)
         {
-            var model = new ViewModels.Login();
-            return View(model);
+            if (!string.IsNullOrEmpty(error)) TempData["error"] = error;
+            return View(new ViewModels.Login());
         }
         [HttpGet]
-
         public IActionResult Register()
         {
             return View();
         }
         [HttpGet]
-
         public IActionResult ForgotPassword()
         {
-            return View();
+            return View(new ViewModels.ResetPasswordModel());
         }
 
  
 
         private readonly HospitalManagementContext _context;
-        private readonly PasswordHasher<Patient> _passwordHasher;
+        private readonly PasswordHasher<Patient> _patientHasher;
+        private readonly PasswordHasher<Doctor> _doctorHasher;
+        private readonly PasswordHasher<Staff> _staffHasher;
+
         private readonly EmailService _emailService;
 
         public AuthController(HospitalManagementContext context, EmailService emailService)
         {
             _context = context;
-            _passwordHasher = new PasswordHasher<Patient>();
+
+            _patientHasher = new PasswordHasher<Patient>();
+            _doctorHasher = new PasswordHasher<Doctor>();
+            _staffHasher = new PasswordHasher<Staff>();
+
             _emailService = emailService;
 
         }
@@ -59,6 +64,12 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> Login(ViewModels.Login LogInfo)
         {
 
+            if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))
+            {
+                TempData["error"] = "Please enter Email and password.";
+
+                return View(LogInfo);
+            }
             // Staff
             if (LogInfo.Role == "Staff")
             {
@@ -89,19 +100,20 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))
-            {
-                TempData["error"] = "Please enter Email and password.";
-
-                return View(LogInfo);
-            }
             //Patient
             if (LogInfo.Role == "Patient")
             {
                 var user = _context.Patients.SingleOrDefault(u => u.Email == LogInfo.Email);
-                if (user == null || _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+
+                if (user == null || _patientHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
                 {
                     TempData["error"] = "Email or password is invalid.";
+
+                    return View(LogInfo);
+                }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
 
                     return View(LogInfo);
                 }
@@ -121,13 +133,18 @@ namespace HospitalManagement.Controllers
                 TempData["success"] = "Login successful!";
                 return RedirectToAction("Index", "Home");
             }
-            else // Doctor
+            else if(LogInfo.Role=="Doctor")// Doctor
             {
                 var user = _context.Doctors.SingleOrDefault(u => u.Email == LogInfo.Email);
-                PasswordHasher<Doctor> localHasher = new PasswordHasher<Doctor>();
-                if (user == null || localHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+                if (user == null || _doctorHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
                 {
                     TempData["error"] = "Email or password is invalid.";
+                    return View(LogInfo);
+                }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
                     return View(LogInfo);
                 }
                 var claims = new List<Claim>
@@ -146,6 +163,39 @@ namespace HospitalManagement.Controllers
                 TempData["success"] = "Doctor Login successful!";
                 return RedirectToAction("Index", "Home");
             }
+            else // Staff
+            {
+                var user = _context.Staff.SingleOrDefault(u => u.Email == LogInfo.Email);
+
+                if (user == null || _staffHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+                {
+                    TempData["error"] = "Email or password is invalid.";
+                    return View(LogInfo);
+                }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return View(LogInfo);
+                }
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+
+                        new Claim(ClaimTypes.Role, user.RoleName),
+
+                        new Claim("StaffID", user.StaffId.ToString()),
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                TempData["success"] = user.RoleName+" Login successful!";
+                return RedirectToAction("Index", "Home");
+            }
+
         }
 
 
@@ -252,7 +302,7 @@ namespace HospitalManagement.Controllers
             var patient = new Patient
             {
                 Email = registerModel.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, registerModel.Password),
+                PasswordHash = _patientHasher.HashPassword(null, registerModel.Password),
                 FullName = registerModel.FullName,
                 PhoneNumber = registerModel.PhoneNumber,
                 Gender = registerModel.Gender,
@@ -276,19 +326,15 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        [HttpGet] // Đổi từ HttpPost sang HttpGet
+        [HttpGet]
         public async Task<IActionResult> LoginGoogle(string role)
         {
-            if (role == "Staff")
-            {
-                TempData["error"] = "Hải chưa làm phần này T.T";
-                return RedirectToAction("Login", "Auth"); // Thêm return
-            }
 
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme,
                 new AuthenticationProperties
                 {
-                    RedirectUri = Url.Action("GoogleResponse", "Auth", new { role = role }) // phai dung thu tu
+                    RedirectUri = Url.Action("GoogleResponse", "Auth", new { role = role })
+                    // phai dung thu tu nhu nay => Auth/GoogleResponse/role
                 });
 
             return new EmptyResult(); // Thêm return để tránh lỗi
@@ -305,7 +351,7 @@ namespace HospitalManagement.Controllers
             var patient = new Patient
             {
                 Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                PasswordHash = _patientHasher.HashPassword(null, model.Password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
@@ -362,6 +408,12 @@ namespace HospitalManagement.Controllers
                     user = await _context.Patients.FirstOrDefaultAsync(u => u.Email == email);
 
                 }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return RedirectToAction("Login");
+                }
                 // Tạo Claim và Identity cho Patient
                 var claims = new List<Claim>
                     {
@@ -389,6 +441,12 @@ namespace HospitalManagement.Controllers
                     return RedirectToAction("Login");
 
                 }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return RedirectToAction("Login");
+                }
                 // Tạo Claim và Identity cho Doctor
                 var claims = new List<Claim>
                     {
@@ -405,9 +463,38 @@ namespace HospitalManagement.Controllers
                 TempData["success"] = "Doctor Login successful!";
                 return RedirectToAction("Index", "Home");
             }
-            else
+            else // Staff => nhu doctor
             {
-                TempData["error"] = "Unexpected Role: " + role;
+                var user = _context.Staff.SingleOrDefault(u => u.Email == email);
+
+                if (user == null)
+                {
+                    TempData["error"] = "Staff Email is invalid.";
+                    return RedirectToAction("Login");
+
+                }
+                if (user.IsActive == false)
+                {
+                    TempData["error"] = "Account is inactive";
+
+                    return RedirectToAction("Login");
+                }
+                // Tạo Claim và Identity cho Staff
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+
+                        new Claim(ClaimTypes.Role, user.RoleName),
+
+                        new Claim("StaffID", user.StaffId.ToString()),
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                TempData["success"] = user.RoleName+" Login successful!";
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -415,39 +502,105 @@ namespace HospitalManagement.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> ForgotPassword(string email)
+        public async Task<IActionResult> ForgotPassword(ResetPasswordModel model)
         {
-            var user = await _context.Staff.FirstOrDefaultAsync(x => x.Email == email);
-            if (user == null)
+            if(model.Role=="Patient")
             {
-                TempData["error"] = "Email không tồn tại.";
-                return View();
+                var user = await _context.Patients.FirstOrDefaultAsync(x => x.Email == model.Email);
+                if (user == null)
+                {
+                    TempData["error"] = "Email không tồn tại.";
+                    return View(model);
+                }
+
+                // Tạo token reset
+                string token = Guid.NewGuid().ToString();
+                var reset = new PasswordReset
+                {
+                    Email = model.Email,
+                    Token = token,
+                    ExpireAt = DateTime.Now.AddMinutes(30) // 30 phut
+                };
+                _context.PasswordResets.Add(reset);
+                await _context.SaveChangesAsync();
+
+                // Gửi email
+                var resetLink = Url.Action("ResetPassword", "Auth", new { token = token, role = model.Role }, Request.Scheme);
+                string subject = "Đặt lại mật khẩu";
+                string body = $"<p>Nhấn vào liên kết để đặt lại mật khẩu:</p><a href='{resetLink}'>{resetLink}</a>";
+
+                Console.WriteLine(await _emailService.SendEmailAsync(model.Email, subject, body));
+                TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
+                return RedirectToAction("Login");
             }
-
-            // Tạo token reset
-            string token = Guid.NewGuid().ToString();
-            var reset = new PasswordReset
+            else if(model.Role == "Doctor")
             {
-                Email = email,
-                Token = token,
-                ExpireAt = DateTime.Now.AddMinutes(30) // 30 phut
-            };
-            _context.PasswordResets.Add(reset);
-            await _context.SaveChangesAsync();
+                var user = await _context.Doctors.FirstOrDefaultAsync(x => x.Email == model.Email);
+                if (user == null)
+                {
+                    TempData["error"] = "Email không tồn tại.";
+                    return View(model);
+                }
 
-            // Gửi email
-            var resetLink = Url.Action("ResetPassword", "Auth", new { token = token }, Request.Scheme);
-            string subject = "Đặt lại mật khẩu";
-            string body = $"<p>Nhấn vào liên kết để đặt lại mật khẩu:</p><a href='{resetLink}'>{resetLink}</a>";
+                // Tạo token reset
+                string token = Guid.NewGuid().ToString();
+                var reset = new PasswordReset
+                {
+                    Email = model.Email,
+                    Token = token,
+                    ExpireAt = DateTime.Now.AddMinutes(30) // 30 phut
+                };
+                _context.PasswordResets.Add(reset);
+                await _context.SaveChangesAsync();
 
-            Console.WriteLine(await _emailService.SendEmailAsync(email, subject, body));
-            TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
+                // Gửi email
+                var resetLink = Url.Action("ResetPassword", "Auth", new { token = token, role = model.Role }, Request.Scheme);
+                string subject = "Đặt lại mật khẩu";
+                string body = $"<p>Nhấn vào liên kết để đặt lại mật khẩu:</p><a href='{resetLink}'>{resetLink}</a>";
+
+                Console.WriteLine(await _emailService.SendEmailAsync(model.Email, subject, body));
+                TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
+                return RedirectToAction("Login");
+            }
+            else if(model.Role == "Staff")// Staff
+            {
+                var user = await _context.Staff.FirstOrDefaultAsync(x => x.Email == model.Email);
+                if (user == null)
+                {
+                    TempData["error"] = "Email không tồn tại.";
+                    return View(model);
+                }
+
+                // Tạo token reset
+                string token = Guid.NewGuid().ToString();
+                var reset = new PasswordReset
+                {
+                    Email = model.Email,
+                    Token = token,
+                    ExpireAt = DateTime.Now.AddMinutes(30) // 30 phut
+                };
+                _context.PasswordResets.Add(reset);
+                await _context.SaveChangesAsync();
+
+                // Gửi email
+                var resetLink = Url.Action("ResetPassword", "Auth", new { token = token, role = model.Role }, Request.Scheme);
+                string subject = "Đặt lại mật khẩu";
+                string body = $"<p>Nhấn vào liên kết để đặt lại mật khẩu:</p><a href='{resetLink}'>{resetLink}</a>";
+
+                Console.WriteLine(await _emailService.SendEmailAsync(model.Email, subject, body));
+                TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
+                return RedirectToAction("Login");
+            }
+            // send email
+
+
+            TempData["error"] = "Unknow Role Access";
             return RedirectToAction("Login");
         }
 
 
         [HttpGet]
-        public async Task<IActionResult> ResetPassword(string token)
+        public async Task<IActionResult> ResetPassword(string token, string role)
         {
             var reset = await _context.PasswordResets.FirstOrDefaultAsync(x => x.Token == token && x.ExpireAt > DateTime.Now);
             if (reset == null)
@@ -456,8 +609,8 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("ForgotPassword");
             }
 
-            HttpContext.Session.SetString("Token", token);
-            return View(); // Hiện form nhập mật khẩu mới
+            HttpContext.Session.SetString("Token", token); // truyen token vao session de DoResetPassword get
+            return View(new ResetPasswordModel(){ Role = role }); // to HTML form
         }
 
 
@@ -470,7 +623,7 @@ namespace HospitalManagement.Controllers
             var reset = await _context.PasswordResets.FirstOrDefaultAsync(x => x.Token == token && x.ExpireAt > DateTime.Now);
             if (reset == null)
             {
-                TempData["error"] = "Token is invalid or expired." + token + " " + DateTime.Now;
+                TempData["error"] = "Token is invalid or expired.";
 
                 return RedirectToAction("ForgotPassword");
             }
@@ -482,22 +635,65 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("ForgotPassword");
             }
 
-            var user = await _context.Staff.FirstOrDefaultAsync(x => x.Email == reset.Email);
-            if (user == null)
+            if (model.Role == "Patient")
             {
-                TempData["error"] = "Không tìm thấy tài khoản.";
-                return RedirectToAction("ForgotPassword");
+                var user = await _context.Patients.FirstOrDefaultAsync(x => x.Email == reset.Email);
+                if (user == null)
+                {
+                    TempData["error"] = "Không tìm thấy tài khoản.";
+                    return RedirectToAction("ForgotPassword");
+                }
+
+                user.PasswordHash = _patientHasher.HashPassword(user, model.NewPassword);
+                _context.PasswordResets.Remove(reset);
+                await _context.SaveChangesAsync();
+
+                var userJson = JsonConvert.SerializeObject(user);
+                HttpContext.Session.SetString("PatientSession", userJson);
+
+                TempData["success"] = "Đổi mật khẩu thành công.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (model.Role == "Doctor")
+            {
+                var user = await _context.Doctors.FirstOrDefaultAsync(x => x.Email == reset.Email);
+                if (user == null)
+                {
+                    TempData["error"] = "Không tìm thấy tài khoản.";
+                    return RedirectToAction("ForgotPassword");
+                }
+
+                user.PasswordHash = _doctorHasher.HashPassword(user, model.NewPassword);
+                _context.PasswordResets.Remove(reset);
+                await _context.SaveChangesAsync();
+
+                var userJson = JsonConvert.SerializeObject(user);
+                HttpContext.Session.SetString("PatientSession", userJson);
+
+                TempData["success"] = "Đổi mật khẩu thành công.";
+                return RedirectToAction("Index", "Home");
+            }
+            else if (model.Role == "Staff")
+            {
+                var user = await _context.Staff.FirstOrDefaultAsync(x => x.Email == reset.Email);
+                if (user == null)
+                {
+                    TempData["error"] = "Không tìm thấy tài khoản.";
+                    return RedirectToAction("ForgotPassword");
+                }
+
+                user.PasswordHash = _staffHasher.HashPassword(user, model.NewPassword);
+                _context.PasswordResets.Remove(reset);
+                await _context.SaveChangesAsync();
+
+                var userJson = JsonConvert.SerializeObject(user);
+                HttpContext.Session.SetString("PatientSession", userJson);
+
+                TempData["success"] = "Đổi mật khẩu thành công.";
+                return RedirectToAction("Index", "Home");
             }
 
-            var hasher = new PasswordHasher<Staff>();
-            user.PasswordHash = hasher.HashPassword(user, model.NewPassword);
-            _context.PasswordResets.Remove(reset);
-            await _context.SaveChangesAsync();
-
-            var userJson = JsonConvert.SerializeObject(user);
-            HttpContext.Session.SetString("PatientSession", userJson);
-
-            TempData["success"] = "Đổi mật khẩu thành công.";
+            TempData["error"] = "Unknow Role Access"+model.Role+"!";
             return RedirectToAction("Index", "Home");
         }
 

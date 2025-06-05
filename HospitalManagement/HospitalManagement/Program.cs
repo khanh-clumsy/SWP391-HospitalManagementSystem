@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using HospitalManagement.Services;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
@@ -17,6 +18,8 @@ builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+
 
 
 
@@ -36,7 +39,20 @@ builder.Services.AddAuthentication(options =>
 {
     options.ClientId = builder.Configuration["GoogleKeys:ClientId"];
     options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
+    options.CallbackPath = "/signin-google";
 
+    options.Events.OnRemoteFailure = context =>
+    {
+        var error = context.Request.Query["error"].ToString();
+
+        if (!string.IsNullOrEmpty(error))
+        {
+            context.Response.Redirect("/Auth/Login?error=Fail%20To%20Login%20Google");
+        }
+
+        context.HandleResponse();
+        return Task.CompletedTask;
+    };
 
 
     options.Events.OnRedirectToAuthorizationEndpoint = context =>

@@ -79,6 +79,7 @@ namespace HospitalManagement.Repositories
             return await query.ToListAsync();
         }
 
+       
         public async Task<List<Appointment>> GetAppointmentByDoctorIDAsync(int DoctorID)
         {
             return await _context.Appointments

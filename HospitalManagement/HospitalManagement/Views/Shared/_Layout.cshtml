@@ -116,6 +116,7 @@
 					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">About</a>
 					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
 					<a asp-action="ViewDoctors" asp-controller="Home" class="nav-item nav-link">Doctors</a>
+					<a asp-action="Index" asp-controller="Medicine" class="nav-item nav-link">Medicine</a>
 
 					@if (User.IsInRole("Patient"))
 					{
@@ -125,6 +126,7 @@
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 								<a class="dropdown-item" asp-controller="Patient" asp-action="ViewProfile">View Profile</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">My Appointments</a>
+								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
 								<a class="dropdown-item" asp-controller="Patient" asp-action="UpdateProfile">Update Profile</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test List</a>
 								<a class="dropdown-item" asp-controller="Patient" asp-action="ChangePassword">Change Password</a>
@@ -135,7 +137,8 @@
 
 
 					}
-					else if(User.IsInRole("Doctor")){
+					else if (User.IsInRole("Doctor"))
+					{
 
 						<!-- Doctor -->
 						<div class="nav-item dropdown">
@@ -143,15 +146,17 @@
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">View Profile</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">My Appointments</a>
+								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Update Profile</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Change Password</a>
+
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test List</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Logout</a>
 							</div>
 						</div>
 
 
-						<a href="#"  class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
+						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Welcome Doctor </a>
 
 					}
 					else if (User.IsInRole("Admin"))
@@ -162,13 +167,12 @@
 							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Manage Account</a>
-								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewProfile">View Profile</a>
-								<a class="dropdown-item" asp-controller="Admin" asp-action="ViewConsultations">View Consultations</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">View Appointments</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test List</a>
-								<a class="dropdown-item" asp-controller="Admin" asp-action="UpdateProfile">Update Profile</a>
-								<a class="dropdown-item" asp-controller="Admin" asp-action="ChangePassword">Change Password</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="Logout">Logout</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">View Profile</a>
+								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Appointments</a>
+								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Update Profile</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Change Password</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Logout</a>
 							</div>
 						</div>
 
@@ -180,14 +184,31 @@
 
 						<!-- Sales -->
 						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hello Sales!</a>
+							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">View Profile</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">View Profile</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Appointments</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Update Profile</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test List</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Change Password</a>
-								<a class="dropdown-item" asp-controller="Sales" asp-action="Logout">Logout</a>
+								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Update Profile</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Change Password</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Logout</a>
+							</div>
+						</div>
+						<a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Create Appointment<i class="fa fa-arrow-right ms-3"></i></a>
+
+					}
+					else if (User.IsInRole("Cashier")) // just like sales now
+					{
+						<!-- Cashier -->
+						<div class="nav-item dropdown">
+							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Profile</a>
+							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
+								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">View Profile</a>
+								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Appointments</a>
+								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Update Profile</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Change Password</a>
+								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Logout</a>
 							</div>
 						</div>
 						<a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Create Appointment<i class="fa fa-arrow-right ms-3"></i></a>
@@ -200,7 +221,7 @@
 						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Login</a>
 						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Register</a>
 						<a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Appointment<i class="fa fa-arrow-right ms-3"></i></a>
-					
+
 					}
 
 				</div>
@@ -288,19 +309,21 @@
 		}, 3000);
 	</script>
 	<!--Start of Tawk.to Script-->
-	<script type="text/javascript">
-		var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-		(function(){
-		var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-		s1.async=true;
-		s1.src='https://embed.tawk.to/68366006f5baba190a23b03c/1isflcvrj';
-		s1.charset='UTF-8';
-		s1.setAttribute('crossorigin','*');
-		s0.parentNode.insertBefore(s1,s0);
-		})();
-	</script>
-	<!--End of Tawk.to Script-->
-
+	@if (!User.Identity.IsAuthenticated || User.IsInRole("Patient"))
+	{
+		<script type="text/javascript">
+			var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+			(function(){
+			var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+			s1.async=true;
+			s1.src='https://embed.tawk.to/68366006f5baba190a23b03c/1isflcvrj';
+			s1.charset='UTF-8';
+			s1.setAttribute('crossorigin','*');
+			s0.parentNode.insertBefore(s1,s0);
+			})();
+		</script>
+		<!--End of Tawk.to Script-->
+	}
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="/lib/wow/wow.min.js"></script>
