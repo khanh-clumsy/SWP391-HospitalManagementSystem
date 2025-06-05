@@ -174,7 +174,7 @@
 								<h5>@doctor.FullName</h5>
 								<p class="text-primary">@doctor.DepartmentName (@doctor.ExperienceYear Exp Years)</p>
 								<div class="d-flex justify-content-center gap-2 mt-4">
-									<a asp-controller="Appointment" asp-action="Booking" asp-route-doctorId="@doctor.DoctorId" class="btn btn-sm btn-outline-primary">Make an Appointment</a>
+									<a href="#" class="btn btn-sm btn-outline-primary">Make an Appointment</a>
 									<a href="/Home/DoctorDetail/@doctor.DoctorId" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center">Detail</a>
 								</div>
 							</div>
@@ -201,7 +201,7 @@
 					<ul class="pagination">
 
 						@* Previous button *@
-						<li class="page-item @(Model.HasPreviousPage ? "" : "	")">
+						<li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
 							<a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("ViewDoctors", new {
 											page = Model.PageNumber - 1,
 											name = ViewBag.Name,

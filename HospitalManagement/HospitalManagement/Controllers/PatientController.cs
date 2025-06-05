@@ -1,5 +1,4 @@
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using HospitalManagement.Models;
 using HospitalManagement.Data;
@@ -7,37 +6,22 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using HospitalManagement.ViewModels;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+
 namespace HospitalManagement.Controllers
 {
     [Authorize(Roles = "Patient")]
     public class PatientController : Controller
     {
         private readonly PasswordHasher<Patient> _passwordHasher;
-        private readonly IBookingAppointmentRepository _doctorRepo;
-        private readonly IBookingAppointmentRepository _slotRepo;
-        private readonly IBookingAppointmentRepository _patientRepo;
-        private readonly IBookingAppointmentRepository _appointmentRepo;
         private readonly HospitalManagementContext _context;
 
-
-
-        public PatientController(HospitalManagementContext context, IBookingAppointmentRepository doctorRepo,
-            IBookingAppointmentRepository slotRepo,
-            IBookingAppointmentRepository patientRepo,
-            IBookingAppointmentRepository appointmentRepo)
+        public PatientController(HospitalManagementContext context)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
-            _doctorRepo = doctorRepo;
-            _slotRepo = slotRepo;
-            _patientRepo = patientRepo;
-            _appointmentRepo = appointmentRepo;
         }
-
 
         [HttpGet]
         public IActionResult ViewProfile()
@@ -283,7 +267,7 @@ namespace HospitalManagement.Controllers
 
             return RedirectToAction("UpdateProfile");
         }
-
+     
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
@@ -293,6 +277,6 @@ namespace HospitalManagement.Controllers
             TempData["success"] = "Logout successful!";
             return RedirectToAction("Index", "Home");
         }
- 
+
     }
 }

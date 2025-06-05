@@ -81,7 +81,7 @@
 
 								<div class="form-group">
 									<label>Date of Birth</label>
-									<input asp-for="Dob" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+									<input asp-for="Dob" type="date" class="form-control" />
 								</div>
 
 								<div class="form-group">
@@ -90,17 +90,8 @@
 								</div>
 
 								<div class="form-group">
-									<label>Health Insurance</label> 						
-									<span asp-validation-for="HealthInsurance" class="text-danger small"></span>
-
-									<input asp-for="HealthInsurance"
-										   id="HealthInsurance"
-										   name="HealthInsurance"
-										   class="form-control"
-										   data-val="true"
-										   data-val-regex="Health Insurance must contain 2 uppercase characters and 13 digits."
-										   data-val-regex-pattern="^[A-Z]{2}\d{13}$" />
-
+									<label>Health Insurance</label>
+									<input asp-for="HealthInsurance" class="form-control" />
 								</div>
 
 								<div class="form-group">
