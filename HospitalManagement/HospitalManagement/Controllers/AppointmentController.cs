@@ -135,7 +135,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Sales")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateAppointmentViewModel model)                                                                                 
+        public async Task<IActionResult> Create(CreateAppointmentViewModel model)
         {
             //Nếu không hợp lệ thì trả về View với các options luôn
             model.DoctorOptions = await GetDoctorListAsync();
@@ -182,8 +182,8 @@ namespace HospitalManagement.Controllers
 
             var isExistedAppointment = await _context.Appointments
             .AnyAsync(a => a.Date == model.AppointmentDate && a.PatientId == patient.PatientId);
-            
-            
+
+
             if (isExistedAppointment)
             {
                 ViewBag.ErrorMessage = "Không thể tạo cuộc hẹn mới trong cùng 1 ngày!.";
@@ -215,7 +215,7 @@ namespace HospitalManagement.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction("MyAppointments", "Appointment");
         }
-        
+
         [Authorize(Roles = "Patient")]
         [HttpGet]
         public async Task<IActionResult> Booking(int? doctorId)
@@ -320,7 +320,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("MyAppointments");
         }
 
-        
+
 
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()
