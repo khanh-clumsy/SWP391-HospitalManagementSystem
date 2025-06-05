@@ -139,41 +139,58 @@
 		</div>
 
 	</div>
-</div>
+@* </div> *@
 @* @section Scripts { *@
+
 @* 	<!-- Appointment End --> *@
 @* 	<script> *@
-@* 		$(document).ready(function() { *@
-@* 			// Khi chọn ngày *@
-@* 				$('#appointmentDate').on('change', function() { *@
-@* 			var selectedDate = $(this).val();  *@
-@* 			console.log("Selected Date: ", selectedDate); *@
 
-@* 			if (selectedDate) { *@
-@* 				$.ajax({ *@
-@* 					url: '/Appointment/GetDoctorsByDate',  // Đảm bảo URL đúng *@
-@* 					type: 'GET', *@
-@* 					data: { date: selectedDate }, *@
-@* 					success: function(data) { *@
-@* 						console.log(data);   *@
-@* 						$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
-@* 						$.each(data, function(i, doctor) { *@
-@* 							$('#doctorSelect').append(`<option value="${doctor.doctorID}">${doctor.doctorName}</option>`); *@
-@* 						}); *@
-@* 					}, *@
-@* 					error: function(xhr, status, error) { *@
-@* 						console.log("AJAX Error: " + status + " - " + error); *@
-@* 						console.log(xhr.responseText);  // Xem chi tiết lỗi trả về *@
-@* 					} *@
-@* 				}); *@
-@* 			} *@
-@* 		}); *@
+@* 				$(document).ready(function() { *@
+@* 			// Disable dropdowns when the page loads *@
+@* 			$('#doctorSelect').prop('disabled', true); *@
+@* 			$('#slotSelect').prop('disabled', true); *@
+
+@* 			// Khi chọn ngày *@
+@* 			$('#appointmentDate').on('change', function() { *@
+@* 				var selectedDate = $(this).val();  // Lấy giá trị ngày đã chọn *@
+@* 				console.log("Selected Date: ", selectedDate); *@
+
+@* 				if (selectedDate) { *@
+@* 					// Khi đã chọn ngày, kích hoạt dropdown bác sĩ *@
+@* 					$('#doctorSelect').prop('disabled', false); *@
+
+@* 					$.ajax({ *@
+@* 						url: '/Appointment/GetDoctorsByDate', *@
+@* 						type: 'GET', *@
+@* 						data: { date: selectedDate }, *@
+@* 						success: function(data) { *@
+@* 							console.log(data); *@
+@* 							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
+@* 							$.each(data, function(i, doctor) { *@
+@* 								$('#doctorSelect').append(`<option value="${doctor.doctorId}">${doctor.doctorName}</option>`); *@
+@* 							}); *@
+@* 						}, *@
+@* 						error: function(xhr, status, error) { *@
+@* 							console.log("AJAX Error: " + status + " - " + error); *@
+@* 							console.log(xhr.responseText);  // Xem chi tiết lỗi trả về *@
+@* 						} *@
+@* 					}); *@
+@* 				} else { *@
+@* 					// Nếu không chọn ngày, vô hiệu hóa dropdown bác sĩ và slot *@
+@* 					$('#doctorSelect').prop('disabled', true); *@
+@* 					$('#slotSelect').prop('disabled', true); *@
+@* 					$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
+@* 					$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>');  // Reset slot dropdown *@
+@* 				} *@
+@* 			}); *@
 
 @* 			// Khi chọn bác sĩ *@
 @* 			$('#doctorSelect').on('change', function() { *@
-@* 				var selectedDate = $('#appointmentDate').val(); *@
-@* 				var doctorId = $(this).val(); *@
+@* 				var selectedDate = $('#appointmentDate').val();  // Lấy giá trị ngày đã chọn *@
+@* 				var doctorId = $(this).val();  // Lấy doctorId từ dropdown *@
 @* 				if (selectedDate && doctorId) { *@
+@* 					$('#slotSelect').prop('disabled', false);  // Kích hoạt dropdown slot *@
+
 @* 					$.ajax({ *@
 @* 						url: '/Appointment/GetSlotsByDoctorAndDate', *@
 @* 						type: 'GET', *@
@@ -181,7 +198,7 @@
 @* 						success: function(data) { *@
 @* 							$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>'); *@
 @* 							$.each(data, function(i, slot) { *@
-@* 								$('#slotSelect').append(`<option value="${slot.slotID}">${slot.slotTime}</option>`); *@
+@* 								$('#slotSelect').append(`<option value="${slot.slotId}">${slot.slotTime}</option>`); *@
 @* 							}); *@
 @* 						} *@
 @* 					}); *@
@@ -190,8 +207,8 @@
 
 @* 			// Khi chọn slot *@
 @* 			$('#slotSelect').on('change', function() { *@
-@* 				var selectedDate = $('#appointmentDate').val(); *@
-@* 				var slotId = $(this).val(); *@
+@* 				var selectedDate = $('#appointmentDate').val();  // Lấy giá trị ngày đã chọn *@
+@* 				var slotId = $(this).val();  // Lấy slotId từ dropdown *@
 @* 				if (selectedDate && slotId) { *@
 @* 					$.ajax({ *@
 @* 						url: '/Appointment/GetDoctorsBySlot', *@
@@ -200,12 +217,14 @@
 @* 						success: function(data) { *@
 @* 							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
 @* 							$.each(data, function(i, doctor) { *@
-@* 								$('#doctorSelect').append(`<option value="${doctor.doctorID}">${doctor.fullName}</option>`); *@
+@* 								$('#doctorSelect').append(`<option value="${doctor.doctorId}">${doctor.doctorName}</option>`); *@
 @* 							}); *@
 @* 						} *@
 @* 					}); *@
 @* 				} *@
 @* 			}); *@
 @* 		}); *@
+
 @* 	</script> *@
-@* } *@
+
+@*  } *@

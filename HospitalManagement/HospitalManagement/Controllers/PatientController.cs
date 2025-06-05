@@ -17,25 +17,14 @@ namespace HospitalManagement.Controllers
     public class PatientController : Controller
     {
         private readonly PasswordHasher<Patient> _passwordHasher;
-        private readonly IBookingAppointmentRepository _doctorRepo;
-        private readonly IBookingAppointmentRepository _slotRepo;
-        private readonly IBookingAppointmentRepository _patientRepo;
-        private readonly IBookingAppointmentRepository _appointmentRepo;
         private readonly HospitalManagementContext _context;
 
 
 
-        public PatientController(HospitalManagementContext context, IBookingAppointmentRepository doctorRepo,
-            IBookingAppointmentRepository slotRepo,
-            IBookingAppointmentRepository patientRepo,
-            IBookingAppointmentRepository appointmentRepo)
+        public PatientController(HospitalManagementContext context)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
-            _doctorRepo = doctorRepo;
-            _slotRepo = slotRepo;
-            _patientRepo = patientRepo;
-            _appointmentRepo = appointmentRepo;
         }
 
 
@@ -195,7 +184,7 @@ namespace HospitalManagement.Controllers
                 {
                     dbUser.ProfileImage = user.ProfileImage;
                     context.SaveChanges();
-                }
+                }   
 
                 // Cập nhật lại session
                 //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));

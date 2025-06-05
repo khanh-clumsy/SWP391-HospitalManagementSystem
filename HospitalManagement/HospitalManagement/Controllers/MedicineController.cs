@@ -93,15 +93,33 @@ namespace HospitalManagement.Controllers
 
             if (photo != null && photo.Length > 0)
             {
-                if (photo.Length > 5 * 1024 * 1024)
+                // Supported formats
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
+                var maxSize = 5 * 1024 * 1024; // 5MB
+
+                // Check if the file type is supported
+                if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
-                    TempData["error"] = "Photo size exceeds 5MB limit!";
-                    return View(model);
+                    // Handle invalid file type
+                    TempData["Error"] = "Unsupported file type. Only JPG, JPEG, PNG, and GIF are allowed.";
+                    return RedirectToAction("Edit", model);
                 }
 
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                medicine.Image = Convert.ToBase64String(ms.ToArray());
+                // Check if the file size exceeds the limit
+                if (photo.Length > maxSize)
+                {
+                    // Handle file size exceeds
+                    TempData["Error"] = "File size exceeds the 5MB limit.";
+                    return RedirectToAction("Edit", model);
+
+                }
+
+                // Convert the image to Base64
+                using (var ms = new MemoryStream())
+                {
+                    await photo.CopyToAsync(ms);
+                    medicine.Image = Convert.ToBase64String(ms.ToArray());
+                }
             }
 
             await _context.SaveChangesAsync();
@@ -149,14 +167,33 @@ namespace HospitalManagement.Controllers
             // Nếu có ảnh thì convert sang base64 và gán vào model.Image
             if (photo != null && photo.Length > 0)
             {
-                if (photo.Length > 5 * 1024 * 1024)
+                // Supported formats
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
+                var maxSize = 5 * 1024 * 1024; // 5MB
+
+                // Check if the file type is supported
+                if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
-                    TempData["error"] = "Photo size exceeds 5MB limit!";
-                    return View(model);
+                    // Handle invalid file type
+                    TempData["Error"] = "Unsupported file type. Only JPG, JPEG, PNG, and GIF are allowed.";
+                    return RedirectToAction("Create", model);
                 }
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                model.Image = Convert.ToBase64String(ms.ToArray());
+
+                // Check if the file size exceeds the limit
+                if (photo.Length > maxSize)
+                {
+                    // Handle file size exceeds
+                    TempData["Error"] = "File size exceeds the 5MB limit.";
+                    return RedirectToAction("Create", model);
+
+                }
+
+                // Convert the image to Base64
+                using (var ms = new MemoryStream())
+                {
+                    await photo.CopyToAsync(ms);
+                    model.Image = Convert.ToBase64String(ms.ToArray());
+                }
             }
 
             // Thêm mới thuốc vào CSDL
@@ -181,6 +218,21 @@ namespace HospitalManagement.Controllers
 
             var result = await _medicineRepository.Filter(SearchName, TypeFilter, UnitFilter);
             return View("Index", result);
+        }
+
+       [HttpPost]
+        public async Task<IActionResult> Delete(int medicineId)
+        {
+            var medicine = _context.Medicines.FirstOrDefault(m => m.MedicineId == medicineId);
+            if (medicine == null)
+            {
+                TempData["error"] = $"Can't find medicine with ID = {medicineId}";
+                return RedirectToAction("Index");
+            }
+            _context.Medicines.Remove(medicine);
+            await _context.SaveChangesAsync();
+            TempData["success"] = "Medicine deleted successfully!";
+            return RedirectToAction("Index");  
         }
 
         private List<SelectListItem> GetUnitList()

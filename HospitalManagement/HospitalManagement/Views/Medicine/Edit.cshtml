@@ -32,7 +32,7 @@
 					<div class="card-body p-4">
 
 						<!-- FORM TỔNG HỢP CHO TẤT CẢ THÔNG TIN -->
-						<form asp-action="Edit" asp-controller="Medicine" method="post" enctype="multipart/form-data" id="medicineEditForm">
+						<form asp-action="Edit" asp-controller="Medicine" id="photoForm" method="post" enctype="multipart/form-data" id="medicineEditForm">
 							<input type="hidden" asp-for="MedicineId" />
 
 							<div class="row mb-4">
@@ -94,7 +94,7 @@
 										{
 											<div class="mb-2">
 												<label for="photo" class="form-label fw-bold">Upload New Image</label>
-												<input type="file" class="form-control" name="photo" id="photo"
+												<input type="file" class="form-control" name="photo" id="photoInput"
 													   accept=".jpg, .jpeg,.png,.gif" onchange="previewImage(this)" />
 												<small class="text-muted">Supported formats: JPG, JPEG, PNG, GIF (Max: 5MB)</small>
 											</div>
@@ -137,6 +137,7 @@
 		</div>
 	</div>
 </div>
+
 
 <script>
 	function previewImage(input) {

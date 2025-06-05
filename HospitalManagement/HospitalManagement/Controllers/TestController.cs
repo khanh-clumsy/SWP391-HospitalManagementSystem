@@ -48,10 +48,12 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult Update(int id)
         {
+            
             var test = _testRepository.GetById(id);
+         
             if (test == null)
                 return NotFound();
-
+          
             return View(test);
         }
 
@@ -61,7 +63,12 @@ namespace HospitalManagement.Controllers
         public IActionResult Update(Test test)
         {
             if (ModelState.IsValid)
-            {
+            {              
+                if (test.Price < 0)
+                {
+                    TempData["error"] = "Price must equal or greater than o";
+                    return View(test);
+                }
                 _testRepository.Update(test);
                 _testRepository.Save();
                 return RedirectToAction(nameof(Index));
