@@ -14,6 +14,21 @@ builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin() // Cho phép bất kỳ origin nào
+              .AllowAnyMethod()  // Cho phép bất kỳ phương thức HTTP (GET, POST, PUT, DELETE, v.v.)
+              .AllowAnyHeader(); // Cho phép bất kỳ header nào
+    });
+});
+
+
+
 // Cấu hình Authentication và Authorization
 builder.Services.AddAuthentication(options =>
 {
@@ -70,6 +85,9 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
 var app = builder.Build();
+
+app.UseCors("AllowAll");  // Áp dụng CORS chính xác cho toàn bộ ứng dụng
+
 
 using (var scope = app.Services.CreateScope())
 {

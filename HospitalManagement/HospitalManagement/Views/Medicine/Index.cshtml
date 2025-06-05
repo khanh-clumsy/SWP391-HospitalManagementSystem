@@ -1,0 +1,183 @@
+﻿@model List<Medicine>
+
+<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container py-5">
+        <h1 class="display-3 text-white mb-3 animated slideInDown">Medicine Management</h1>
+        <nav aria-label="breadcrumb animated slideInDown">
+            <ol class="breadcrumb text-uppercase mb-0">
+                <li class="breadcrumb-item"><a class="text-white" href="#">Home</a></li>
+                <li class="breadcrumb-item"><a class="text-white" href="#">Pages</a></li>
+                <li class="breadcrumb-item text-primary active" aria-current="page">Medicine</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="mb-4 d-flex justify-content-between align-items-center">
+            <h2 class="text-primary">Medicine List</h2>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="Medicine" asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Add New Medicine
+                </a>
+            }
+        </div>
+
+        <!-- Filter Form -->
+        <form method="get" asp-action="Filter" asp-controller="Medicine" class="d-flex flex-wrap gap-3 align-items-center mb-4">
+            <div class="input-group" style="max-width: 250px;">
+                <input type="text" name="SearchName" class="form-control" placeholder="Search by medicine name" value="@ViewBag.SearchName" />
+                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+            </div>
+
+            <select name="TypeFilter" asp-items="ViewBag.Types" class="form-select" style="max-width: 180px;">
+                <option value="">All Types</option>
+            </select>
+
+            <select name="UnitFilter" asp-items="ViewBag.Units" class="form-select" style="max-width: 180px;">
+                <option value="">All Units</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-filter me-1"></i> Filter
+            </button>
+            <a href="@Url.Action("Index", "Medicine")" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-times me-1"></i> Clear
+            </a>
+        </form>
+
+        <!-- Medicine Cards View -->
+        <div class="row g-4">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var medicine in Model)
+                {
+                    <div class="col-lg-4 col-md-6 col-12">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="profile-image">
+                                <img src="@(medicine.Image != null ? $"data:image/png;base64,{medicine.Image}" : Url.Content("~/img/logo.jpg"))"
+                                     alt="@medicine.Name"
+                                     class="w-100 h-100" />
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title text-primary mb-2">@medicine.Name</h5>
+                                <p class="text-muted small fst-italic mb-2">@medicine.MedicineType</p>
+                                <p class="text-muted small mb-3" style="max-height: 60px; overflow: hidden; text-overflow: ellipsis;">
+                                    @(string.IsNullOrWhiteSpace(medicine.Description) ? "No description available" : medicine.Description)
+                                </p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="text-primary fw-bold">@medicine.Price.ToString("N0") VND</span>
+                                        <span class="text-muted small">/@medicine.Unit</span>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a asp-action="Edit" asp-controller="Medicine" asp-route-id="@medicine.MedicineId"
+                                               class="btn btn-outline-primary btn-sm flex-fill">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </a>
+                                            <form asp-action="Delete" asp-controller="Medicine" asp-route-id="@medicine.MedicineId"
+                                                  method="post" onsubmit="return confirm('Are you sure you want to delete this medicine?');"
+                                                  class="flex-fill">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="Edit" asp-controller="Medicine" asp-route-id="@medicine.MedicineId"
+                                               class="btn btn-outline-primary btn-sm flex-fill">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-pills fa-5x text-muted mb-3"></i>
+                        <h4 class="text-muted">No medicines found</h4>
+                        <p class="text-muted">Try adjusting your search criteria or add a new medicine.</p>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Medicine" asp-action="Create" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>Add First Medicine
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+<style>
+    /* Định dạng vùng chứa ảnh */
+    .profile-image {
+        width: 100%;
+        aspect-ratio: 1/1; /* Tạo hình vuông */
+        overflow: hidden;
+        position: relative;
+        background-color: #f8f9fa; /* Màu nền khi không có ảnh */
+    }
+
+        /* Đảm bảo ảnh lấp đầy vùng chứa */
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Giữ tỷ lệ và lấp đầy */
+            object-position: center;
+            display: block;
+            transition: transform 0.3s ease; /* Hiệu ứng zoom khi hover */
+        }
+
+        /* Hiệu ứng hover cho ảnh */
+        .profile-image:hover img {
+            transform: scale(1.05);
+        }
+
+    /* Định dạng card */
+    .card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        border-radius: 8px; /* Bo góc nhẹ */
+    }
+
+        /* Hiệu ứng hover cho card */
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+
+    /* Định dạng card-body */
+    .card-body {
+        display: flex;
+        flex-direction: column;
+        padding: 1.25rem;
+    }
+
+        /* Đảm bảo các nút ở dưới cùng */
+        .card-body .mt-auto {
+            margin-top: auto;
+        }
+
+        /* Điều chỉnh nút trong card */
+        .card-body .btn {
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+
+            .card-body .btn:hover {
+                transform: translateY(-2px);
+            }
+</style>
