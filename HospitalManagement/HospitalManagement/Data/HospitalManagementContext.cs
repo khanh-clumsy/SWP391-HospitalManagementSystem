@@ -54,7 +54,7 @@ public partial class HospitalManagementContext : DbContext
     {
         modelBuilder.Entity<Appointment>(entity =>
         {
-            entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA2D6CFF334");
+            entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA2A5DED2FE");
 
             entity.ToTable("Appointment");
 
@@ -102,7 +102,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Doctor>(entity =>
         {
-            entity.HasKey(e => e.DoctorId).HasName("PK__Doctor__2DC00EDFACFFDEBE");
+            entity.HasKey(e => e.DoctorId).HasName("PK__Doctor__2DC00EDF0759CE1B");
 
             entity.ToTable("Doctor");
 
@@ -124,7 +124,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDF699F5180B");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDF6F53F3C79");
 
             entity.ToTable("Feedback");
 
@@ -147,12 +147,13 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Medicine>(entity =>
         {
-            entity.HasKey(e => e.MedicineId).HasName("PK__Medicine__4F2128F09FE7AC8F");
+            entity.HasKey(e => e.MedicineId).HasName("PK__Medicine__4F2128F025E5606D");
 
             entity.ToTable("Medicine");
 
             entity.Property(e => e.MedicineId).HasColumnName("MedicineID");
             entity.Property(e => e.Description).HasMaxLength(255);
+            entity.Property(e => e.Image).IsUnicode(false);
             entity.Property(e => e.MedicineType).HasMaxLength(50);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
@@ -161,7 +162,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<MedicineList>(entity =>
         {
-            entity.HasKey(e => e.MedicineListId).HasName("PK__Medicine__B10D21F5FA82EF68");
+            entity.HasKey(e => e.MedicineListId).HasName("PK__Medicine__B10D21F55C0DCC62");
 
             entity.ToTable("MedicineList");
 
@@ -182,7 +183,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<PasswordReset>(entity =>
         {
-            entity.HasNoKey();
+            entity.HasKey(e => e.Id).HasName("PK__Password__3214EC078BB1CB9F");
 
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.ExpireAt).HasColumnType("datetime");
@@ -191,7 +192,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Patient>(entity =>
         {
-            entity.HasKey(e => e.PatientId).HasName("PK__Patient__970EC3469DBAC836");
+            entity.HasKey(e => e.PatientId).HasName("PK__Patient__970EC3466DF88329");
 
             entity.ToTable("Patient");
 
@@ -219,7 +220,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Room>(entity =>
         {
-            entity.HasKey(e => e.RoomId).HasName("PK__Room__328639195B091DC6");
+            entity.HasKey(e => e.RoomId).HasName("PK__Room__32863919FF388D12");
 
             entity.ToTable("Room");
 
@@ -229,7 +230,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Schedule>(entity =>
         {
-            entity.HasKey(e => e.ScheduleId).HasName("PK__Schedule__9C8A5B692FDD6E43");
+            entity.HasKey(e => e.ScheduleId).HasName("PK__Schedule__9C8A5B69989112E2");
 
             entity.ToTable("Schedule");
 
@@ -256,7 +257,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Service>(entity =>
         {
-            entity.HasKey(e => e.ServiceId).HasName("PK__Service__C51BB0EA55B5A8B3");
+            entity.HasKey(e => e.ServiceId).HasName("PK__Service__C51BB0EA33A912EC");
 
             entity.ToTable("Service");
 
@@ -267,7 +268,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Slot>(entity =>
         {
-            entity.HasKey(e => e.SlotId).HasName("PK__Slot__0A124A4F19DAE91A");
+            entity.HasKey(e => e.SlotId).HasName("PK__Slot__0A124A4F35B55D0E");
 
             entity.ToTable("Slot");
 
@@ -276,7 +277,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Staff>(entity =>
         {
-            entity.HasKey(e => e.StaffId).HasName("PK__Staff__96D4AAF75DF90ECD");
+            entity.HasKey(e => e.StaffId).HasName("PK__Staff__96D4AAF7605AAC2F");
 
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -293,7 +294,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Test>(entity =>
         {
-            entity.HasKey(e => e.TestId).HasName("PK__Tests__8CC3310097D9479D");
+            entity.HasKey(e => e.TestId).HasName("PK__Tests__8CC33100D3843C1B");
 
             entity.Property(e => e.TestId).HasColumnName("TestID");
             entity.Property(e => e.Description).HasMaxLength(255);
@@ -303,7 +304,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<TestList>(entity =>
         {
-            entity.HasKey(e => e.TestListId).HasName("PK__TestList__503ED02877EFF11B");
+            entity.HasKey(e => e.TestListId).HasName("PK__TestList__503ED0286BB29E21");
 
             entity.ToTable("TestList");
 
@@ -326,7 +327,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Tracking>(entity =>
         {
-            entity.HasKey(e => e.TrackingId).HasName("PK__Tracking__3C19EDD12932A56C");
+            entity.HasKey(e => e.TrackingId).HasName("PK__Tracking__3C19EDD1A57B9C31");
 
             entity.ToTable("Tracking");
 

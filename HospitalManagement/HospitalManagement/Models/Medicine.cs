@@ -17,5 +17,7 @@ public partial class Medicine
 
     public string Unit { get; set; } = null!;
 
+    public string? Image { get; set; }
+
     public virtual ICollection<MedicineList> MedicineLists { get; set; } = new List<MedicineList>();
 }
