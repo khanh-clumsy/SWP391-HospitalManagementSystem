@@ -449,7 +449,6 @@ namespace HospitalManagement.Controllers
         }
 
 
-
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()
         {
