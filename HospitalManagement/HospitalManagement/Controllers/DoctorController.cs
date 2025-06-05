@@ -49,9 +49,10 @@ namespace HospitalManagement.Controllers
         public IActionResult UpdateProfile()
         {
 
-            // Lấy DoctorID từ Claims
+
             var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
             if (doctorIdClaim == null)
+
             {
                 return RedirectToAction("Login", "Auth");
             }
@@ -188,14 +189,12 @@ namespace HospitalManagement.Controllers
                 user.ProfileImage = Convert.ToBase64String(imageBytes);
 
                 // add in database
-
                 var dbUser = _context.Doctors.FirstOrDefault(u => u.DoctorId == user.DoctorId);
                 if (dbUser != null)
                 {
                     dbUser.ProfileImage = user.ProfileImage;
                     _context.SaveChanges();
                 }
-
 
                 // Cập nhật lại session
                 TempData["success"] = "Update successful!";
@@ -224,8 +223,6 @@ namespace HospitalManagement.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
-
-
 
             var curUser = _context.Doctors.FirstOrDefault(u => u.DoctorId == user.DoctorId);
             if (curUser != null)

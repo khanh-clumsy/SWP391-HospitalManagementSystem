@@ -1,5 +1,4 @@
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using HospitalManagement.Models;
 using HospitalManagement.Data;
@@ -7,53 +6,36 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using HospitalManagement.ViewModels;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
+
 namespace HospitalManagement.Controllers
 {
-    [Authorize(Roles = "Patient")]
-    public class PatientController : Controller
+    [Authorize(Roles = "Admin,Sales,Cashier")]
+    public class StaffController : Controller
     {
-        private readonly PasswordHasher<Patient> _passwordHasher;
-        private readonly IBookingAppointmentRepository _doctorRepo;
-        private readonly IBookingAppointmentRepository _slotRepo;
-        private readonly IBookingAppointmentRepository _patientRepo;
-        private readonly IBookingAppointmentRepository _appointmentRepo;
-        private readonly HospitalManagementContext _context;
+        private readonly PasswordHasher<Staff> _passwordHasher;
 
-
-
-        public PatientController(HospitalManagementContext context, IBookingAppointmentRepository doctorRepo,
-            IBookingAppointmentRepository slotRepo,
-            IBookingAppointmentRepository patientRepo,
-            IBookingAppointmentRepository appointmentRepo)
+        public StaffController(HospitalManagementContext context)
         {
-            _context = context;
-            _passwordHasher = new PasswordHasher<Patient>();
-            _doctorRepo = doctorRepo;
-            _slotRepo = slotRepo;
-            _patientRepo = patientRepo;
-            _appointmentRepo = appointmentRepo;
+            _passwordHasher = new PasswordHasher<Staff>();
         }
-
 
         [HttpGet]
         public IActionResult ViewProfile()
         {
-            // Lấy PatientId từ Claims
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
-            if (patientIdClaim == null)
+            // Lấy StaffId từ Claims
+            var staffIdClaim = User.FindFirst("staffID")?.Value;
+            if (staffIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            int patientId = int.Parse(patientIdClaim);
+            int staffId = int.Parse(staffIdClaim);
 
             // Lấy thông tin từ DB
             var context = new HospitalManagementContext();
-            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == staffId);
             if (user == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -63,18 +45,18 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public IActionResult UpdateProfile()
         {
-            // Lấy PatientId từ Claims
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
-            if (patientIdClaim == null)
+            // Lấy staffId từ Claims
+            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            if (staffIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            int patientId = int.Parse(patientIdClaim);
+            int staffId = int.Parse(staffIdClaim);
 
             // Lấy thông tin từ DB
             var context = new HospitalManagementContext();
-            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == staffId);
             if (user == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -86,18 +68,18 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public IActionResult ChangePassword()
         {
-            // Lấy PatientId từ Claims
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
-            if (patientIdClaim == null)
+            // Lấy staffId từ Claims
+            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            if (staffIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
-            }
+            }   
 
-            int patientId = int.Parse(patientIdClaim);
+            int StaffId = int.Parse(staffIdClaim);
 
             // Lấy thông tin từ DB
             var context = new HospitalManagementContext();
-            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == StaffId);
             if (user == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -109,18 +91,18 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public IActionResult ChangePassword(ChangePass model)
         {
-            // Lấy PatientId từ Claims
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
-            if (patientIdClaim == null)
+            // Lấy staffId từ Claims
+            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            if (staffIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            int patientId = int.Parse(patientIdClaim);
+            int staffId = int.Parse(staffIdClaim);
 
             // Lấy thông tin từ DB
             var context = new HospitalManagementContext();
-            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == staffId);
             if (user == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -144,12 +126,12 @@ namespace HospitalManagement.Controllers
             }
 
             // Cập nhật trong DB
-            var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+            var dbUser = context.Staff.FirstOrDefault(u => u.StaffId == user.StaffId);
             if (dbUser != null)
             {
                 dbUser.PasswordHash = _passwordHasher.HashPassword(null, model.NewPassword);
                 context.SaveChanges();
-                HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(dbUser));
+                HttpContext.Session.SetString("StaffSession", JsonConvert.SerializeObject(dbUser));
 
             }
 
@@ -162,18 +144,18 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> UploadPhoto(IFormFile photo)
         {
             // check login
-            // Lấy PatientId từ Claims
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
-            if (patientIdClaim == null)
+            // Lấy StaffId từ Claims
+            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            if (staffIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            int patientId = int.Parse(patientIdClaim);
+            int staffId = int.Parse(staffIdClaim);
 
             // Lấy thông tin từ DB
             var context = new HospitalManagementContext();
-            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == staffId);
             if (user == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -190,7 +172,7 @@ namespace HospitalManagement.Controllers
 
                 // add in database
 
-                var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+                var dbUser = context.Staff.FirstOrDefault(u => u.StaffId == user.StaffId);
                 if (dbUser != null)
                 {
                     dbUser.ProfileImage = user.ProfileImage;
@@ -198,7 +180,7 @@ namespace HospitalManagement.Controllers
                 }
 
                 // Cập nhật lại session
-                //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));
+                //HttpContext.Session.SetString("StaffSession", JsonConvert.SerializeObject(user));
                 TempData["success"] = "Update successful!";
                 return RedirectToAction("UpdateProfile");
 
@@ -209,28 +191,28 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("UpdateProfile");
         }
         [HttpPost]
-        public IActionResult UpdateProfile(Patient model)
+        public IActionResult UpdateProfile(Staff model)
         {
             // check login
-            // Lấy PatientId từ Claims
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
-            if (patientIdClaim == null)
+            // Lấy StaffId từ Claims
+            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            if (staffIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            int patientId = int.Parse(patientIdClaim);
+            int staffId = int.Parse(staffIdClaim);
 
             // Lấy thông tin từ DB
             var context = new HospitalManagementContext();
-            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            var user = context.Staff.FirstOrDefault(p => p.StaffId == staffId);
             if (user == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
 
-            var curUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
+            var curUser = context.Staff.FirstOrDefault(u => u.StaffId == user.StaffId);
             if (curUser != null)
             {
                 // check if phone start with 0 and 9 digits back
@@ -254,9 +236,9 @@ namespace HospitalManagement.Controllers
                     }
 
                 // check phone is used(not this user)
-                var phoneOwner = context.Patients.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
+                var phoneOwner = context.Staff.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
 
-                if (phoneOwner != null && phoneOwner.PatientId != curUser.PatientId)
+                if (phoneOwner != null && phoneOwner.StaffId != curUser.StaffId)
                 {
                     TempData["error"] = "This phone number was used before.";
                     return RedirectToAction("UpdateProfile");
@@ -267,16 +249,12 @@ namespace HospitalManagement.Controllers
                 user.FullName = curUser.FullName = model.FullName;
                 user.Gender = curUser.Gender = model.Gender;
                 user.PhoneNumber = curUser.PhoneNumber = model.PhoneNumber;
-                user.Dob = curUser.Dob = model.Dob;
-                user.Address = curUser.Address = model.Address;
-                user.HealthInsurance = curUser.HealthInsurance = model.HealthInsurance;
-                user.BloodGroup = curUser.BloodGroup = model.BloodGroup;
 
                 // luu lai user vao database
                 context.SaveChanges();
 
                 //// reset session
-                //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(sessionUser));
+                //HttpContext.Session.SetString("StaffSession", JsonConvert.SerializeObject(sessionUser));
             }
 
             TempData["success"] = "Update successful!";
@@ -293,6 +271,6 @@ namespace HospitalManagement.Controllers
             TempData["success"] = "Logout successful!";
             return RedirectToAction("Index", "Home");
         }
- 
+
     }
 }
