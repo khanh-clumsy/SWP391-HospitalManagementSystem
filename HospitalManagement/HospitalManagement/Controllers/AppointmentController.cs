@@ -277,7 +277,7 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> Booking(int? doctorId)
         {
-            // Lấy PatientId từ Claims
+            // Lấy PatientId từ Claims  
             var patientIdClaim = User.FindFirst("PatientID")?.Value;
             if (patientIdClaim == null)
             {
@@ -309,7 +309,7 @@ namespace HospitalManagement.Controllers
                 DoctorOptions = await GetDoctorListAsync(),
                 SlotOptions = await GetSlotListAsync(),
                 ServiceOptions = await GetServiceListAsync(),
-                AppointmentDate = DateOnly.FromDateTime(DateTime.Today),
+                AppointmentDate = DateOnly.Parse("1/1/2000")
             };
             return View(model);
         }
@@ -448,6 +448,27 @@ namespace HospitalManagement.Controllers
             return Json(doctors);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSlotsByDoctorAndDate(DateOnly date, int doctorId)
+        {
+            var slots = await _context.Schedules
+                                        .Where(s => s.Day == date && s.DoctorId == doctorId)
+                                        .Select(s => new
+                                        {
+                                            s.SlotId,
+                                            SlotTime = $"{s.Slot.StartTime} - {s.Slot.EndTime}"
+                                        })
+                                        .Distinct()
+                                        .ToListAsync();
+            Console.WriteLine("Slots: " + string.Join(", ", slots.Select(s => s.SlotTime)));
+            return Json(slots);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDoctorsBySlot(DateOnly date, Slot slot)
+        {
+            return View();
+        }
 
 
         //Lấy service cho vào SelectListItem để hiện ra ở form
