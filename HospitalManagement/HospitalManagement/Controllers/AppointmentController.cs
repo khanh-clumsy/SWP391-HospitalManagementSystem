@@ -35,6 +35,7 @@ namespace HospitalManagement.Controllers
                 appointments = new List<Appointment>();
             }
             var slots = await _context.Slots.ToListAsync();
+            ViewBag.slots = slots;
             // Lưu lại các giá trị filter hiện tại vào ViewBag
             ViewBag.SearchName = searchName;
             ViewBag.TimeFilter = timeFilter;
