@@ -470,6 +470,20 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Delete(int appointmentId)
+        {
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
+            if (appointment == null)
+            {
+                TempData["error"] = $"Can not find appointment with ID = {appointmentId}!";
+                return RedirectToAction("Index", "Appointment"); 
+            }
+            _context.Appointments.Remove(appointment);
+            await _context.SaveChangesAsync();
+            TempData["success"] = $"Delete successfully appointment with ID = {appointmentId}!";
+            return RedirectToAction("Index", "Appointment");
+        }
 
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()

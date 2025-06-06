@@ -111,7 +111,6 @@ namespace HospitalManagement.Controllers
                     // Handle file size exceeds
                     TempData["Error"] = "File size exceeds the 5MB limit.";
                     return RedirectToAction("Edit", model);
-
                 }
 
                 // Convert the image to Base64
