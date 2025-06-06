@@ -1,230 +1,498 @@
 ﻿@using HospitalManagement.ViewModels
 @{
-	var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
-	var isReadonly = !string.IsNullOrEmpty(Model.Name);
+    var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+    var isReadonly = !string.IsNullOrEmpty(Model.Name);
 }
 @model BookingApointmentViewModel
 
 <!-- Page Header Start -->
 <div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
-	<div class="container py-5">
-		<h1 class="display-3 text-white mb-3 animated slideInDown">Appointment</h1>
-		<nav aria-label="breadcrumb animated slideInDown">
-			<ol class="breadcrumb text-uppercase mb-0">
-				<li class="breadcrumb-item"><a class="text-white" href="#">Home</a></li>
-				<li class="breadcrumb-item"><a class="text-white" href="#">Pages</a></li>
-				<li class="breadcrumb-item text-primary active" aria-current="page">Appointment</li>
-			</ol>
-		</nav>
-	</div>
+    <div class="container py-5">
+        <h1 class="display-3 text-white mb-3 animated slideInDown">Appointment</h1>
+        <nav aria-label="breadcrumb animated slideInDown">
+            <ol class="breadcrumb text-uppercase mb-0">
+                <li class="breadcrumb-item"><a class="text-white" href="#">Home</a></li>
+                <li class="breadcrumb-item"><a class="text-white" href="#">Pages</a></li>
+                <li class="breadcrumb-item text-primary active" aria-current="page">Appointment</li>
+            </ol>
+        </nav>
+    </div>
 </div>
 <!-- Page Header End -->
 <!-- Appointment Start -->
 <div class="container-xxl py-5">
-	<div class="container">
-		<div class="row g-5">
-			<div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
-				<p class="d-inline-block border rounded-pill py-1 px-4">Appointment</p>
-				<h1 class="mb-4">Make An Appointment To Visit Our Doctor</h1>
-				<p class="mb-4">Tempor erat elitr rebum at clita. Diam dolor diam ipsum sit. Aliqu diam amet diam et eos...</p>
-				<div class="bg-light rounded d-flex align-items-center p-5 mb-4">
-					<div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-white" style="width: 55px; height: 55px;">
-						<i class="fa fa-phone-alt text-primary"></i>
-					</div>
-					<div class="ms-4">
-						<p class="mb-2">Call Us Now</p>
-						<h5 class="mb-0">+012 345 6789</h5>
-					</div>
-				</div>
-				<div class="bg-light rounded d-flex align-items-center p-5">
-					<div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-white" style="width: 55px; height: 55px;">
-						<i class="fa fa-envelope-open text-primary"></i>
-					</div>
-					<div class="ms-4">
-						<p class="mb-2">Mail Us Now</p>
-						<h5 class="mb-0">info@example.com</h5>
-					</div>
-				</div>
-			</div>
-			<!-- Form Request Consultant -->
-			<div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
-				<div class="bg-light rounded h-100 d-flex align-items-center p-5">
-					<form asp-action="Booking" asp-controller="Appointment" method="post" style="width: 100%;">
-						<div class="row g-3">
-							<!-- Name field - Full width -->
-							<div class="col-12">
-								@if (isReadonly)
-								{
-									<input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" readonly="readonly" />
-								}
-								else
-								{
-									<input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" />
-								}
-							</div>
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
+                <p class="d-inline-block border rounded-pill py-1 px-4">Appointment</p>
+                <h1 class="mb-4">Make An Appointment To Visit Our Doctor</h1>
+                <p class="mb-4">Tempor erat elitr rebum at clita. Diam dolor diam ipsum sit. Aliqu diam amet diam et eos...</p>
+                <div class="bg-light rounded d-flex align-items-center p-5 mb-4">
+                    <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-white" style="width: 55px; height: 55px;">
+                        <i class="fa fa-phone-alt text-primary"></i>
+                    </div>
+                    <div class="ms-4">
+                        <p class="mb-2">Call Us Now</p>
+                        <h5 class="mb-0">+012 345 6789</h5>
+                    </div>
+                </div>
+                <div class="bg-light rounded d-flex align-items-center p-5">
+                    <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-white" style="width: 55px; height: 55px;">
+                        <i class="fa fa-envelope-open text-primary"></i>
+                    </div>
+                    <div class="ms-4">
+                        <p class="mb-2">Mail Us Now</p>
+                        <h5 class="mb-0">info@example.com</h5>
+                    </div>
+                </div>
+            </div>
+            <!-- Form Request Consultant -->
+            <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
+                <div class="bg-light rounded h-100 p-5">
+                    <style>
+                        :root {
+                            --primary: #0463FA;
+                            --light: #EFF5FF;
+                            --dark: #1B2C51;
+                            --secondary: #6c757d;
+                        }
 
-							<!-- Email and Phone on same row -->
-							<div class="col-12 col-sm-6">
-								@if (isReadonly)
-								{
-									<input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" readonly="readonly" />
-								}
-								else
-								{
-									<input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" />
-								}
-							</div>
-							<div class="col-12 col-sm-6">
-								@if (isReadonly)
-								{
-									<input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" readonly="readonly" />
-								}
-								else
-								{
-									<input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" />
-								}
-							</div>
+                        .booking-container {
+                            max-width: 100%;
+                            margin: 0;
+                            padding: 0;
+                            background: transparent;
+                            border-radius: 0;
+                            box-shadow: none;
+                        }
 
-							<!-- Appointment Date - hàng riêng bên dưới -->
-							<div class="col-12 mt-3">
-								<input asp-for="AppointmentDate" id="appointmentDate" type="date" class="form-control" min="@minDate" required />
-								<span asp-validation-for="AppointmentDate" class="text-danger"></span>
-							</div>
+                        .form-header {
+                            text-align: center;
+                            margin-bottom: 3rem;
+                        }
 
+                            .form-header h2 {
+                                color: var(--dark);
+                                font-weight: 700;
+                                margin-bottom: 0.5rem;
+                            }
 
-							<!-- Doctor và Slot - hàng đầu -->
-							<div class="col-12 d-flex gap-3">
-								<!-- Doctor Dropdown -->
-								<div class="flex-grow-1">
-									<select asp-for="SelectedDoctorId" asp-items="Model.DoctorOptions" id="doctorSelect" class="form-select" required>
-										<option value="">-- Select Doctor --</option>
-									</select>
-									<span asp-validation-for="SelectedDoctorId" class="text-danger"></span>
-								</div>
+                            .form-header p {
+                                color: var(--secondary);
+                                font-size: 1.1rem;
+                            }
 
-								<!-- Slot Dropdown -->
-								<div class="flex-grow-1">
-									<select asp-for="SelectedSlotId" asp-items="Model.SlotOptions" id="slotSelect" class="form-select" required>
-										<option value="">-- Select Slot --</option>
-									</select>
-									<span asp-validation-for="SelectedSlotId" class="text-danger"></span>
+                        .toggle-group {
+                            display: flex;
+                            background: var(--light);
+                            border-radius: 15px;
+                            padding: 8px;
+                            margin-bottom: 2rem;
+                        }
 
-								</div>
-							</div>
+                        .toggle-btn {
+                            flex: 1;
+                            padding: 12px 20px;
+                            border: none;
+                            background: transparent;
+                            border-radius: 10px;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                            color: var(--secondary);
+                        }
 
-							<div class="col-12">
-								<select asp-for="SelectedServiceId" asp-items="Model.ServiceOptions" class="form-select">
-									<option value="">-- Select Service --</option>
-								</select>
-								<span asp-validation-for="SelectedServiceId" class="text-danger"></span>
-							</div>
+                            .toggle-btn.active {
+                                background: var(--primary);
+                                color: white;
+                                transform: translateY(-2px);
+                                box-shadow: 0 8px 20px rgba(4, 99, 250, 0.3);
+                            }
 
-							<!-- Large text area -->
-							<div class="col-12">
-								<textarea asp-for="Note" class="form-control" rows="8" placeholder="Describe your problem"></textarea>
-								<span asp-validation-for="Note" class="text-danger"></span>
+                        .date-section {
+                            margin-bottom: 2rem;
+                        }
 
-							</div>
+                        .section-title {
+                            font-size: 1.2rem;
+                            font-weight: 600;
+                            color: var(--dark);
+                            margin-bottom: 1rem;
+                        }
 
-							<!-- Submit button -->
-							<div class="col-12">
-								<button class="btn btn-primary w-100 py-3" type="submit">Booking Appointment!</button>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-			<!--Form end-->
+                        .date-input {
+                            width: 100%;
+                            padding: 15px 20px;
+                            border: 2px solid #e9ecef;
+                            border-radius: 12px;
+                            font-size: 1rem;
+                            transition: all 0.3s ease;
+                        }
 
-		</div>
+                            .date-input:focus {
+                                outline: none;
+                                border-color: var(--primary);
+                                box-shadow: 0 0 0 3px rgba(4, 99, 250, 0.1);
+                            }
 
-	</div>
-@* </div> *@
-@* @section Scripts { *@
+                        .doctor-section {
+                            margin-bottom: 2rem;
+                        }
 
-@* 	<!-- Appointment End --> *@
-@* 	<script> *@
+                        .doctor-carousel {
+                            position: relative;
+                            overflow: hidden;
+                            border-radius: 15px;
+                            background: #f8f9fa;
+                            padding: 20px;
+                        }
 
-@* 				$(document).ready(function() { *@
-@* 			// Disable dropdowns when the page loads *@
-@* 			$('#doctorSelect').prop('disabled', true); *@
-@* 			$('#slotSelect').prop('disabled', true); *@
+                        .doctor-list {
+                            display: flex;
+                            transition: transform 0.3s ease;
+                            gap: 20px;
+                        }
 
-@* 			// Khi chọn ngày *@
-@* 			$('#appointmentDate').on('change', function() { *@
-@* 				var selectedDate = $(this).val();  // Lấy giá trị ngày đã chọn *@
-@* 				console.log("Selected Date: ", selectedDate); *@
+                        .doctor-card {
+                            min-width: 280px;
+                            background: white;
+                            border-radius: 15px;
+                            padding: 20px;
+                            text-align: center;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            border: 3px solid transparent;
+                        }
 
-@* 				if (selectedDate) { *@
-@* 					// Khi đã chọn ngày, kích hoạt dropdown bác sĩ *@
-@* 					$('#doctorSelect').prop('disabled', false); *@
+                            .doctor-card:hover {
+                                transform: translateY(-5px);
+                                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+                            }
 
-@* 					$.ajax({ *@
-@* 						url: '/Appointment/GetDoctorsByDate', *@
-@* 						type: 'GET', *@
-@* 						data: { date: selectedDate }, *@
-@* 						success: function(data) { *@
-@* 							console.log(data); *@
-@* 							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
-@* 							$.each(data, function(i, doctor) { *@
-@* 								$('#doctorSelect').append(`<option value="${doctor.doctorId}">${doctor.doctorName}</option>`); *@
-@* 							}); *@
-@* 						}, *@
-@* 						error: function(xhr, status, error) { *@
-@* 							console.log("AJAX Error: " + status + " - " + error); *@
-@* 							console.log(xhr.responseText);  // Xem chi tiết lỗi trả về *@
-@* 						} *@
-@* 					}); *@
-@* 				} else { *@
-@* 					// Nếu không chọn ngày, vô hiệu hóa dropdown bác sĩ và slot *@
-@* 					$('#doctorSelect').prop('disabled', true); *@
-@* 					$('#slotSelect').prop('disabled', true); *@
-@* 					$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
-@* 					$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>');  // Reset slot dropdown *@
-@* 				} *@
-@* 			}); *@
+                            .doctor-card.selected {
+                                border-color: var(--primary);
+                                background: var(--light);
+                            }
 
-@* 			// Khi chọn bác sĩ *@
-@* 			$('#doctorSelect').on('change', function() { *@
-@* 				var selectedDate = $('#appointmentDate').val();  // Lấy giá trị ngày đã chọn *@
-@* 				var doctorId = $(this).val();  // Lấy doctorId từ dropdown *@
-@* 				if (selectedDate && doctorId) { *@
-@* 					$('#slotSelect').prop('disabled', false);  // Kích hoạt dropdown slot *@
+                        .doctor-avatar {
+                            width: 80px;
+                            height: 80px;
+                            border-radius: 50%;
+                            background: var(--primary);
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 15px;
+                            font-size: 2rem;
+                            color: white;
+                        }
 
-@* 					$.ajax({ *@
-@* 						url: '/Appointment/GetSlotsByDoctorAndDate', *@
-@* 						type: 'GET', *@
-@* 						data: { date: selectedDate, doctorId: doctorId }, *@
-@* 						success: function(data) { *@
-@* 							$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>'); *@
-@* 							$.each(data, function(i, slot) { *@
-@* 								$('#slotSelect').append(`<option value="${slot.slotId}">${slot.slotTime}</option>`); *@
-@* 							}); *@
-@* 						} *@
-@* 					}); *@
-@* 				} *@
-@* 			}); *@
+                        .doctor-name {
+                            font-weight: 600;
+                            color: var(--dark);
+                            margin-bottom: 5px;
+                        }
 
-@* 			// Khi chọn slot *@
-@* 			$('#slotSelect').on('change', function() { *@
-@* 				var selectedDate = $('#appointmentDate').val();  // Lấy giá trị ngày đã chọn *@
-@* 				var slotId = $(this).val();  // Lấy slotId từ dropdown *@
-@* 				if (selectedDate && slotId) { *@
-@* 					$.ajax({ *@
-@* 						url: '/Appointment/GetDoctorsBySlot', *@
-@* 						type: 'GET', *@
-@* 						data: { date: selectedDate, slotId: slotId }, *@
-@* 						success: function(data) { *@
-@* 							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
-@* 							$.each(data, function(i, doctor) { *@
-@* 								$('#doctorSelect').append(`<option value="${doctor.doctorId}">${doctor.doctorName}</option>`); *@
-@* 							}); *@
-@* 						} *@
-@* 					}); *@
-@* 				} *@
-@* 			}); *@
-@* 		}); *@
+                        .doctor-specialty {
+                            color: var(--secondary);
+                            font-size: 0.9rem;
+                            margin-bottom: 10px;
+                        }
 
-@* 	</script> *@
+                        .doctor-rating {
+                            color: #ffc107;
+                            font-size: 0.9rem;
+                        }
 
-@*  } *@
+                        .carousel-nav {
+                            position: absolute;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            background: white;
+                            border: none;
+                            width: 45px;
+                            height: 45px;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            color: var(--primary);
+                            font-size: 1.2rem;
+                            transition: all 0.3s ease;
+                        }
+
+                            .carousel-nav:hover {
+                                background: var(--primary);
+                                color: white;
+                                transform: translateY(-50%) scale(1.1);
+                            }
+
+                            .carousel-nav.prev {
+                                left: 10px;
+                            }
+
+                            .carousel-nav.next {
+                                right: 10px;
+                            }
+
+                        .calendar-section {
+                            margin-bottom: 2rem;
+                        }
+
+                        .calendar {
+                            background: white;
+                            border-radius: 15px;
+                            overflow: hidden;
+                            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                        }
+
+                        .calendar-header {
+                            background: var(--primary);
+                            color: white;
+                            padding: 20px;
+                            text-align: center;
+                            font-weight: 600;
+                            font-size: 1.1rem;
+                        }
+
+                        .calendar-grid {
+                            display: grid;
+                            grid-template-columns: repeat(7, 1fr);
+                        }
+
+                        .calendar-day-header {
+                            padding: 15px 10px;
+                            text-align: center;
+                            font-weight: 600;
+                            color: var(--secondary);
+                            background: #f8f9fa;
+                            font-size: 0.9rem;
+                        }
+
+                        .calendar-day {
+                            padding: 15px 10px;
+                            text-align: center;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            border: 1px solid #f0f0f0;
+                            position: relative;
+                        }
+
+                            .calendar-day:hover {
+                                background: var(--light);
+                            }
+
+                            .calendar-day.available {
+                                background: #e8f5e8;
+                                color: #28a745;
+                                font-weight: 600;
+                            }
+
+                            .calendar-day.selected {
+                                background: var(--primary);
+                                color: white;
+                                font-weight: 600;
+                            }
+
+                            .calendar-day.disabled {
+                                color: #ccc;
+                                cursor: not-allowed;
+                            }
+
+                        .time-slots {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                            gap: 10px;
+                            margin-top: 1rem;
+                        }
+
+                        .time-slot {
+                            padding: 12px 16px;
+                            border: 2px solid #e9ecef;
+                            border-radius: 10px;
+                            text-align: center;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            font-weight: 500;
+                        }
+
+                            .time-slot:hover {
+                                border-color: var(--primary);
+                                background: var(--light);
+                            }
+
+                            .time-slot.selected {
+                                background: var(--primary);
+                                color: white;
+                                border-color: var(--primary);
+                            }
+
+                            .time-slot.unavailable {
+                                background: #f8f9fa;
+                                color: #6c757d;
+                                cursor: not-allowed;
+                                text-decoration: line-through;
+                            }
+
+                        .submit-section {
+                            text-align: center;
+                            margin-top: 3rem;
+                        }
+
+                        .submit-btn {
+                            background: linear-gradient(45deg, var(--primary), #0056d3);
+                            color: white;
+                            border: none;
+                            padding: 15px 40px;
+                            border-radius: 50px;
+                            font-size: 1.1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 8px 20px rgba(4, 99, 250, 0.3);
+                        }
+
+                            .submit-btn:hover {
+                                transform: translateY(-2px);
+                                box-shadow: 0 12px 25px rgba(4, 99, 250, 0.4);
+                            }
+
+                            .submit-btn:disabled {
+                                background: #6c757d;
+                                cursor: not-allowed;
+                                transform: none;
+                                box-shadow: none;
+                            }
+                    </style>
+                    <div class="booking-container">
+                        <div class="form-header">
+                            <h2><i class="fas fa-calendar-alt text-primary me-2"></i>Đặt Lịch Hẹn</h2>
+                            <p>Chọn dịch vụ và bác sĩ phù hợp cho cuộc hẹn của bạn</p>
+                        </div>
+
+                        <form asp-action="Booking" asp-controller="Appointment" method="post" id="appointmentForm">
+                            <!-- Name field -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-12">
+                                    @if (isReadonly)
+                                    {
+                                        <input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" readonly="readonly" />
+                                    }
+                                    else
+                                    {
+                                        <input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" />
+                                    }
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    @if (isReadonly)
+                                    {
+                                        <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" readonly="readonly" />
+                                    }
+                                    else
+                                    {
+                                        <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" />
+                                    }
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    @if (isReadonly)
+                                    {
+                                        <input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" readonly="readonly" />
+                                    }
+                                    else
+                                    {
+                                        <input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" />
+                                    }
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Service Type Toggle -->
+                            <div class="toggle-group">
+                                <button type="button" class="toggle-btn active" data-type="package">
+                                    <i class="fas fa-box me-2"></i>Gói Khám
+                                </button>
+                                <button type="button" class="toggle-btn" data-type="doctor">
+                                    <i class="fas fa-user-md me-2"></i>Bác Sĩ
+                                </button>
+                            </div>
+
+                            <!-- Date Selection -->
+                            <div class="date-section">
+                                <h3 class="section-title">
+                                    <i class="fas fa-calendar me-2 text-primary"></i>Chọn Ngày
+                                </h3>
+                                <input asp-for="AppointmentDate" id="appointmentDate" type="date" class="date-input" min="@minDate" required />
+                                <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                            </div>
+
+                            <!-- Doctor Selection -->
+                            <div class="doctor-section">
+                                <h3 class="section-title">
+                                    <i class="fas fa-stethoscope me-2 text-primary"></i>Chọn Bác Sĩ
+                                </h3>
+                                <div class="doctor-carousel">
+                                    <button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <div class="doctor-list" id="doctorList">
+                                        <!-- Doctors will be populated dynamically via AJAX -->
+                                    </div>
+                                    <button type="button" class="carousel-nav next" onclick="nextDoctor()">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Calendar -->
+                            <div class="calendar-section">
+                                <h3 class="section-title">
+                                    <i class="fas fa-clock me-2 text-primary"></i>Chọn Thời Gian
+                                </h3>
+                                <div class="calendar">
+                                    <div class="calendar-header" id="calendarHeader">
+                                        Tháng 6, 2025
+                                    </div>
+                                    <div class="calendar-grid" id="calendarGrid">
+                                        <!-- Calendar days will be populated dynamically -->
+                                    </div>
+                                </div>
+
+                                <!-- Time Slots -->
+                                <div class="time-slots" id="timeSlots" style="display: none;">
+                                    <!-- Time slots will be populated dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- Service Selection -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-12">
+                                    <select asp-for="SelectedServiceId" asp-items="Model.ServiceOptions" class="form-select">
+                                        <option value="">-- Select Service --</option>
+                                    </select>
+                                    <span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Note -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-12">
+                                    <textarea asp-for="Note" class="form-control" rows="8" placeholder="Describe your problem"></textarea>
+                                    <span asp-validation-for="Note" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="submit-section">
+                                <button type="submit" class="submit-btn" disabled>
+                                    <i class="fas fa-check me-2"></i>Đặt Lịch Hẹn
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
