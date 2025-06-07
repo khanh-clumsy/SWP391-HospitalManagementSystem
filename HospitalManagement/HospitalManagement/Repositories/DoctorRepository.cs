@@ -12,10 +12,14 @@ namespace HospitalManagement.Repositories
             _context = context;
         }
 
-        public async Task<int> CountAsync(string? name, string? department, int? exp, bool? isHead)
+        public async Task<int> CountAsync(string? name, string? department, int? exp, bool? isHead, bool? isActive)
         {
             var query = _context.Doctors.AsQueryable();
 
+            if (isActive.HasValue)
+            {
+                query = query.Where(d => d.IsActive == isActive);
+            }
             if (!string.IsNullOrEmpty(name))
             {
                 name = name.Trim();
@@ -55,10 +59,13 @@ namespace HospitalManagement.Repositories
                 .Distinct().ToListAsync();
         }
 
-        public async Task<List<Doctor>> SearchAsync(string? name, string? department, int? exp, bool? isHead, string? sort, int page, int pageSize)
+        public async Task<List<Doctor>> SearchAsync(string? name, string? department, int? exp, bool? isHead, string? sort, bool? isActive, int page, int pageSize)
         {
             var query = _context.Doctors.AsQueryable();
-
+            if (isActive.HasValue)
+            {
+                query = query.Where(d => d.IsActive == isActive);
+            }
             if (!string.IsNullOrEmpty(name))
             {
                 name = name.Trim();
@@ -94,6 +101,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<Doctor>> GetAllDoctorsWithSpecialFirstAsync(int pageNumber, int pageSize)
         {
             return await _context.Doctors
+                .Where(d=>d.IsActive == true)
                 .OrderByDescending(d => d.IsSpecial) // Ưu tiên bác sĩ đặc biệt
                 .ThenBy(d => d.DoctorId) // Sắp xếp phụ theo tên (hoặc theo ý bạn)
                 .Skip((pageNumber - 1) * pageSize)
@@ -101,9 +109,9 @@ namespace HospitalManagement.Repositories
                 .ToListAsync();
         }
 
-        public async Task<int> CountAllDoctorsAsync()
+        public async Task<int> CountAllActiveDoctorsAsync()
         {
-            return await _context.Doctors.CountAsync();
+            return await _context.Doctors.Where(d=>d.IsActive == true).CountAsync();
         }
     }
 }

@@ -174,7 +174,7 @@
 								<h5>@doctor.FullName</h5>
 								<p class="text-primary">@doctor.DepartmentName (@doctor.ExperienceYear Exp Years)</p>
 								<div class="d-flex justify-content-center gap-2 mt-4">
-									<a href="#" class="btn btn-sm btn-outline-primary">Make an Appointment</a>
+									<a asp-controller="Appointment" asp-action="Booking" asp-route-doctorId="@doctor.DoctorId" class="btn btn-sm btn-outline-primary">Make an Appointment</a>
 									<a href="/Home/DoctorDetail/@doctor.DoctorId" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center">Detail</a>
 								</div>
 							</div>
@@ -195,7 +195,8 @@
 					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
 				}
 			}
-
+			@if(Model.PageCount>1)
+			{
 			<div class="d-flex justify-content-center mt-5">
 				<nav>
 					<ul class="pagination">
@@ -276,6 +277,7 @@
 					</ul>
 				</nav>
 			</div>
+			}
 			<!-- Pagination end -->
 
 		</div>

@@ -1,6 +1,7 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
+using HospitalManagement.Services;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -21,30 +22,33 @@ namespace HospitalManagement.Controllers
         private readonly IPatientRepository _patientRepo;
         private readonly IStaffRepository _staffRepo;
         private readonly PasswordHasher<Patient> _passwordHasher;
-        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo)
+        private readonly EmailService _emailService;
+        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, EmailService emailService)
         {
             _context = context;
             _doctorRepo = doctorRepo;
             _patientRepo = patientRepo;
             _staffRepo = staffRepo;
             _passwordHasher = new PasswordHasher<Patient>();
+            _emailService = emailService;
         }
 
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ManageAccount(int? page, string? name, string? department, string? gender, string? roleName, string type = "Patient")
         {
+            name = UserController.NormalizeName(name);
             int pageSize = 10;
             int pageNumber = page ?? 1;
 
             var vm = new AccountListViewModel();
 
-            List<Patient> patients = await _patientRepo.SearchAsync(name, gender, pageNumber, pageSize);
+            List<Patient> patients = await _patientRepo.SearchAsync(name, gender, pageNumber, pageSize);    
             var totalPatients = await _patientRepo.CountAsync(name, gender);
             vm.Patients = new StaticPagedList<Patient>(patients, pageNumber, pageSize, totalPatients);
 
-            List<Doctor> doctors = await _doctorRepo.SearchAsync(name, department, null, null, null, pageNumber, pageSize);
-            var totalDoctors = await _doctorRepo.CountAsync(name, department, null, null);
+            List<Doctor> doctors = await _doctorRepo.SearchAsync(name, department, null, null, null, null, pageNumber, pageSize);
+            var totalDoctors = await _doctorRepo.CountAsync(name, department, null, null, null);
             vm.Doctors = new StaticPagedList<Doctor>(doctors, pageNumber, pageSize, totalDoctors);
 
             List<Staff> staffs = await _staffRepo.SearchAsync(name, roleName, pageNumber, pageSize);
@@ -237,10 +241,12 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
+            string password = UserController.RandomString(10);
+
             var doctor = new Models.Doctor
             {
                 Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                PasswordHash = _passwordHasher.HashPassword(null, password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
@@ -252,6 +258,26 @@ namespace HospitalManagement.Controllers
                 IsSpecial = false,
                 ProfileImage = model.ProfileImage
             };
+
+            try
+            {
+                var emailBody = $@"
+                <h3>✅ Welcome! Your New Employee Account Details</h3>
+                <p><strong>Email:</strong> {model.Email}</p>
+                <p><strong>Password:</strong> {password}</p>
+                ";
+
+                await _emailService.SendEmailAsync(
+                    toEmail: model.Email,
+                    subject: "✅ Your New Account Information",
+                    body: emailBody
+                );
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Failed to send email";
+                return View(model);
+            }
 
             _context.Doctors.Add(doctor);
             await _context.SaveChangesAsync();
@@ -304,17 +330,37 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "This phone number was used before.";
                 return View(model);
             }
-
+            string password = UserController.RandomString(10);
             var patient = new Models.Patient
             {
                 Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                PasswordHash = _passwordHasher.HashPassword(null, password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
                 IsActive = true,
                 ProfileImage = model.ProfileImage
             };
+
+            try
+            {
+                var emailBody = $@"
+                <h3>✅ Welcome! Your New Account Details</h3>
+                <p><strong>Email:</strong> {model.Email}</p>
+                <p><strong>Password:</strong> {password}</p>
+                ";
+
+                await _emailService.SendEmailAsync(
+                    toEmail: model.Email,
+                    subject: "✅ Your New Account Information",
+                    body: emailBody
+                );
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Failed to send email";
+                return View(model);
+            }
 
             _context.Patients.Add(patient);
             await _context.SaveChangesAsync();
@@ -367,11 +413,11 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "This phone number was used before.";
                 return View(model);
             }
-
+            string password = UserController.RandomString(10);
             var staff = new Models.Staff
             {
                 Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                PasswordHash = _passwordHasher.HashPassword(null, password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
@@ -379,6 +425,26 @@ namespace HospitalManagement.Controllers
                 IsActive = true,
                 ProfileImage = model.ProfileImage
             };
+
+            try
+            {
+                var emailBody = $@"
+                <h3>✅ Welcome! Your New Employee Account Details</h3>
+                <p><strong>Email:</strong> {model.Email}</p>
+                <p><strong>Password:</strong> {password}</p>
+                ";
+
+                await _emailService.SendEmailAsync(
+                    toEmail: model.Email,
+                    subject: "✅ Your New Account Information",
+                    body: emailBody
+                );
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"Failed to send email";
+                return View(model);
+            }
 
             _context.Staff.Add(staff);
             await _context.SaveChangesAsync();
@@ -428,6 +494,39 @@ namespace HospitalManagement.Controllers
 
             TempData["success"] = "Logout successful!";
             return RedirectToAction("Index", "Home");
+        }
+        public static string NormalizeName(string? input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = input.Trim();
+            var words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return string.Join(" ", words);
+        }
+        public static string RandomString(int length)
+        {
+            const string allChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            const string uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string digitChars = "0123456789";
+
+            var random = new Random();
+
+            // Bắt buộc có ít nhất 1 chữ hoa và 1 số
+            char upper = uppercaseChars[random.Next(uppercaseChars.Length)];
+            char digit = digitChars[random.Next(digitChars.Length)];
+
+            // Sinh các ký tự còn lại
+            var remainingChars = Enumerable.Range(0, length - 2)
+                .Select(_ => allChars[random.Next(allChars.Length)])
+                .ToList();
+
+            // Thêm 2 ký tự bắt buộc vào danh sách
+            remainingChars.Add(upper);
+            remainingChars.Add(digit);
+
+            // Trộn chuỗi để các ký tự không cố định vị trí
+            return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
         }
     }
 }

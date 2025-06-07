@@ -182,7 +182,8 @@
 					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
 				}
 			
-
+				@if(Model.Patients.PageCount>1)
+				{
 			    <div class="d-flex justify-content-center mt-5">
 				    <nav>
 					    <ul class="pagination">
@@ -252,6 +253,7 @@
 					    </ul>
 				    </nav>
 			    </div>
+				}
 			<!-- Pagination end -->
 
             }
@@ -366,7 +368,8 @@
 					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
 				}
 			
-
+				@if(Model.Doctors.PageCount>1)
+				{
 			    <div class="d-flex justify-content-center mt-5">
 				    <nav>
 					    <ul class="pagination">
@@ -436,6 +439,7 @@
 					    </ul>
 				    </nav>
 			    </div>
+				}
 			<!-- Pagination end -->
             }
             else if (Model.AccountType == "Staff")
@@ -533,7 +537,8 @@
 					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
 				}
 			
-
+				@if(Model.Staffs.PageCount>1)
+				{
 			    <div class="d-flex justify-content-center mt-5">
 				    <nav>
 					    <ul class="pagination">
@@ -603,6 +608,7 @@
 					    </ul>
 				    </nav>
 			    </div>
+				}
 			<!-- Pagination end -->
             }
 
