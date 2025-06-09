@@ -306,10 +306,8 @@ namespace HospitalManagement.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 SelectedDoctorId = doctorId ?? 0,
-                DoctorOptions = await GetDoctorListAsync(),
-                SlotOptions = await GetSlotListAsync(),
+                Doctors = await _context.Doctors.ToListAsync(),
                 ServiceOptions = await GetServiceListAsync(),
-                AppointmentDate = DateOnly.Parse("1/1/2000")
             };
             return View(model);
         }
@@ -324,16 +322,15 @@ namespace HospitalManagement.Controllers
             ModelState.Remove(nameof(model.ServiceOptions));
             if (!ModelState.IsValid)
             {
+
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 foreach (var error in errors)
                 {
                     // Ghi log các lỗi
                     Console.WriteLine(error);
                 }
+                model.ServiceOptions = await GetServiceListAsync(); 
                 // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
-                model.DoctorOptions = await GetDoctorListAsync();
-                model.SlotOptions = await GetSlotListAsync();
-                model.ServiceOptions = await GetServiceListAsync();
                 return View(model);
             }
             // Lấy PatientId từ Claims
@@ -362,12 +359,13 @@ namespace HospitalManagement.Controllers
             }
 
             var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.SelectedDoctorId);
-            var service = await _context.Services.FirstOrDefaultAsync(s => s.ServiceId == model.SelectedServiceId);
-            if (doctor == null || service == null)
+            var service = await _context.Services.FirstOrDefaultAsync(d => d.ServiceId == model.SelectedServiceId);
+            
+
+            if (doctor == null || service == null) 
             {
                 TempData["error"] = "Invalid doctor or service selection!";
                 return View(model);
-
             }
 
             var appointment = new Appointment
@@ -376,11 +374,10 @@ namespace HospitalManagement.Controllers
                 DoctorId = model.SelectedDoctorId,
                 Note = model.Note,
                 SlotId = model.SelectedSlotId,
-                ServiceId = model.SelectedServiceId,
                 Date = model.AppointmentDate,
                 Status = "Pending",
                 Doctor = doctor,
-                Service = service
+                ServiceId = model.SelectedServiceId
             };
 
             _context.Appointments.Add(appointment);
@@ -402,7 +399,6 @@ namespace HospitalManagement.Controllers
 
             try
             {
-
                 var emailBody = $@"
                 <h3>✅ New Appointment Successfully Booked!</h3>
                 <p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>
@@ -410,7 +406,6 @@ namespace HospitalManagement.Controllers
                 <p><strong>Doctor:</strong> {savedAppointment.Doctor.FullName}</p>
                 <p><strong>Time:</strong> {savedAppointment.Slot.StartTime} - {savedAppointment.Slot.EndTime}</p>
                 <p><strong>Department:</strong> {savedAppointment.Doctor.DepartmentName}</p>
-                <p><strong>Service:</strong> {savedAppointment.Service.ServiceType}</p>
                 <p><strong>Note:</strong> {savedAppointment.Note}</p>
                 <p><strong>Sales:</strong> {savedAppointment.Staff?.FullName}</p>
                 ";
@@ -436,10 +431,13 @@ namespace HospitalManagement.Controllers
         {
             var doctors = await _context.Schedules
                                         .Where(s => s.Day == date)
+                                        .Include(s => s.Doctor)
                                         .Select(s => new
                                         {
                                             s.DoctorId,
-                                            DoctorName = s.Doctor.FullName
+                                            DoctorName = s.Doctor.FullName,
+                                            ProfileImage = s.Doctor.ProfileImage,
+                                            DepartmentName = s.Doctor.DepartmentName
                                         })
                                         .Distinct()
                                         .ToListAsync();
@@ -451,15 +449,21 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSlotsByDoctorAndDate(DateOnly date, int doctorId)
         {
+            var bookedSlotIds = await _context.Appointments
+                    .Where(a => a.Date == date && a.DoctorId == doctorId)
+                    .Select(a => a.SlotId)
+                    .ToListAsync();
+
             var slots = await _context.Schedules
-                                        .Where(s => s.Day == date && s.DoctorId == doctorId)
-                                        .Select(s => new
-                                        {
-                                            s.SlotId,
-                                            SlotTime = $"{s.Slot.StartTime} - {s.Slot.EndTime}"
-                                        })
-                                        .Distinct()
-                                        .ToListAsync();
+                            .Where(s => s.Day == date && s.DoctorId == doctorId)
+                            .Select(s => new
+                            {
+                                s.SlotId,
+                                SlotTime = $"{s.Slot.StartTime} - {s.Slot.EndTime}",
+                                IsBooked = bookedSlotIds.Contains(s.SlotId)
+                            })
+                            .Distinct()
+                            .ToListAsync();
             Console.WriteLine("Slots: " + string.Join(", ", slots.Select(s => s.SlotTime)));
             return Json(slots);
         }
@@ -477,7 +481,7 @@ namespace HospitalManagement.Controllers
             if (appointment == null)
             {
                 TempData["error"] = $"Can not find appointment with ID = {appointmentId}!";
-                return RedirectToAction("Index", "Appointment"); 
+                return RedirectToAction("Index", "Appointment");
             }
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
