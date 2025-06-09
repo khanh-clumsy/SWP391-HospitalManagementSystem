@@ -47,6 +47,8 @@ public class TestRepository : ITestRepository
 
         if (!string.IsNullOrEmpty(name))
         {
+
+            name = name.Trim();
             query = query.Where(t => t.Name.Contains(name));
         }
 

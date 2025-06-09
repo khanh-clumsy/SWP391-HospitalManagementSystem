@@ -27,6 +27,7 @@ namespace HospitalManagement.Repositories
 
             if (!string.IsNullOrEmpty(Name))
             {
+                Name = Name.Trim();
                 query = query.Where(a => a.Patient.FullName.Contains(Name));
             }
 
@@ -57,6 +58,7 @@ namespace HospitalManagement.Repositories
 
             if (!string.IsNullOrEmpty(Name))
             {
+                Name = Name.Trim();
                 query = query.Where(a => a.Patient.FullName.Contains(Name));
             }
 

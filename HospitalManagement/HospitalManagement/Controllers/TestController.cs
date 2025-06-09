@@ -62,7 +62,6 @@ namespace HospitalManagement.Controllers
 
             return View(test);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -73,7 +72,6 @@ namespace HospitalManagement.Controllers
                 await _testRepository.UpdateAsync(test);
                 return RedirectToAction(nameof(Index));
             }
-
             return View(test);
         }
 
@@ -87,8 +85,6 @@ namespace HospitalManagement.Controllers
             {
                 return NotFound();
             }
-
-
             await _testRepository.DeleteAsync(test);
             return RedirectToAction(nameof(Index));
         }

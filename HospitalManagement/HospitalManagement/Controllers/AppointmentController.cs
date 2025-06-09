@@ -379,5 +379,23 @@ namespace HospitalManagement.Controllers
 
             return int.TryParse(claim.Value, out var id) ? id : null;
         }
+
+
+        public IActionResult Detail(int id)
+        {
+            var appointment = _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .Include(a => a.Staff)
+                .Include(a => a.Slot)
+                .FirstOrDefault(a => a.AppointmentId == id);
+
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+
+            return View(appointment);
+        }
     }
 }
