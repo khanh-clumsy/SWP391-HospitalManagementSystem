@@ -122,6 +122,15 @@
 									{
 										<span class="badge bg-secondary">@item.Status</span>
 									}
+									<div class="mt-2">
+										<a asp-action="Detail"
+										   asp-controller="Appointment"
+										   asp-route-id="@item.AppointmentId"
+										   asp-route-userId="@item.Patient.PatientId"
+										   class="btn btn-sm btn-info">
+											<i class="fas fa-eye"></i> Detail
+										</a>
+									</div>
 								</td>
 							</tr>
 						}
@@ -139,4 +148,3 @@
 </div>
 
 <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
-
