@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Text;
 using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
@@ -308,6 +309,7 @@ namespace HospitalManagement.Controllers
                 SelectedDoctorId = doctorId ?? 0,
                 Doctors = await _context.Doctors.ToListAsync(),
                 ServiceOptions = await GetServiceListAsync(),
+                AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1))
             };
             return View(model);
         }
@@ -329,8 +331,9 @@ namespace HospitalManagement.Controllers
                     // Ghi log các lỗi
                     Console.WriteLine(error);
                 }
-                model.ServiceOptions = await GetServiceListAsync(); 
+                model.ServiceOptions = await GetServiceListAsync();
                 // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
+                TempData["error"] = "Thiếu các trường dữ liệu!";
                 return View(model);
             }
             // Lấy PatientId từ Claims
@@ -358,11 +361,16 @@ namespace HospitalManagement.Controllers
 
             }
 
-            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.SelectedDoctorId);
-            var service = await _context.Services.FirstOrDefaultAsync(d => d.ServiceId == model.SelectedServiceId);
-            
+            Doctor? doctor = null;
+            if (model.SelectedDoctorId.HasValue)
+            {
+                doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.SelectedDoctorId);
+            }
 
-            if (doctor == null || service == null) 
+            var service = await _context.Services.FirstOrDefaultAsync(d => d.ServiceId == model.SelectedServiceId);
+
+
+            if (service == null)
             {
                 TempData["error"] = "Invalid doctor or service selection!";
                 return View(model);
@@ -371,9 +379,9 @@ namespace HospitalManagement.Controllers
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
-                DoctorId = model.SelectedDoctorId,
+                DoctorId = model.SelectedDoctorId ?? null,
                 Note = model.Note,
-                SlotId = model.SelectedSlotId,
+                SlotId = model.SelectedSlotId ?? null,
                 Date = model.AppointmentDate,
                 Status = "Pending",
                 Doctor = doctor,
@@ -399,16 +407,35 @@ namespace HospitalManagement.Controllers
 
             try
             {
-                var emailBody = $@"
-                <h3>✅ New Appointment Successfully Booked!</h3>
-                <p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>
-                <p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>
-                <p><strong>Doctor:</strong> {savedAppointment.Doctor.FullName}</p>
-                <p><strong>Time:</strong> {savedAppointment.Slot.StartTime} - {savedAppointment.Slot.EndTime}</p>
-                <p><strong>Department:</strong> {savedAppointment.Doctor.DepartmentName}</p>
-                <p><strong>Note:</strong> {savedAppointment.Note}</p>
-                <p><strong>Sales:</strong> {savedAppointment.Staff?.FullName}</p>
-                ";
+                var emailBodyBuilder = new StringBuilder();
+
+                emailBodyBuilder.AppendLine("<h3>✅ New Appointment Successfully Booked!</h3>");
+                emailBodyBuilder.AppendLine($"<p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>");
+                emailBodyBuilder.AppendLine($"<p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>");
+
+                if (savedAppointment.Doctor != null)
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Doctor:</strong> {savedAppointment.Doctor.FullName}</p>");
+                    emailBodyBuilder.AppendLine($"<p><strong>Department:</strong> {savedAppointment.Doctor.DepartmentName}</p>");
+                }
+
+                if (savedAppointment.Slot != null)
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Time:</strong> {savedAppointment.Slot.StartTime} - {savedAppointment.Slot.EndTime}</p>");
+                }
+
+                if (!string.IsNullOrWhiteSpace(savedAppointment.Note))
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Note:</strong> {savedAppointment.Note}</p>");
+                }
+
+                if (savedAppointment.Staff != null)
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Sales:</strong> {savedAppointment.Staff.FullName}</p>");
+                }
+
+                var emailBody = emailBodyBuilder.ToString();
+
 
                 await _emailService.SendEmailAsync(
                     toEmail: patient.Email,
