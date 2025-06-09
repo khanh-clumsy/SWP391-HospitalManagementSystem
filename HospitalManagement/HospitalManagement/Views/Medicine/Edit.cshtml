@@ -27,12 +27,12 @@
 			<div class="col-lg-10 mx-auto">
 				<div class="card border-0 shadow-sm">
 					<div class="card-header bg-primary text-white py-3">
-						<h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Medicine Information</h4>
+						<h4 class="mb-0"><i class="fas fa-edit me-2"></i>Medicine Information</h4>
 					</div>
 					<div class="card-body p-4">
 
 						<!-- FORM TỔNG HỢP CHO TẤT CẢ THÔNG TIN -->
-						<form asp-action="Edit" asp-controller="Medicine" method="post" enctype="multipart/form-data" id="medicineEditForm">
+						<form asp-action="Edit" asp-controller="Medicine" id="photoForm" method="post" enctype="multipart/form-data" id="medicineEditForm">
 							<input type="hidden" asp-for="MedicineId" />
 
 							<div class="row mb-4">
@@ -46,16 +46,8 @@
 
 									<div class="mb-3">
 										<label asp-for="MedicineType" class="form-label fw-bold">Medicine Type <span class="text-danger">*</span></label>
-										<input type="hidden" asp-for="MedicineType"/>
-										<select asp-for="MedicineType" disabled="@(isReadonly ? "disabled" : null )" class="form-select form-select-lg" required>
+										<select asp-for="MedicineType" asp-items="ViewBag.Types" disabled="@(isReadonly ? "disabled" : null )" class="form-select form-select-lg" required>
 											<option value="">-- Select Medicine Type --</option>
-											<option value="Tablet">Tablet</option>
-											<option value="Capsule">Capsule</option>
-											<option value="Syrup">Syrup</option>
-											<option value="Injection">Injection</option>
-											<option value="Cream">Cream</option>
-											<option value="Drops">Drops</option>
-											<option value="Other">Other</option>
 										</select>
 										<span asp-validation-for="MedicineType" class="text-danger"></span>
 									</div>
@@ -71,15 +63,8 @@
 										</div>
 										<div class="col-md-6 mb-3">
 											<label asp-for="Unit" class="form-label fw-bold">Unit <span class="text-danger">*</span></label>
-											<input type="hidden" asp-for="Unit" />
-											<select asp-for="Unit" disabled="@(isReadonly ? "disabled" : null)" class="form-select" required>
+											<select asp-for="Unit" asp-items="ViewBag.Units" disabled="@(isReadonly ? "disabled" : null)" class="form-select" required>
 												<option value="">-- Select Unit --</option>
-												<option value="pill">Pill</option>
-												<option value="bottle">Bottle</option>
-												<option value="box">Box</option>
-												<option value="tube">Tube</option>
-												<option value="vial">Vial</option>
-												<option value="pack">Pack</option>
 											</select>
 											<span asp-validation-for="Unit" class="text-danger"></span>
 										</div>
@@ -98,21 +83,21 @@
 										<label class="form-label fw-bold d-block">Medicine Image</label>
 										<div class="border rounded p-3 mb-3" style="height: 250px; background-color: #f8f9fa;">
 											<img id="image-preview"
-											src="@(Model.Image != null
+												 src="@(Model.Image != null
 										 ? $"data:image/png;base64,{Model.Image}"
 										 : Url.Content("~/img/logo.jpg"))"
-											alt="@Model.Name"
-											class="img-fluid rounded"
-											style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+												 alt="@Model.Name"
+												 class="img-fluid rounded"
+												 style="max-height: 100%; max-width: 100%; object-fit: contain;" />
 										</div>
 										@if (User.IsInRole("Admin"))
 										{
-												<div class="mb-2">
-													<label for="photo" class="form-label fw-bold">Upload New Image</label>
-													<input type="file" class="form-control" name="photo" id="photo"
-													accept=".jpg, .jpeg,.png,.gif" onchange="previewImage(this)" />
-													<small class="text-muted">Supported formats: JPG, JPEG, PNG, GIF (Max: 5MB)</small>
-												</div>
+											<div class="mb-2">
+												<label for="photo" class="form-label fw-bold">Upload New Image</label>
+												<input type="file" class="form-control" name="photo" id="photoInput"
+													   accept=".jpg, .jpeg,.png,.gif" onchange="previewImage(this)" />
+												<small class="text-muted">Supported formats: JPG, JPEG, PNG, GIF (Max: 5MB)</small>
+											</div>
 										}
 									</div>
 								</div>
@@ -127,9 +112,9 @@
 								</a>
 								@if (User.IsInRole("Admin"))
 								{
-										<button type="submit" class="btn btn-primary btn-lg">
-											<i class="fas fa-save me-2"></i> Save Changes
-										</button>
+									<button type="submit" class="btn btn-primary btn-lg">
+										<i class="fas fa-save me-2"></i> Save Changes
+									</button>
 								}
 							</div>
 						</form>
@@ -153,6 +138,7 @@
 	</div>
 </div>
 
+
 <script>
 	function previewImage(input) {
 		if (input.files && input.files[0]) {
@@ -173,14 +159,6 @@
 		box-shadow: 0 0 0 0.2rem rgba(4, 99, 250, 0.25);
 	}
 
-	.was-validated .form-control:valid, .was-validated .form-select:valid {
-		border-color: #28a745;
-	}
-
-	.was-validated .form-control:invalid, .was-validated .form-select:invalid {
-		border-color: #dc3545;
-	}
-
 	#image-preview {
 		transition: all 0.3s ease;
 	}
@@ -189,10 +167,6 @@
 			transform: scale(1.05);
 		}
 
-	.card {
-		transition: all 0.3s ease;
-	}
-
 	.btn {
 		transition: all 0.3s ease;
 	}
@@ -200,8 +174,4 @@
 		.btn:hover {
 			transform: translateY(-2px);
 		}
-
-	.form-control, .form-select {
-		transition: all 0.3s ease;
-	}
 </style>

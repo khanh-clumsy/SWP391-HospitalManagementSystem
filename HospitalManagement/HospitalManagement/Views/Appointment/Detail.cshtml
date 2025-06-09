@@ -92,41 +92,41 @@
                     </div>
 
                     <!-- Medical Information -->
-                   
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="bg-white rounded p-4">
-                                    <h5 class="mb-3">
-                                        <i class="fa fa-stethoscope text-primary me-2"></i>
-                                        Medical Information
-                                    </h5>
-                                    <div class="row">
-                                        @if (!string.IsNullOrEmpty(Model.Symptoms))
-                                        {
-                                            <div class="col-md-6 mb-3">
-                                                <h6 class="text-muted">Symptoms</h6>
-                                                <p class="mb-0">@Model.Symptoms</p>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(Model.Diagnosis))
-                                        {
-                                            <div class="col-md-6 mb-3">
-                                                <h6 class="text-muted">Diagnosis</h6>
-                                                <p class="mb-0">@Model.Diagnosis</p>
-                                            </div>
-                                        }
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(Model.Note))
+
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <div class="bg-white rounded p-4">
+                                <h5 class="mb-3">
+                                    <i class="fa fa-stethoscope text-primary me-2"></i>
+                                    Medical Information
+                                </h5>
+                                <div class="row">
+                                    @if (!string.IsNullOrEmpty(Model.Symptoms))
                                     {
-                                        <div class="mt-3">
-                                            <h6 class="text-muted">Notes</h6>
-                                            <p class="mb-0">@Model.Note</p>
+                                        <div class="col-md-6 mb-3">
+                                            <h6 class="text-muted">Symptoms</h6>
+                                            <p class="mb-0">@Model.Symptoms</p>
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(Model.Diagnosis))
+                                    {
+                                        <div class="col-md-6 mb-3">
+                                            <h6 class="text-muted">Diagnosis</h6>
+                                            <p class="mb-0">@Model.Diagnosis</p>
                                         </div>
                                     }
                                 </div>
+                                @if (!string.IsNullOrEmpty(Model.Note))
+                                {
+                                    <div class="mt-3">
+                                        <h6 class="text-muted">Notes</h6>
+                                        <p class="mb-0">@Model.Note</p>
+                                    </div>
+                                }
                             </div>
                         </div>
-                    
+                    </div>
+
 
                     <!-- Payment Information -->
                     <div class="row mb-4">
@@ -170,7 +170,7 @@
                     </div>
 
                     <!-- Additional Information -->
-                    <div class="row mb-4">
+                    <div class="row mb-4">s
                         <div class="col-12">
                             <div class="bg-white rounded p-4">
                                 <h5 class="mb-3">
@@ -178,13 +178,13 @@
                                     Additional Information
                                 </h5>
                                 <div class="row">
-                                     @if (Model.Service.ServiceType != null) 
-                                     { 
-                                        <div class="col-md-4 mb-3"> 
-                                             <h6 class="text-muted">Service Type</h6> 
-                                             <p class="mb-0">@Model.Service.ServiceType</p> 
-                                         </div> 
-                                    } 
+                                    @if (Model.Service?.ServiceType != null)
+                                    {
+                                        <div class="col-md-4 mb-3">
+                                            <h6 class="text-muted">Service Type</h6>
+                                            <p class="mb-0">@Model.Service.ServiceType</p>
+                                        </div>
+                                    }
                                     @if (Model.Staff != null)
                                     {
                                         <div class="col-md-4 mb-3">

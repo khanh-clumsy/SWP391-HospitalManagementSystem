@@ -12,15 +12,22 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
-
-builder.Services.AddScoped<IBookingAppointmentRepository, BookingAppointmentRepository>();
 builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 
-
+// Add services to the container
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin() // Cho phép bất kỳ origin nào
+              .AllowAnyMethod()  // Cho phép bất kỳ phương thức HTTP (GET, POST, PUT, DELETE, v.v.)
+              .AllowAnyHeader(); // Cho phép bất kỳ header nào
+    });
+});
 
 
 // Cấu hình Authentication và Authorization
@@ -73,7 +80,7 @@ builder.Services.AddControllersWithViews()
 
 builder.Services.AddDistributedMemoryCache();
 builder.Configuration
-    .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 
 
@@ -89,6 +96,9 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
 var app = builder.Build();
+
+app.UseCors("AllowAll");  // Áp dụng CORS chính xác cho toàn bộ ứng dụng
+
 
 using (var scope = app.Services.CreateScope())
 {

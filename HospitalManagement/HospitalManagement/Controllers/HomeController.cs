@@ -51,7 +51,7 @@ namespace HospitalFETemplate.Controllers
                                  && string.IsNullOrEmpty(department)
                                  && !exp.HasValue
                                  && !isHead.HasValue
-                                 && string.IsNullOrEmpty(sort); 
+                                 && string.IsNullOrEmpty(sort);
 
             List<Doctor> doctors;
             int totalDoctors;

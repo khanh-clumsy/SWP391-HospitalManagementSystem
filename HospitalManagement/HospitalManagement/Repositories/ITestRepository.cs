@@ -1,12 +1,15 @@
 ﻿using HospitalManagement.Models;
-
-public interface ITestRepository
+namespace HospitalManagement.Repositories
 {
-    Task<IEnumerable<Test>> GetAllAsync();
-    Task<Test> GetByIdAsync(int id);
-    Task AddAsync(Test test);
-    Task UpdateAsync(Test test);
-    Task DeleteAsync(Test test);
-
-    Task<IEnumerable<Test>> SearchAsync(string name, string sortOrder, decimal? minPrice, decimal? maxPrice);
+    public interface ITestRepository
+    {
+        IEnumerable<Test> GetAll();
+        Test GetById(int id);
+        void Add(Test test);
+        void Update(Test test);
+        void Delete(int id);
+        void Save();
+        IEnumerable<Test> Search(string name, string sortOrder, decimal? minPrice, decimal? maxPrice);
+    }
 }
+
