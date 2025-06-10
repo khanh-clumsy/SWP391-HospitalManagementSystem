@@ -53,7 +53,7 @@ namespace HospitalFETemplate.Controllers
                                  && string.IsNullOrEmpty(department)
                                  && !exp.HasValue
                                  && !isHead.HasValue
-                                 && string.IsNullOrEmpty(sort); 
+                                 && string.IsNullOrEmpty(sort);
 
             List<Doctor> doctors;
             int totalDoctors;
@@ -66,7 +66,7 @@ namespace HospitalFETemplate.Controllers
             }
             else
             {
-                doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, true , pageNumber, pageSize);
+                doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, true, pageNumber, pageSize);
                 totalDoctors = await _doctorRepo.CountAsync(name, department, exp, isHead, true);
             }
 

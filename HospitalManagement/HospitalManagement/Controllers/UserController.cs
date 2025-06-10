@@ -43,7 +43,7 @@ namespace HospitalManagement.Controllers
 
             var vm = new AccountListViewModel();
 
-            List<Patient> patients = await _patientRepo.SearchAsync(name, gender, pageNumber, pageSize);    
+            List<Patient> patients = await _patientRepo.SearchAsync(name, gender, pageNumber, pageSize);
             var totalPatients = await _patientRepo.CountAsync(name, gender);
             vm.Patients = new StaticPagedList<Patient>(patients, pageNumber, pageSize, totalPatients);
 
@@ -279,12 +279,46 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            _context.Doctors.Add(doctor);
-            await _context.SaveChangesAsync();
+            // handle case add email is used exception in sqlserver
+            try
+            {
+                _context.Doctors.Add(doctor);
+                await _context.SaveChangesAsync();
+                // send account information email
+                try
+                {
+                    var emailBody = $@"
+                        <h3>✅ Welcome! Your New Employee Account Details</h3>
+                        <p><strong>Email:</strong> {model.Email}</p>
+                        <p><strong>Password:</strong> {password}</p>
+                        ";
 
+                    await _emailService.SendEmailAsync(
+                        toEmail: model.Email,
+                        subject: "✅ Your New Account Information",
+                        body: emailBody
+                    );
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Failed to send email";
+                    return View(model);
+                }
 
-            TempData["success"] = "Doctor added successfully!";
-            return RedirectToAction("ManageAccount", new { type = "Doctor" });
+                TempData["success"] = "Doctor added successfully!";
+                return RedirectToAction("ManageAccount", new { type = "Doctor" });
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException != null && ex.InnerException.Message.Contains("Cannot insert duplicate key row"))
+                {
+                    TempData["error"] = "Email is already registered.";
+                    return View(model);
+                }
+
+                TempData["error"] = "An unexpected error occurred while saving the doctor account.";
+                return View(model);
+            }
         }
 
         [HttpPost]
@@ -342,32 +376,48 @@ namespace HospitalManagement.Controllers
                 ProfileImage = model.ProfileImage
             };
 
+            
+            // handle case add email is used exception in sqlserver
             try
             {
-                var emailBody = $@"
-                <h3>✅ Welcome! Your New Account Details</h3>
-                <p><strong>Email:</strong> {model.Email}</p>
-                <p><strong>Password:</strong> {password}</p>
-                ";
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+                // send account information email
+                try
+                {
+                    var emailBody = $@"
+                    <h3>✅ Welcome! Your New Account Details</h3>
+                    <p><strong>Email:</strong> {model.Email}</p>
+                    <p><strong>Password:</strong> {password}</p>
+                    ";
 
-                await _emailService.SendEmailAsync(
-                    toEmail: model.Email,
-                    subject: "✅ Your New Account Information",
-                    body: emailBody
-                );
+                    await _emailService.SendEmailAsync(
+                        toEmail: model.Email,
+                        subject: "✅ Your New Account Information",
+                        body: emailBody
+                    );
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Failed to send email";
+                    return View(model);
+                }
+
+
+                TempData["success"] = "Patient added successfully!";
+                return RedirectToAction("ManageAccount", new { type = "Patient" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                TempData["error"] = $"Failed to send email";
+                if (ex.InnerException != null && ex.InnerException.Message.Contains("Cannot insert duplicate key row"))
+                {
+                    TempData["error"] = "Email is already registered.";
+                    return View(model);
+                }
+
+                TempData["error"] = "An unexpected error occurred while saving the patient account.";
                 return View(model);
             }
-
-            _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
-
-
-            TempData["success"] = "Patient added successfully!";
-            return RedirectToAction("ManageAccount", new { type = "Patient" });
         }
 
         [HttpPost]
@@ -426,32 +476,47 @@ namespace HospitalManagement.Controllers
                 ProfileImage = model.ProfileImage
             };
 
+            
+            // handle case add email is used exception in sqlserver
             try
             {
-                var emailBody = $@"
-                <h3>✅ Welcome! Your New Employee Account Details</h3>
-                <p><strong>Email:</strong> {model.Email}</p>
-                <p><strong>Password:</strong> {password}</p>
-                ";
+                _context.Staff.Add(staff);
+                await _context.SaveChangesAsync();
+                // send account information email
+                try
+                {
+                    var emailBody = $@"
+                    <h3>✅ Welcome! Your New Employee Account Details</h3>
+                    <p><strong>Email:</strong> {model.Email}</p>
+                    <p><strong>Password:</strong> {password}</p>
+                    ";
 
-                await _emailService.SendEmailAsync(
-                    toEmail: model.Email,
-                    subject: "✅ Your New Account Information",
-                    body: emailBody
-                );
+                    await _emailService.SendEmailAsync(
+                        toEmail: model.Email,
+                        subject: "✅ Your New Account Information",
+                        body: emailBody
+                    );
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Failed to send email";
+                    return View(model);
+                }
+
+                TempData["success"] = "Staff added successfully!";
+                return RedirectToAction("ManageAccount", new { type = "Staff" });
             }
-            catch (Exception ex)
+            catch (DbUpdateException ex)
             {
-                TempData["error"] = $"Failed to send email";
+                if (ex.InnerException != null && ex.InnerException.Message.Contains("Cannot insert duplicate key row"))
+                {
+                    TempData["error"] = "Email is already registered.";
+                    return View(model);
+                }
+
+                TempData["error"] = "An unexpected error occurred while saving the staff account.";
                 return View(model);
             }
-
-            _context.Staff.Add(staff);
-            await _context.SaveChangesAsync();
-
-
-            TempData["success"] = "Staff added successfully!";
-            return RedirectToAction("ManageAccount", new { type = "Staff" });
 
         }
         [Authorize(Roles = "Admin")]
@@ -486,15 +551,15 @@ namespace HospitalManagement.Controllers
             return View(staff);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Logout()
-        {
-            // Đăng xuất người dùng khỏi Identity (cookie authentication)
-            await HttpContext.SignOutAsync();
+        //[HttpGet]
+        //public async Task<IActionResult> Logout()
+        //{
+        //    // Đăng xuất người dùng khỏi Identity (cookie authentication)
+        //    await HttpContext.SignOutAsync();
 
-            TempData["success"] = "Logout successful!";
-            return RedirectToAction("Index", "Home");
-        }
+        //    TempData["success"] = "Logout successful!";
+        //    return RedirectToAction("Index", "Home");
+        //}
         public static string NormalizeName(string? input)
         {
             if (string.IsNullOrEmpty(input))

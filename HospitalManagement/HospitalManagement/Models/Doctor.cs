@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 
 namespace HospitalManagement.Models;
 
@@ -16,9 +15,9 @@ public partial class Doctor
 
     public string? PhoneNumber { get; set; }
 
-    public string? DepartmentName { get; set; } = null!;
+    public string DepartmentName { get; set; } = null!;
 
-    public bool? IsDepartmentHead { get; set; }
+    public bool IsDepartmentHead { get; set; }
 
     public int ExperienceYear { get; set; }
 
@@ -35,7 +34,6 @@ public partial class Doctor
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
-
     public string GetFullGender()
     {
         if (this.Gender == "M")

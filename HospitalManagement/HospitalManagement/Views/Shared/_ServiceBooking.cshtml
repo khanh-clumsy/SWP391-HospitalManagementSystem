@@ -1,0 +1,12 @@
+﻿@model HospitalManagement.ViewModels.BookingApointmentViewModel
+
+<!-- Gói khám: chỉ chọn dịch vụ -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <label for="SelectedServiceId" class="form-label">Chọn Gói Khám</label>
+        <select asp-for="SelectedServiceId" asp-items="Model.ServiceOptions" class="form-select">
+            <option value="">-- Chọn dịch vụ --</option>
+        </select>
+        <span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+    </div>
+</div>

@@ -6,18 +6,19 @@ using Microsoft.AspNetCore.Authentication.Google;
 using HospitalManagement.Services;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+builder.Services.AddScoped<ITestRepository, TestRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 
-
+// Add services to the container
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -27,7 +28,6 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader(); // Cho phép bất kỳ header nào
     });
 });
-
 
 
 // Cấu hình Authentication và Authorization
@@ -46,7 +46,20 @@ builder.Services.AddAuthentication(options =>
 {
     options.ClientId = builder.Configuration["GoogleKeys:ClientId"];
     options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
+    options.CallbackPath = "/signin-google";
 
+    options.Events.OnRemoteFailure = context =>
+    {
+        var error = context.Request.Query["error"].ToString();
+
+        if (!string.IsNullOrEmpty(error))
+        {
+            context.Response.Redirect("/Auth/Login?error=Fail%20To%20Login%20Google");
+        }
+
+        context.HandleResponse();
+        return Task.CompletedTask;
+    };
 
 
     options.Events.OnRedirectToAuthorizationEndpoint = context =>
@@ -64,9 +77,6 @@ builder.Services.AddAuthorization();
 // Các dịch vụ khác
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson();
-
-builder.Services.AddDbContext<HospitalManagementContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddDistributedMemoryCache();
 builder.Configuration

@@ -1,5 +1,4 @@
 ﻿
-﻿
 <!DOCTYPE html>
 <html lang="en">
 
@@ -31,7 +30,7 @@
 	<link href="/css/bootstrap.min.css" rel="stylesheet">
 
 	<!-- Template Stylesheet -->
-	<link href="/css/style.css" rel="stylesheet">
+	<link href="~/css/style.css" rel="stylesheet">
 
 	<style>
 		.popup-alert {
@@ -41,6 +40,7 @@
 			right: 5px;
 		}
 	</style>
+	@await RenderSectionAsync("Styles", required: false)
 </head>
 
 
@@ -129,7 +129,6 @@
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">My Appointments</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
 								<a class="dropdown-item" asp-controller="Patient" asp-action="UpdateProfile">Update Profile</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test List</a>
 								<a class="dropdown-item" asp-controller="Patient" asp-action="ChangePassword">Change Password</a>
 								<a class="dropdown-item" asp-controller="Patient" asp-action="Logout">Logout</a>
 							</div>
@@ -150,8 +149,6 @@
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Update Profile</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Change Password</a>
-
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test List</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Logout</a>
 							</div>
 						</div>
@@ -339,6 +336,9 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
 	@await RenderSectionAsync("Scripts", required: false)
+
 </body>
 
 </html>
+
+

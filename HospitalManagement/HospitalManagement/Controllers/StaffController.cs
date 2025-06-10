@@ -1,5 +1,4 @@
-﻿
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using HospitalManagement.Models;
 using HospitalManagement.Data;
@@ -74,7 +73,7 @@ namespace HospitalManagement.Controllers
             if (staffIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
-            }
+            }   
 
             int StaffId = int.Parse(staffIdClaim);
 
