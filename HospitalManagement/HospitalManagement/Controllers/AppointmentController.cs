@@ -365,12 +365,41 @@ namespace HospitalManagement.Controllers
                 doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.SelectedDoctorId);
             }
 
+            Slot? slot = null;
+            if (model.SelectedSlotId.HasValue)
+            {
+                slot = await _context.Slots.FirstOrDefaultAsync(d => d.SlotId == model.SelectedSlotId);
+            }
+
             var service = await _context.Services.FirstOrDefaultAsync(d => d.ServiceId == model.SelectedServiceId);
-
-
             if (service == null)
             {
+                model.ServiceOptions = await GetServiceListAsync();
                 TempData["error"] = "Invalid doctor or service selection!";
+                return View(model);
+            }
+
+            bool exists = false;
+            if (doctor == null && slot == null)
+            {
+                exists = _context.Appointments.Any(a =>
+                        a.PatientId == patientId &&
+                        a.Date == model.AppointmentDate);
+            }
+            else
+            {
+                exists = _context.Appointments.Any(a =>
+                        a.DoctorId == model.SelectedDoctorId &&
+                        a.PatientId == patientId &&
+                        a.Date == model.AppointmentDate &&
+                        a.SlotId == model.SelectedSlotId);
+            }
+
+            if (exists)
+            {
+                ModelState.Clear();
+                model.ServiceOptions = await GetServiceListAsync();
+                TempData["error"] = $"Đã có appointment rồi!";
                 return View(model);
             }
 

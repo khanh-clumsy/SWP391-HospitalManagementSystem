@@ -1,5 +1,4 @@
 ﻿
-
 // Toggle between Service and Doctor forms
 $('.toggle-btn').on('click', function () {
     $('.toggle-btn').removeClass('active');
@@ -26,6 +25,8 @@ $('.toggle-btn').on('click', function () {
 
     if (type === 'service' && $('#appointmentDate').val()) {
         console.log('Service mode: Showing service-dropdown and note-area');
+        $('.service-dropdown').show();
+        $('.note-area').show();
     } else if (type === 'doctor' && $('#appointmentDate').val()) {
         console.log('Doctor mode: Triggering date change');
         $('#appointmentDate').trigger('change');
@@ -184,6 +185,8 @@ $(document).on('input', '#noteDoctor', function () {
     $('#modelNote').val(note); // Sync with the model-bound input
 });
 
+
+
 // Enable submit button when all required fields are filled
 function updateSubmitButton() {
     const isServiceMode = $('#serviceForm').is(':visible');
@@ -191,13 +194,18 @@ function updateSubmitButton() {
     let isValid = false;
 
     if (isServiceMode) {
-        isValid = $('#appointmentDate').val() && $('#serviceDropdown').val();
+        isValid = $('#appointmentDate').val() && $('#serviceDropdown').val() && $('#noteService').val();
     } else if (isDoctorMode) {
-        isValid = $('#appointmentDate').val() && $('#SelectedDoctorId').val() && $('#SelectedSlotId').val() && $('#serviceDropdownDoctor').val();
+        isValid = $('#appointmentDate').val() && $('#SelectedDoctorId').val() && $('#SelectedSlotId').val() && $('#serviceDropdownDoctor').val() && $('#noteDoctor').val();
     }
 
     $('.submit-btn').prop('disabled', !isValid);
 }
+
+$('.submit-btn').on('click', function () {
+    $(this).prop('disabled', true);
+    $('#appointmentForm').submit();
+});
 
 // Update submit button on input changes
 $('#appointmentDate, #serviceDropdown, #serviceDropdownDoctor, .time-slot.available, #noteService, #noteDoctor').on('change input click', updateSubmitButton);
