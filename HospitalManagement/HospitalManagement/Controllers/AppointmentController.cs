@@ -306,8 +306,6 @@ namespace HospitalManagement.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 SelectedDoctorId = doctorId ?? 0,
-                DoctorOptions = await GetDoctorListAsync(),
-                SlotOptions = await GetSlotListAsync(),
                 ServiceOptions = await GetServiceListAsync(),
                 AppointmentDate = DateOnly.Parse("1/1/2000")
             };
@@ -319,8 +317,7 @@ namespace HospitalManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Booking(BookingApointmentViewModel model)
         {
-            ModelState.Remove(nameof(model.DoctorOptions));
-            ModelState.Remove(nameof(model.SlotOptions));
+           
             ModelState.Remove(nameof(model.ServiceOptions));
             if (!ModelState.IsValid)
             {
@@ -331,8 +328,6 @@ namespace HospitalManagement.Controllers
                     Console.WriteLine(error);
                 }
                 // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
-                model.DoctorOptions = await GetDoctorListAsync();
-                model.SlotOptions = await GetSlotListAsync();
                 model.ServiceOptions = await GetServiceListAsync();
                 return View(model);
             }
@@ -549,6 +544,10 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
+                .Include(a => a.MedicineLists)
+                .ThenInclude(a => a.Medicine)
+                .Include(a => a.TestLists)
+                .ThenInclude(a => a.Test)
                 .FirstOrDefault(a => a.AppointmentId == id);
 
             if (appointment == null)
