@@ -319,8 +319,6 @@ namespace HospitalManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Booking(BookingApointmentViewModel model)
         {
-            ModelState.Remove(nameof(model.DoctorOptions));
-            ModelState.Remove(nameof(model.SlotOptions));
             ModelState.Remove(nameof(model.ServiceOptions));
             if (!ModelState.IsValid)
             {
