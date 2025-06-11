@@ -30,7 +30,7 @@
 	<link href="/css/bootstrap.min.css" rel="stylesheet">
 
 	<!-- Template Stylesheet -->
-	<link href="/css/style.css" rel="stylesheet">
+	<link href="~/css/style.css" rel="stylesheet">
 
 	<style>
 		.popup-alert {
@@ -40,6 +40,7 @@
 			right: 5px;
 		}
 	</style>
+	@await RenderSectionAsync("Styles", required: false)
 </head>
 
 
@@ -335,6 +336,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
 	@await RenderSectionAsync("Scripts", required: false)
+
 </body>
 
 </html>

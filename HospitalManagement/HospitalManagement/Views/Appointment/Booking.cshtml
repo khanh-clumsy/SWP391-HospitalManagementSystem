@@ -1,230 +1,164 @@
-﻿@using HospitalManagement.ViewModels
+﻿@model HospitalManagement.ViewModels.BookingApointmentViewModel
 @{
+	ViewData["Title"] = "Booking";
 	var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 	var isReadonly = !string.IsNullOrEmpty(Model.Name);
 }
-@model BookingApointmentViewModel
 
-<!-- Page Header Start -->
-<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
-	<div class="container py-5">
-		<h1 class="display-3 text-white mb-3 animated slideInDown">Appointment</h1>
-		<nav aria-label="breadcrumb animated slideInDown">
-			<ol class="breadcrumb text-uppercase mb-0">
-				<li class="breadcrumb-item"><a class="text-white" href="#">Home</a></li>
-				<li class="breadcrumb-item"><a class="text-white" href="#">Pages</a></li>
-				<li class="breadcrumb-item text-primary active" aria-current="page">Appointment</li>
-			</ol>
-		</nav>
-	</div>
-</div>
-<!-- Page Header End -->
-<!-- Appointment Start -->
+@section Styles {
+	<link rel="stylesheet" href="~/css/booking.css" />
+}
+
 <div class="container-xxl py-5">
 	<div class="container">
-		<div class="row g-5">
-			<div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
-				<p class="d-inline-block border rounded-pill py-1 px-4">Appointment</p>
-				<h1 class="mb-4">Make An Appointment To Visit Our Doctor</h1>
-				<p class="mb-4">Tempor erat elitr rebum at clita. Diam dolor diam ipsum sit. Aliqu diam amet diam et eos...</p>
-				<div class="bg-light rounded d-flex align-items-center p-5 mb-4">
-					<div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-white" style="width: 55px; height: 55px;">
-						<i class="fa fa-phone-alt text-primary"></i>
-					</div>
-					<div class="ms-4">
-						<p class="mb-2">Call Us Now</p>
-						<h5 class="mb-0">+012 345 6789</h5>
-					</div>
-				</div>
-				<div class="bg-light rounded d-flex align-items-center p-5">
-					<div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-white" style="width: 55px; height: 55px;">
-						<i class="fa fa-envelope-open text-primary"></i>
-					</div>
-					<div class="ms-4">
-						<p class="mb-2">Mail Us Now</p>
-						<h5 class="mb-0">info@example.com</h5>
-					</div>
-				</div>
-			</div>
-			<!-- Form Request Consultant -->
-			<div class="col-lg-6 wow fadeInUp" data-wow-delay="0.5s">
-				<div class="bg-light rounded h-100 d-flex align-items-center p-5">
-					<form asp-action="Booking" asp-controller="Appointment" method="post" style="width: 100%;">
-						<div class="row g-3">
-							<!-- Name field - Full width -->
-							<div class="col-12">
-								@if (isReadonly)
-								{
-									<input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" readonly="readonly" />
-								}
-								else
-								{
-									<input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" />
-								}
-							</div>
-
-							<!-- Email and Phone on same row -->
-							<div class="col-12 col-sm-6">
-								@if (isReadonly)
-								{
-									<input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" readonly="readonly" />
-								}
-								else
-								{
-									<input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" />
-								}
-							</div>
-							<div class="col-12 col-sm-6">
-								@if (isReadonly)
-								{
-									<input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" readonly="readonly" />
-								}
-								else
-								{
-									<input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" />
-								}
-							</div>
-
-							<!-- Appointment Date - hàng riêng bên dưới -->
-							<div class="col-12 mt-3">
-								<input asp-for="AppointmentDate" id="appointmentDate" type="date" class="form-control" min="@minDate" required />
-								<span asp-validation-for="AppointmentDate" class="text-danger"></span>
-							</div>
-
-
-							<!-- Doctor và Slot - hàng đầu -->
-							<div class="col-12 d-flex gap-3">
-								<!-- Doctor Dropdown -->
-								<div class="flex-grow-1">
-									<select asp-for="SelectedDoctorId" asp-items="Model.DoctorOptions" id="doctorSelect" class="form-select" required>
-										<option value="">-- Select Doctor --</option>
-									</select>
-									<span asp-validation-for="SelectedDoctorId" class="text-danger"></span>
-								</div>
-
-								<!-- Slot Dropdown -->
-								<div class="flex-grow-1">
-									<select asp-for="SelectedSlotId" asp-items="Model.SlotOptions" id="slotSelect" class="form-select" required>
-										<option value="">-- Select Slot --</option>
-									</select>
-									<span asp-validation-for="SelectedSlotId" class="text-danger"></span>
-
-								</div>
-							</div>
-
-							<div class="col-12">
-								<select asp-for="SelectedServiceId" asp-items="Model.ServiceOptions" class="form-select">
-									<option value="">-- Select Service --</option>
-								</select>
-								<span asp-validation-for="SelectedServiceId" class="text-danger"></span>
-							</div>
-
-							<!-- Large text area -->
-							<div class="col-12">
-								<textarea asp-for="Note" class="form-control" rows="8" placeholder="Describe your problem"></textarea>
-								<span asp-validation-for="Note" class="text-danger"></span>
-
-							</div>
-
-							<!-- Submit button -->
-							<div class="col-12">
-								<button class="btn btn-primary w-100 py-3" type="submit">Booking Appointment!</button>
-							</div>
-						</div>
-					</form>
-				</div>
-			</div>
-			<!--Form end-->
+		<div class="form-header text-center mb-4">
+			<h2><i class="fas fa-calendar-alt text-primary me-2"></i>Đặt Lịch Hẹn</h2>
+			<p>Chọn dịch vụ và bác sĩ phù hợp cho cuộc hẹn của bạn</p>
+			<p>
+				Nếu chọn khám theo gói khám, bạn sẽ chỉ cần chi trả số tiền ứng với dịch vụ của bạn đã chọn.
+				Nếu muốn chỉ định bác sĩ, bạn cần thêm phí dịch vụ: 500k cho bác sĩ, 1000k cho trưởng khoa
+			</p>
 
 		</div>
 
+		<div class="toggle-group mb-4">
+			<button type="button" class="toggle-btn active" data-type="service">Gói Khám</button>
+			<button type="button" class="toggle-btn" data-type="doctor">Bác Sĩ</button>
+		</div>
+
+		<form asp-action="Booking" asp-controller="Appointment" method="post" id="appointmentForm">
+			@Html.AntiForgeryToken()
+			<!-- Thông tin bệnh nhân -->
+			<div class="section-title mb-3">
+				<h3 class="section-title">
+					<i class="fas fa-user me-2 text-primary"></i>Thông Tin Cá Nhân
+				</h3>
+			</div>
+			<div class="row g-3 mb-4">
+				<div class="col-12">
+					<input asp-for="Name" class="form-control" placeholder="Họ và tên" style="height: 55px;" readonly="@(isReadonly ? "readonly" : null)" />
+					<span asp-validation-for="Name" class="text-danger"></span>
+				</div>
+				<div class="col-12 col-sm-6">
+					<input asp-for="Email" class="form-control" placeholder="Email" style="height: 55px;" readonly="@(isReadonly ? "readonly" : null)" />
+					<span asp-validation-for="Email" class="text-danger"></span>
+				</div>
+				<div class="col-12 col-sm-6">
+					<input asp-for="PhoneNumber" class="form-control" placeholder="Số điện thoại" style="height: 55px;" readonly="@(isReadonly ? "readonly" : null)" />
+					<span asp-validation-for="PhoneNumber" class="text-danger"></span>
+				</div>
+			</div>
+
+			<!-- Appointment Date -->
+			<div class="section-title mb-3">
+				<h3 class="section-title">
+					<i class="fas fa-calendar-day me-2 text-primary"></i>Chọn Ngày Khám
+				</h3>
+			</div>
+			<div class="row g-3 mb-4">
+				<div class="col-12">
+					<input asp-for="AppointmentDate" id="appointmentDate" type="date" class="form-control" min="@minDate" required />
+					<span asp-validation-for="AppointmentDate" class="text-danger"></span>
+				</div>
+			</div>
+
+			<!-- Gói khám (Service Form) -->
+			<div id="serviceForm" class="mb-4">
+				<div class="section-title mb-3 service-dropdown">
+					<h3 class="section-title">
+						<i class="fas fa-briefcase-medical me-2 text-primary"></i>Chọn Gói Khám
+					</h3>
+				</div>
+				<div class="row g-3 mb-4 service-dropdown">
+					<div class="col-12">
+						<select asp-for="SelectedServiceId" asp-items="Model.ServiceOptions" id="serviceDropdown" class="form-select" required>
+							<option value="">-- Chọn dịch vụ --</option>
+						</select>
+						<span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+					</div>
+				</div>
+				<div class="section-title mb-3 note-area">
+					<h3 class="section-title">
+						<i class="fas fa-notes-medical me-2 text-primary"></i>Ghi Chú Khám Bệnh (Tùy chọn)
+					</h3>
+				</div>
+				<div class="mb-4 note-area">
+					<label for="noteService" class="form-label fw-semibold">
+						<i class="me-2 text-primary"></i>Ghi chú thêm (triệu chứng, yêu cầu...)
+					</label>
+					<textarea id="noteService" class="form-control" rows="5" placeholder="Bạn có thể mô tả sơ qua tình trạng sức khỏe, triệu chứng hiện tại hoặc ghi chú đặc biệt nếu có..."></textarea>
+					<span class="text-danger" id="noteServiceValidation"></span>
+				</div>
+			</div>
+
+			<!-- Bác sĩ (Doctor Form) -->
+			<div id="doctorForm" style="display: none;">
+				<input type="hidden" id="SelectedDoctorId" name="SelectedDoctorId" />
+				<input type="hidden" id="SelectedSlotId" name="SelectedSlotId" />
+
+				<div class="section-title mb-3 doctor-section" style="display: none;">
+					<h3 class="section-title">
+						<i class="fas fa-stethoscope me-2 text-primary"></i>Chọn Bác Sĩ
+					</h3>
+					<div class="doctor-carousel">
+						<button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+							<i class="fas fa-chevron-left"></i>
+						</button>
+						<div class="doctor-scroll-container">
+							<div class="doctor-list" id="doctorList"></div>
+						</div>
+						<button type="button" class="carousel-nav next" onclick="nextDoctor()">
+							<i class="fas fa-chevron-right"></i>
+						</button>
+					</div>
+				</div>
+
+				<div class="section-title mb-3" id="chooseTimeTitle" style="display: none;">
+					<h3 class="section-title">
+						<i class="fas fa-clock me-2 text-primary"></i>Chọn Giờ Khám
+					</h3>
+				</div>
+				<div id="time-slots-container" class="time-slots-grid"></div>
+
+				<div class="section-title mb-3 service-dropdown" style="display: none; margin-top: 2%">
+					<h3 class="section-title">
+						<i class="fas fa-briefcase-medical me-2 text-primary"></i>Chọn Dịch Vụ
+					</h3>
+				</div>
+				<div class="row g-3 mb-4 service-dropdown" style="display: none;">
+					<div class="col-12">
+						<select id="serviceDropdownDoctor" asp-items="Model.ServiceOptions" class="form-select" required>
+							<option value="">-- Chọn dịch vụ --</option>
+						</select>
+						<span class="text-danger" id="serviceDropdownDoctorValidation"></span>
+					</div>
+				</div>
+
+				<div class="section-title mb-3 note-area" style="display: none;">
+					<h3 class="section-title">
+						<i class="fas fa-notes-medical me-2 text-primary"></i>Ghi Chú Khám Bệnh (Tùy chọn)
+					</h3>
+				</div>
+				<div class="mb-4 note-area" style="display: none;">
+					<label for="noteDoctor" class="form-label fw-semibold">
+						<i class="me-2 text-primary"></i>Ghi chú thêm (triệu chứng, yêu cầu...)
+					</label>
+					<textarea id="noteDoctor" class="form-control" rows="5" placeholder="Bạn có thể mô tả sơ qua tình trạng sức khỏe, triệu chứng hiện tại hoặc ghi chú đặc biệt nếu có..."></textarea>
+					<span class="text-danger" id="noteDoctorValidation"></span>
+				</div>
+			</div>
+
+			<!-- Hidden model-bound Note field -->
+			<input type="hidden" asp-for="Note" id="modelNote" />
+
+			<div class="submit-section text-center">
+				<button type="submit" class="submit-btn" disabled>
+					<i class="fas fa-check me-2"></i>Đặt Lịch Hẹn
+				</button>
+			</div>
+		</form>
 	</div>
-@* </div> *@
-@* @section Scripts { *@
-
-@* 	<!-- Appointment End --> *@
-@* 	<script> *@
-
-@* 				$(document).ready(function() { *@
-@* 			// Disable dropdowns when the page loads *@
-@* 			$('#doctorSelect').prop('disabled', true); *@
-@* 			$('#slotSelect').prop('disabled', true); *@
-
-@* 			// Khi chọn ngày *@
-@* 			$('#appointmentDate').on('change', function() { *@
-@* 				var selectedDate = $(this).val();  // Lấy giá trị ngày đã chọn *@
-@* 				console.log("Selected Date: ", selectedDate); *@
-
-@* 				if (selectedDate) { *@
-@* 					// Khi đã chọn ngày, kích hoạt dropdown bác sĩ *@
-@* 					$('#doctorSelect').prop('disabled', false); *@
-
-@* 					$.ajax({ *@
-@* 						url: '/Appointment/GetDoctorsByDate', *@
-@* 						type: 'GET', *@
-@* 						data: { date: selectedDate }, *@
-@* 						success: function(data) { *@
-@* 							console.log(data); *@
-@* 							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
-@* 							$.each(data, function(i, doctor) { *@
-@* 								$('#doctorSelect').append(`<option value="${doctor.doctorId}">${doctor.doctorName}</option>`); *@
-@* 							}); *@
-@* 						}, *@
-@* 						error: function(xhr, status, error) { *@
-@* 							console.log("AJAX Error: " + status + " - " + error); *@
-@* 							console.log(xhr.responseText);  // Xem chi tiết lỗi trả về *@
-@* 						} *@
-@* 					}); *@
-@* 				} else { *@
-@* 					// Nếu không chọn ngày, vô hiệu hóa dropdown bác sĩ và slot *@
-@* 					$('#doctorSelect').prop('disabled', true); *@
-@* 					$('#slotSelect').prop('disabled', true); *@
-@* 					$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
-@* 					$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>');  // Reset slot dropdown *@
-@* 				} *@
-@* 			}); *@
-
-@* 			// Khi chọn bác sĩ *@
-@* 			$('#doctorSelect').on('change', function() { *@
-@* 				var selectedDate = $('#appointmentDate').val();  // Lấy giá trị ngày đã chọn *@
-@* 				var doctorId = $(this).val();  // Lấy doctorId từ dropdown *@
-@* 				if (selectedDate && doctorId) { *@
-@* 					$('#slotSelect').prop('disabled', false);  // Kích hoạt dropdown slot *@
-
-@* 					$.ajax({ *@
-@* 						url: '/Appointment/GetSlotsByDoctorAndDate', *@
-@* 						type: 'GET', *@
-@* 						data: { date: selectedDate, doctorId: doctorId }, *@
-@* 						success: function(data) { *@
-@* 							$('#slotSelect').empty().append('<option value="">-- Select Slot --</option>'); *@
-@* 							$.each(data, function(i, slot) { *@
-@* 								$('#slotSelect').append(`<option value="${slot.slotId}">${slot.slotTime}</option>`); *@
-@* 							}); *@
-@* 						} *@
-@* 					}); *@
-@* 				} *@
-@* 			}); *@
-
-@* 			// Khi chọn slot *@
-@* 			$('#slotSelect').on('change', function() { *@
-@* 				var selectedDate = $('#appointmentDate').val();  // Lấy giá trị ngày đã chọn *@
-@* 				var slotId = $(this).val();  // Lấy slotId từ dropdown *@
-@* 				if (selectedDate && slotId) { *@
-@* 					$.ajax({ *@
-@* 						url: '/Appointment/GetDoctorsBySlot', *@
-@* 						type: 'GET', *@
-@* 						data: { date: selectedDate, slotId: slotId }, *@
-@* 						success: function(data) { *@
-@* 							$('#doctorSelect').empty().append('<option value="">-- Select Doctor --</option>'); *@
-@* 							$.each(data, function(i, doctor) { *@
-@* 								$('#doctorSelect').append(`<option value="${doctor.doctorId}">${doctor.doctorName}</option>`); *@
-@* 							}); *@
-@* 						} *@
-@* 					}); *@
-@* 				} *@
-@* 			}); *@
-@* 		}); *@
-
-@* 	</script> *@
-
-@*  } *@
+</div>
+@section Scripts {
+	<script src="~/js/booking.js"></script>
+}

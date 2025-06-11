@@ -195,13 +195,14 @@
 					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
 				}
 			}
-
+			@if(Model.PageCount>1)
+			{
 			<div class="d-flex justify-content-center mt-5">
 				<nav>
 					<ul class="pagination">
 
 						@* Previous button *@
-						<li class="page-item @(Model.HasPreviousPage ? "" : "	")">
+						<li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
 							<a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("ViewDoctors", new {
 											page = Model.PageNumber - 1,
 											name = ViewBag.Name,
@@ -276,6 +277,7 @@
 					</ul>
 				</nav>
 			</div>
+			}
 			<!-- Pagination end -->
 
 		</div>

@@ -2,6 +2,7 @@
 using HospitalManagement.Repositories;
 using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
 using X.PagedList;
 
@@ -44,6 +45,7 @@ namespace HospitalFETemplate.Controllers
          */
         public async Task<IActionResult> ViewDoctors(int? page, string? name, string? department, int? exp, bool? isHead, string? sort)
         {
+            name = HomeController.NormalizeName(name);
             int pageSize = 8;
             int pageNumber = page ?? 1;
 
@@ -60,12 +62,12 @@ namespace HospitalFETemplate.Controllers
             {
                 // Lấy tất cả bác sĩ, ưu tiên isSpecial = 1 lên trước
                 doctors = await _doctorRepo.GetAllDoctorsWithSpecialFirstAsync(pageNumber, pageSize);
-                totalDoctors = await _doctorRepo.CountAllDoctorsAsync();
+                totalDoctors = await _doctorRepo.CountAllActiveDoctorsAsync();
             }
             else
             {
-                doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, pageNumber, pageSize);
-                totalDoctors = await _doctorRepo.CountAsync(name, department, exp, isHead);
+                doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, true, pageNumber, pageSize);
+                totalDoctors = await _doctorRepo.CountAsync(name, department, exp, isHead, true);
             }
 
             var pagedDoctors = new StaticPagedList<Doctor>(doctors, pageNumber, pageSize, totalDoctors);
@@ -90,6 +92,15 @@ namespace HospitalFETemplate.Controllers
                 return NotFound();
             }
             return View(doctor);
+        }
+        public static string NormalizeName(string? input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = input.Trim();
+            var words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return string.Join(" ", words);
         }
     }
 }

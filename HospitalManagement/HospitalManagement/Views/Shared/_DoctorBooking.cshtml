@@ -1,0 +1,48 @@
+﻿@model HospitalManagement.ViewModels.BookingApointmentViewModel
+
+<!-- Bác sĩ: chọn bác sĩ và dịch vụ -->
+<div class="doctor-section mb-4">
+	<h3 class="section-title">
+		<i class="fas fa-stethoscope me-2 text-primary"></i>Chọn Bác Sĩ
+	</h3>
+	<div class="doctor-carousel">
+		<button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+			<i class="fas fa-chevron-left"></i>
+		</button>
+		<div class="doctor-scroll-container">
+			<div class="doctor-list" id="doctorList">
+				@if (Model.Doctors != null)
+				{
+					foreach (var doctor in Model.Doctors)
+					{
+						<div class="card text-center shadow-sm doctor-card" data-doctor-id="@doctor.DoctorId" style="min-width: 180px;">
+							<div class="card-body">
+								<img src="@(doctor.ProfileImage != null ? $"data:image/png;base64,{doctor.ProfileImage}" : Url.Content("~/img/logo.jpg"))" class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
+								<h6 class="card-title">@doctor.FullName</h6>
+								<p class="text-muted small">@doctor.DepartmentName</p>
+							</div>
+						</div>
+					}
+				}
+			</div>
+		</div>
+		<button type="button" class="carousel-nav next" onclick="nextDoctor()">
+			<i class="fas fa-chevron-right"></i>
+		</button>
+	</div>
+</div>
+
+<div id="schedule" style="display: none;">
+	<partial name="_Schedule" model="Model" />
+</div>
+
+<!-- Chọn dịch vụ kèm theo -->
+<div class="row g-3 mb-4">
+	<div class="col-12">
+		<label for="SelectedServiceId" class="form-label">Chọn Dịch Vụ</label>
+		<select asp-for="SelectedServiceId" asp-items="Model.ServiceOptions" class="form-select">
+			<option value="">-- Chọn dịch vụ --</option>
+		</select>
+		<span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+	</div>
+</div>

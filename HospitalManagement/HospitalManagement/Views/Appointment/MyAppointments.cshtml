@@ -85,6 +85,7 @@
 						<th>Day</th>
 						<th>Start Time</th>
 						<th>End Time</th>
+						<th>Status</th>
 						<th>Action</th>
 					</tr>
 				</thead>
@@ -99,12 +100,12 @@
 								<td>@item.Patient.Email</td>
 								<td>@item.Patient.PhoneNumber</td>
 								<td>@item.Note</td>
-								<th>@item.Doctor.FullName</th>
-								<th>@item.Doctor.DepartmentName</th>
+								<th>@(item.Doctor?.FullName ?? "N/A")</th>
+								<th>@(item.Doctor?.DepartmentName ?? "N/A")</th>
 								<th>@(item.Staff?.FullName ?? "N/A")</th>
 								<td>@item.Date</td>
-								<td>@item.Slot.StartTime.ToString("hh\\:mm")</td>
-								<td>@item.Slot.EndTime.ToString("hh\\:mm")</td>
+								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
+								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>
 								<td>
 									@if (item.Status == "Pending")
 									{
@@ -123,6 +124,17 @@
 										<span class="badge bg-secondary">@item.Status</span>
 									}
 								</td>
+								<td>
+									<div class="mt-2">
+										<a asp-action="Detail"
+										   asp-controller="Appointment"
+										   asp-route-id="@item.AppointmentId"
+										   asp-route-userId="@item.Patient.PatientId"
+										   class="btn btn-sm btn-info">
+											<i class="fas fa-eye"></i> Detail
+										</a>
+									</div>
+								</td>
 							</tr>
 						}
 					}
@@ -137,6 +149,4 @@
 		</div>
 	</div>
 </div>
-
-<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
 
