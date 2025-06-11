@@ -25,41 +25,49 @@
 			<h2 class="text-primary">Appointment List</h2>
 		</div>
 
-		<!-- Filter Form -->
-		<form method="get" asp-action="Filter" asp-controlle="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">
+		<form method="get" asp-action="Filter" asp-controller="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">
+			<!-- Tìm kiếm theo tên bệnh nhân -->
 			<div class="input-group" style="width: 250px;">
-				<input type="text" name="SearchName" class="form-control" placeholder="Search by patient name" />
+				<input type="text" name="SearchName" value="@ViewBag.SearchName" class="form-control" placeholder="Search by patient name" />
 				<span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
 			</div>
 
+			<!-- Lọc theo Slot -->
 			<select name="SlotFilter" class="form-select" style="width: 150px;">
 				<option value="">Select slot</option>
 				@if (ViewBag.SlotOptions != null)
 				{
 					foreach (var slot in ViewBag.SlotOptions)
 					{
+						var isSelected = ViewBag.SlotFilter != null && ViewBag.SlotFilter == slot.SlotId.ToString();
 						var timeLabel = $"{slot.StartTime:hh\\:mm} - {slot.EndTime:hh\\:mm}";
-						<option value="@slot.SlotId">@timeLabel</option>
+						<option value="@slot.SlotId" selected="@(isSelected ? "selected" : null)">@timeLabel</option>
 					}
 				}
 				else
 				{
 					<option disabled selected>No slots available</option>
 				}
-
 			</select>
 
-			<input type="date" name="DateFilter" class="form-control" style="width: 180px;" />
+			<!-- Lọc theo ngày -->
+			<input type="date" name="DateFilter" value="@ViewBag.DateFilter" class="form-control" style="width: 180px;" />
 
+			<!-- Lọc theo trạng thái -->
 			<select name="StatusFilter" class="form-select" style="width: 150px;">
-				<option value="">All Status</option>
-				<option value="Done">Done</option>
-				<option value="Pending">Pending</option>
-				<option value="Expired">Expired</option>
+				<option value="" selected="@(ViewBag.StatusFilter == null ? "selected" : null)">All Status</option>
+				<option value="Done" selected="@(ViewBag.StatusFilter == "Done" ? "selected" : null)">Done</option>
+				<option value="Pending" selected="@(ViewBag.StatusFilter == "Pending" ? "selected" : null)">Pending</option>
+				<option value="Expired" selected="@(ViewBag.StatusFilter == "Expired" ? "selected" : null)">Expired</option>
 			</select>
 
+			<!-- Nút lọc -->
 			<button type="submit" class="btn btn-primary">Filter</button>
+			<a asp-controller="Appointment" asp-action="MyAppointments" class="btn btn-outline-secondary">
+				<i class="fas fa-times me-1"></i>Clear
+			</a>
 		</form>
+
 
 		<!-- Appointment Table -->
 		<div class="table-responsive">
@@ -77,6 +85,7 @@
 						<th>Day</th>
 						<th>Start Time</th>
 						<th>End Time</th>
+						<th>Status</th>
 						<th>Action</th>
 					</tr>
 				</thead>
@@ -91,12 +100,12 @@
 								<td>@item.Patient.Email</td>
 								<td>@item.Patient.PhoneNumber</td>
 								<td>@item.Note</td>
-								<th>@item.Doctor.FullName</th>
-								<th>@item.Doctor.DepartmentName</th>
+								<th>@(item.Doctor?.FullName ?? "N/A")</th>
+								<th>@(item.Doctor?.DepartmentName ?? "N/A")</th>
 								<th>@(item.Staff?.FullName ?? "N/A")</th>
 								<td>@item.Date</td>
-								<td>@item.Slot.StartTime.ToString("hh\\:mm")</td>
-								<td>@item.Slot.EndTime.ToString("hh\\:mm")</td>
+								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
+								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>
 								<td>
 									@if (item.Status == "Pending")
 									{
@@ -115,6 +124,16 @@
 										<span class="badge bg-secondary">@item.Status</span>
 									}
 								</td>
+								<td>
+									<div class="mt-2">
+										<a asp-action="Detail"
+										   asp-controller="Appointment"
+										   asp-route-appId="@item.AppointmentId"
+										   class="btn btn-sm btn-info">
+											<i class="fas fa-eye"></i> Detail
+										</a>
+									</div>
+								</td>
 							</tr>
 						}
 					}
@@ -131,4 +150,3 @@
 </div>
 
 <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
-

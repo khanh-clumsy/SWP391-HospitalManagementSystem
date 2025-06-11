@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using HospitalManagement.Models;
 using HospitalManagement.Data;
@@ -6,9 +7,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using HospitalManagement.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
-
 namespace HospitalManagement.Controllers
 {
     [Authorize(Roles = "Patient")]
@@ -17,11 +19,14 @@ namespace HospitalManagement.Controllers
         private readonly PasswordHasher<Patient> _passwordHasher;
         private readonly HospitalManagementContext _context;
 
+
+
         public PatientController(HospitalManagementContext context)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
         }
+
 
         [HttpGet]
         public IActionResult ViewProfile()
@@ -179,7 +184,7 @@ namespace HospitalManagement.Controllers
                 {
                     dbUser.ProfileImage = user.ProfileImage;
                     context.SaveChanges();
-                }
+                }   
 
                 // Cập nhật lại session
                 //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));
@@ -267,7 +272,7 @@ namespace HospitalManagement.Controllers
 
             return RedirectToAction("UpdateProfile");
         }
-     
+
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
@@ -277,6 +282,6 @@ namespace HospitalManagement.Controllers
             TempData["success"] = "Logout successful!";
             return RedirectToAction("Index", "Home");
         }
-
+ 
     }
 }

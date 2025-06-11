@@ -33,6 +33,8 @@ public partial class Doctor
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
+    public virtual ICollection<News> News { get; set; } = new List<News>();
+
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 
     public string GetFullGender()

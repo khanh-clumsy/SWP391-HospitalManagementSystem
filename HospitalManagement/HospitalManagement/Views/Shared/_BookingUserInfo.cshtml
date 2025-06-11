@@ -1,0 +1,41 @@
+﻿@model HospitalManagement.ViewModels.BookingApointmentViewModel
+@{
+    var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+    var isReadonly = !string.IsNullOrEmpty(Model.Name);
+}
+<!-- Name field -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        @if (isReadonly)
+        {
+            <input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" readonly="readonly" />
+        }
+        else
+        {
+            <input asp-for="Name" class="form-control" placeholder="Your Name" style="height: 55px;" />
+        }
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="col-12 col-sm-6">
+        @if (isReadonly)
+        {
+            <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" readonly="readonly" />
+        }
+        else
+        {
+            <input asp-for="Email" class="form-control" placeholder="Your email" style="height: 55px;" />
+        }
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="col-12 col-sm-6">
+        @if (isReadonly)
+        {
+            <input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" readonly="readonly" />
+        }
+        else
+        {
+            <input asp-for="PhoneNumber" class="form-control" placeholder="Your mobile" style="height: 55px;" />
+        }
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+</div>

@@ -12,9 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
+builder.Services.AddScoped<IBookingAppointmentRepository, BookingAppointmentRepository>();
+builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
+
+
 
 
 // Cấu hình Authentication và Authorization
@@ -65,12 +71,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson();
 
-builder.Services.AddDbContext<HospitalManagementContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddDistributedMemoryCache();
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 
 

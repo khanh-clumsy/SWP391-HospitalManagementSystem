@@ -1,4 +1,4 @@
-﻿using HospitalManagement.Data;
+﻿    using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -64,13 +64,42 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> Login(ViewModels.Login LogInfo)
         {
 
-            
             if (string.IsNullOrEmpty(LogInfo.Email) || string.IsNullOrEmpty(LogInfo.Password))
             {
                 TempData["error"] = "Please enter Email and password.";
 
                 return View(LogInfo);
             }
+            // Staff
+            if (LogInfo.Role == "Staff")
+            {
+                var user = _context.Staff.SingleOrDefault(u => u.Email == LogInfo.Email);
+                PasswordHasher<Staff> localHasher = new PasswordHasher<Staff>();
+
+                if (user == null || localHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
+                {
+                    TempData["error"] = "Email or password is invalid.";
+                    return View(LogInfo);
+                }
+
+                var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Email, user.Email),
+
+                        new Claim(ClaimTypes.Role, user.RoleName),
+
+                        new Claim("StaffID", user.StaffId.ToString()),
+                    };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                TempData["success"] = "Login successful!";
+                return RedirectToAction("Index", "Home");
+            }
+
             //Patient
             if (LogInfo.Role == "Patient")
             {
