@@ -380,13 +380,7 @@ namespace HospitalManagement.Controllers
             }
 
             bool exists = false;
-            if (doctor == null && slot == null)
-            {
-                exists = _context.Appointments.Any(a =>
-                        a.PatientId == patientId &&
-                        a.Date == model.AppointmentDate);
-            }
-            else
+            if (doctor != null && slot != null)
             {
                 exists = _context.Appointments.Any(a =>
                         a.DoctorId == model.SelectedDoctorId &&
