@@ -601,6 +601,10 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
+                .Include(a => a.MedicineLists)
+                .ThenInclude(a => a.Medicine)
+                .Include(a => a.TestLists)
+                .ThenInclude(a => a.Test)
                 .FirstOrDefault(a => a.AppointmentId == id);
 
             if (appointment == null)
