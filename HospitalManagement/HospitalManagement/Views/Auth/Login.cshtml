@@ -61,6 +61,7 @@
 				width: 100%;
 			}
 	</style>
+
 </head>
 
 <body>
@@ -83,7 +84,7 @@
 			</div>
 
 			<div class="wrap-login100 p-l-110 p-r-110 p-t-62 p-b-33">
-				<form asp-action="Login" asp-controller="Auth" method="post" class="login100-form validate-form flex-sb flex-w">
+				<form id="loginForm" onsubmit="return submitForm()" asp-action="Login" asp-controller="Auth" method="post" class="login100-form validate-form flex-sb flex-w">
 
 
 					<!-- Role selection -->
@@ -94,9 +95,6 @@
 							<label for="role-@role" class="role-option">@role</label>
 						}
 					</div>
-
-					<!-- Hidden input để submit Role -->
-					<input type="hidden" name="Role" id="selectedRole" value="@(string.IsNullOrEmpty(Model.Role) ? "Patient" : Model.Role)" />
 
 					<span class="login100-form-title p-b-40">Sign In</span>
 
@@ -149,6 +147,13 @@
 		</div>
 	</div>
 
+
+
+	<div id="loadingOverlay" style="display:none">
+		<div class="custom-spinner" style="display:none"></div>
+	</div>
+
+
 	<div id="dropDownSelect1"></div>
 
 	<script src="~/vendor/jquery/jquery-3.2.1.min.js"></script>
@@ -180,6 +185,32 @@
 				setTimeout(() => alertBox.remove(), 500);
 			}
 		}, 3000);
+
+
+		// anti spam
+		function submitForm() {
+			var form = $("#loginForm");
+
+			if (!form.valid()) {
+				// Không hợp lệ -> không bật loading, không submit
+				return false;
+			}
+			//Hiển thị overlay loading
+			document.getElementById("loadingOverlay").style.display = "flex";
+			document.querySelector(".custom-spinner").style.display = "flex";
+			return true;
+
+
+		}
+		document.addEventListener('keydown', function (e) {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
+			}
+		});
+
 	</script>
+
 </body>
 </html>

@@ -202,7 +202,7 @@
 					<ul class="pagination">
 
 						@* Previous button *@
-						<li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+						<li class="page-item @(Model.HasPreviousPage ? "" : "	")">
 							<a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("ViewDoctors", new {
 											page = Model.PageNumber - 1,
 											name = ViewBag.Name,
