@@ -70,6 +70,7 @@
 						<th>End Time</th>
 						<th>Status</th>
 						<th>Action</th>
+						<th>Action</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -114,6 +115,15 @@
 											<i class="fas fa-trash-alt"></i> Delete
 										</button>
 									</form>
+								</td>
+								<td>
+									<a asp-action="Detail"
+									   asp-controller="Appointment"
+									   asp-route-id="@item.AppointmentId"
+									   asp-route-userId="@item.Patient.PatientId"
+									   class="btn btn-sm btn-info">
+										<i class="fas fa-eye"></i> Detail
+									</a>
 								</td>
 							</tr>
 						}
