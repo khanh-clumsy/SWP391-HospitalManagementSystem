@@ -60,6 +60,12 @@
 			input[type="radio"]:checked + .role-option::after {
 				width: 100%;
 			}
+
+		.login100-form-btn:disabled {
+			background: #ccc;
+			cursor: not-allowed;
+			box-shadow: none;
+		}
 	</style>
 
 </head>
@@ -84,7 +90,7 @@
 			</div>
 
 			<div class="wrap-login100 p-l-110 p-r-110 p-t-62 p-b-33">
-				<form id="loginForm" onsubmit="return submitForm()" asp-action="Login" asp-controller="Auth" method="post" class="login100-form validate-form flex-sb flex-w">
+				<form id="loginForm" asp-action="Login" asp-controller="Auth" method="post" class="login100-form validate-form flex-sb flex-w">
 
 
 					<!-- Role selection -->
@@ -153,9 +159,6 @@
 		<div class="custom-spinner" style="display:none"></div>
 	</div>
 
-
-	<div id="dropDownSelect1"></div>
-
 	<script src="~/vendor/jquery/jquery-3.2.1.min.js"></script>
 	<script src="~/vendor/animsition/js/animsition.min.js"></script>
 	<script src="~/vendor/bootstrap/js/popper.js"></script>
@@ -187,21 +190,11 @@
 		}, 3000);
 
 
-		// anti spam
-		function submitForm() {
-			var form = $("#loginForm");
+		$('.login100-form-btn').on('click', function () {
+			$(this).prop('disabled', true);
+			$('#loginForm').submit();
+		});
 
-			if (!form.valid()) {
-				// Không hợp lệ -> không bật loading, không submit
-				return false;
-			}
-			//Hiển thị overlay loading
-			document.getElementById("loadingOverlay").style.display = "flex";
-			document.querySelector(".custom-spinner").style.display = "flex";
-			return true;
-
-
-		}
 		document.addEventListener('keydown', function (e) {
 			if (e.key === "Enter") {
 				e.preventDefault();
