@@ -89,7 +89,7 @@
 				<div>@TempData["error"]</div>
 			</div>
 		}
-		@if (TempData["success"] != null)
+		else if (TempData["success"] != null)
 		{
 			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
 				 role="alert" style="z-index: 1055; border-radius: 8px;">
@@ -229,7 +229,9 @@
 	</header>
 
 	@RenderBody()
-
+	<div id="loadingOverlay" style="display:none">
+		<div class="custom-spinner" style="display:none"></div>
+	</div>
 
 	<!-- Footer Start -->
 	<footer>
@@ -289,6 +291,7 @@
 			</div>
 		</div>
 		<!-- Footer End -->
+
 	</footer>
 
 	<!-- Back to Top -->
@@ -305,6 +308,31 @@
 				// popup animation
 			}
 		}, 3000);
+
+		// anti spam
+		function submitForm() {
+			// nhớ đỏi lại đúng id form
+			var form = $("#loginForm");
+
+			if (!form.valid()) {
+				// Không hợp lệ -> không bật loading, không submit
+				return false;
+			}
+			//Hiển thị overlay loading
+			document.getElementById("loadingOverlay").style.display = "flex";
+			document.querySelector(".custom-spinner").style.display = "flex";
+			return true;
+
+
+		}
+		// open to disable 'Enter'
+		// document.addEventListener('keydown', function (e) {
+		// 	if (e.key === "Enter") {
+		// 		e.preventDefault();
+		// 		e.stopPropagation();
+		// 		return false;
+		// 	}
+		// });
 	</script>
 	<!--Start of Tawk.to Script-->
 	@if (!User.Identity.IsAuthenticated || User.IsInRole("Patient"))

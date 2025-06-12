@@ -7,6 +7,7 @@ using HospitalManagement.Services;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using HospitalManagement.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
@@ -88,6 +89,12 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new PreventSpamAttribute { Seconds = 2 }); // mặc định trong filters là 2s
+});
+
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -132,5 +139,6 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
 app.Run();
