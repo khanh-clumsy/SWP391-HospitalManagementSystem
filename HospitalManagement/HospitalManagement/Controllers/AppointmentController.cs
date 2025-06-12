@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -560,7 +561,6 @@ namespace HospitalManagement.Controllers
                 return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
             if (user.IsInRole("Doctor"))
                 return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
-
             return default;
         }
 
@@ -571,21 +571,62 @@ namespace HospitalManagement.Controllers
 
             return int.TryParse(claim.Value, out var id) ? id : null;
         }
-        public IActionResult Detail(int id)
+
+        [Authorize(Roles = "Patient, Sales, Admin, Doctor")]
+        public IActionResult Detail(int appId)
         {
             var appointment = _context.Appointments
-                .Include(a => a.Patient)
-                .Include(a => a.Doctor)
-                .Include(a => a.Staff)
-                .Include(a => a.Slot)
-                .FirstOrDefault(a => a.AppointmentId == id);
-
+                                .Include(a => a.Patient)
+                                .Include(a => a.Doctor)
+                                .Include(a => a.Staff)
+                                .Include(a => a.Slot)
+                                .FirstOrDefault(a => a.AppointmentId == appId);
             if (appointment == null)
             {
+                TempData["error"] = "Trang không tồn tại";
                 return NotFound();
             }
 
-            return View(appointment);
+
+            if (User.IsInRole("Admin"))
+            {
+                return View(appointment);
+            }
+
+            // now, roleKey only Patient/Doctor/Staff
+
+            var (roleKey, userId) = GetUserRoleAndId(User);
+            if (userId == null)
+            {
+                TempData["error"] = "Bạn cần đăng nhập để thực hiện thao tác này";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (roleKey == "")
+            {
+                TempData["error"] = "Lỗi RoleKey không xác định";
+                return NotFound();
+            }
+
+            if (roleKey == "PatientID" && appointment.Patient != null && appointment.Patient.PatientId != null && appointment.Patient.PatientId == userId)
+            {
+                return View(appointment);
+            }
+            if (roleKey == "DoctorID" && appointment.Doctor != null && appointment.Doctor.DoctorId != null && appointment.Doctor.DoctorId == userId)
+            {
+                return View(appointment);
+            }
+            if (roleKey == "StaffID" && appointment.Staff != null && appointment.Staff.StaffId != null && appointment.Staff.StaffId == userId)
+            {
+                return View(appointment);
+            }
+
+            TempData["error"] = "Bạn không có quyền truy cập";
+
+            return RedirectToAction("Index", "Home");
+
+
+
         }
     }
 }

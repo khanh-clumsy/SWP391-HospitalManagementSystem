@@ -53,7 +53,7 @@
 					}
 
 				</div>
-				<form asp-action="Register" method="post" class="login100-form validate-form flex-sb flex-w">
+				<form id="loginForm" onsubmit="return submitForm()" asp-action="Register" method="post" class="login100-form validate-form flex-sb flex-w">
 					<span class="login100-form-title p-b-53">
 						Sign Up
 					</span>
@@ -167,6 +167,9 @@
 		</div>
 	</div>
 
+	<div id="loadingOverlay" style="display:none">
+		<div class="custom-spinner" style="display:none"></div>
+	</div>
 	<!-- Scripts -->
 	<script src="~/vendor/jquery/jquery-3.2.1.min.js"></script>
 	<script src="~/vendor/animsition/js/animsition.min.js"></script>
@@ -180,15 +183,41 @@
 	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 	<script>
-		window.setTimeout(function () {
-			const alertBox = document.getElementById('popup-alert');
-			if (alertBox) {
-				alertBox.classList.remove('show');
-				alertBox.classList.add('hide');
-				setTimeout(() => alertBox.remove(), 500);
-				// popup animation
-			}
-		}, 3000);
+				window.setTimeout(function () {
+					const alertBox = document.getElementById('popup-alert');
+					if (alertBox) {
+						alertBox.classList.remove('show');
+						alertBox.classList.add('hide');
+						setTimeout(() => alertBox.remove(), 500);
+						// popup animation
+					}
+				}, 3000);
+
+				// anti spam
+				function submitForm() {
+
+					var form = $("#loginForm");
+
+					if (!form.valid()) {
+						// Không hợp lệ -> không bật loading, không submit
+						return false;
+					}
+
+					//Hiển thị overlay loading
+					document.getElementById("loadingOverlay").style.display = "flex";
+					document.querySelector(".custom-spinner").style.display = "flex";
+					return true;
+
+
+				}
+				document.addEventListener('keydown', function (e) {
+					if (e.key === "Enter") {
+						e.preventDefault();
+						e.stopPropagation();
+						return false;
+					}
+				});
+
 	</script>
 </body>
 

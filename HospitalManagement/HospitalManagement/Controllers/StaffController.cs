@@ -164,6 +164,18 @@ namespace HospitalManagement.Controllers
 
             if (photo != null && photo.Length > 0)
             {
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg", "image/webp" };
+                if (!allowedTypes.Contains(photo.ContentType))
+                {
+                    TempData["error"] = "Không đúng địng dạng ảnh cho phép";
+                    return RedirectToAction("UpdateProfile");
+                }
+                if (photo.Length > 2 * 1024 * 1024)
+                {
+                    TempData["error"] = "Kích thước file quá 2MB";
+                    return RedirectToAction("UpdateProfile");
+
+                }
                 // convert img -> Byte ->  Base64String
                 using var ms = new MemoryStream();
                 await photo.CopyToAsync(ms);
