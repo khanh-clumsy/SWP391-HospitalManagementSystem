@@ -199,10 +199,29 @@
 					}
 				}, 3000);
 
-				$('.login100-form-btn').on('click', function () {
-					$(this).prop('disabled', true);
-					$('#loginForm').submit();
-				});
+								function submitForm() {
+			var form = $("#loginForm");
+
+			if (!form.valid()) {
+				// Không hợp lệ -> không bật loading, không submit
+				return false;
+			}
+
+			// Disable nút sau khi form hợp lệ
+			$('.login100-form-btn').prop('disabled', true);
+
+			return true;
+		}
+
+		$('.login100-form-btn').on('click', function (e) {
+			e.preventDefault(); // Ngăn form submit mặc định để kiểm tra trước
+
+			if (submitForm()) {
+				$('#loginForm').submit(); // Nếu hợp lệ mới submit
+			} else {
+				$(this).prop('disabled', false); // Nếu không hợp lệ thì đảm bảo nút không bị disable
+			}
+		});
 				document.addEventListener('keydown', function (e) {
 					if (e.key === "Enter") {
 						e.preventDefault();
