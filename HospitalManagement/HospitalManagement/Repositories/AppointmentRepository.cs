@@ -81,7 +81,7 @@ namespace HospitalManagement.Repositories
             return await query.ToListAsync();
         }
 
-       
+
         public async Task<List<Appointment>> GetAppointmentByDoctorIDAsync(int DoctorID)
         {
             return await _context.Appointments
@@ -91,6 +91,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.DoctorId == DoctorID)
+                .OrderByDescending(a => a.AppointmentId)
                 .ToListAsync();
         }
 
@@ -103,6 +104,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.PatientId == PatientID)
+                .OrderByDescending(a => a.AppointmentId)
                 .ToListAsync();
         }
 
@@ -115,9 +117,10 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.StaffId == SalesID)
+                .OrderByDescending(a => a.AppointmentId)
                 .ToListAsync();
         }
-        public async Task<Appointment> GetByIdAsync(int id)
+        public async Task<Appointment?> GetByIdAsync(int id)
         {
             return await _context.Appointments.FindAsync(id);
         }
