@@ -258,27 +258,7 @@ namespace HospitalManagement.Controllers
                 IsSpecial = false,
                 ProfileImage = model.ProfileImage
             };
-
-            try
-            {
-                var emailBody = $@"
-                <h3>✅ Welcome! Your New Employee Account Details</h3>
-                <p><strong>Email:</strong> {model.Email}</p>
-                <p><strong>Password:</strong> {password}</p>
-                ";
-
-                await _emailService.SendEmailAsync(
-                    toEmail: model.Email,
-                    subject: "✅ Your New Account Information",
-                    body: emailBody
-                );
-            }
-            catch (Exception ex)
-            {
-                TempData["error"] = $"Failed to send email";
-                return View(model);
-            }
-
+         
             // handle case add email is used exception in sqlserver
             try
             {
