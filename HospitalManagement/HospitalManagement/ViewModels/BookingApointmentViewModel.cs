@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using HospitalManagement.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -22,17 +23,15 @@ namespace HospitalManagement.ViewModels
         [DataType(DataType.Date)]
         public DateOnly AppointmentDate { get; set; }
 
-        [Required(ErrorMessage = "Please select a doctor.")]
-        public int SelectedDoctorId { get; set; }
+        public int? SelectedDoctorId { get; set; }
 
-        public List<SelectListItem> DoctorOptions { get; set; } = new List<SelectListItem>();
+        public List<Doctor> Doctors { get; set; } = new List<Doctor>();
 
-        [Required(ErrorMessage = "Please select a time slot.")]
-        public int SelectedSlotId { get; set; }
+        public List<Slot> Slots { get; set; } = new List<Slot>();
 
-        public List<SelectListItem> SlotOptions { get; set; } = new List<SelectListItem>();
 
-        [Required(ErrorMessage = "Please select a service.")]
+        public int? SelectedSlotId { get; set; }
+
         public int SelectedServiceId { get; set; }
 
         public List<SelectListItem> ServiceOptions { get; set; } = new List<SelectListItem>();

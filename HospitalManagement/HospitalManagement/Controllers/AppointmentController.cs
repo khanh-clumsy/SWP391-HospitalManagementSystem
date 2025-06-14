@@ -368,9 +368,7 @@ namespace HospitalManagement.Controllers
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
-                DoctorId = model.SelectedDoctorId,
                 Note = model.Note,
-                SlotId = model.SelectedSlotId,
                 ServiceId = model.SelectedServiceId,
                 Date = model.AppointmentDate,
                 Status = "Pending",

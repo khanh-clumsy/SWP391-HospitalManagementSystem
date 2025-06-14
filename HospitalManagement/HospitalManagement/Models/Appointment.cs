@@ -7,7 +7,7 @@ public partial class Appointment
 {
     public int AppointmentId { get; set; }
 
-    public int DoctorId { get; set; }
+    public int? DoctorId { get; set; }
 
     public int PatientId { get; set; }
 
@@ -15,7 +15,7 @@ public partial class Appointment
 
     public int? StaffId { get; set; }
 
-    public int SlotId { get; set; }
+    public int? SlotId { get; set; }
 
     public DateOnly Date { get; set; }
 
@@ -39,7 +39,7 @@ public partial class Appointment
 
     public DateTime? RecordCreatedAt { get; set; }
 
-    public virtual Doctor Doctor { get; set; } = null!;
+    public virtual Doctor? Doctor { get; set; }
 
     public virtual ICollection<MedicineList> MedicineLists { get; set; } = new List<MedicineList>();
 
@@ -47,7 +47,7 @@ public partial class Appointment
 
     public virtual Service Service { get; set; } = null!;
 
-    public virtual Slot Slot { get; set; } = null!;
+    public virtual Slot? Slot { get; set; }
 
     public virtual Staff? Staff { get; set; }
 
