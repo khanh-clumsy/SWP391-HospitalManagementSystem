@@ -11,6 +11,13 @@ public class NewsRepository : INewsRepository
     {
         _context = context;
     }
+    public async Task<News> GetByIdAsync(int id)
+    {
+        return await _context.News
+            .Include(a => a.Doctor)
+            .Include(a => a.Staff)
+            .FirstOrDefaultAsync(a => a.NewsId == id);
+    }
 
     public async Task<List<News>> GetAllAsync()
     {
