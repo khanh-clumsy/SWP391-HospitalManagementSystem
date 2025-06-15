@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using static System.Net.Mime.MediaTypeNames;
 using X.PagedList;
+using X.PagedList.Mvc.Core;
 using X.PagedList.Extensions;
 
 namespace HospitalManagement.Controllers
@@ -47,14 +48,11 @@ namespace HospitalManagement.Controllers
                     AgeTo = p.AgeTo,
                     Thumbnail = p.Thumbnail,
                     PackageCategory = p.PackageCategory
-                })
-                .AsQueryable();
-            var pagedList = await query.ToPagedListAsync(pageNumber, pageSize);
+                });
 
+            var pagedList = query.ToPagedList(pageNumber, pageSize); 
             return View(pagedList);
         }
-
-
 
         [HttpGet]
         public async Task<IActionResult> Detail(int id)

@@ -82,44 +82,42 @@ namespace HospitalManagement.Repositories
         }
 
 
-        public async Task<List<Appointment>> GetAppointmentByDoctorIDAsync(int DoctorID)
+        public IQueryable<Appointment> GetAppointmentByDoctorID(int DoctorID)
         {
-            return await _context.Appointments
+            return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.DoctorId == DoctorID)
-                .OrderByDescending(a => a.AppointmentId)
-                .ToListAsync();
+                .OrderByDescending(a => a.AppointmentId);
         }
 
-        public async Task<List<Appointment>> GetAppointmentByPatientIDAsync(int PatientID)
+        public IQueryable<Appointment> GetAppointmentByPatientID(int PatientID)
         {
-            return await _context.Appointments
+            return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.PatientId == PatientID)
-                .OrderByDescending(a => a.AppointmentId)
-                .ToListAsync();
+                .OrderByDescending(a => a.AppointmentId);
         }
 
-        public async Task<List<Appointment>> GetAppointmentBySalesIDAsync(int SalesID)
+        public IQueryable<Appointment> GetAppointmentBySalesID(int SalesID)
         {
-            return await _context.Appointments
+            return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.StaffId == SalesID)
-                .OrderByDescending(a => a.AppointmentId)
-                .ToListAsync();
+                .OrderByDescending(a => a.AppointmentId);
         }
+
         public async Task<Appointment?> GetByIdAsync(int id)
         {
             return await _context.Appointments.FindAsync(id);
@@ -130,5 +128,6 @@ namespace HospitalManagement.Repositories
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
         }
+
     }
 }

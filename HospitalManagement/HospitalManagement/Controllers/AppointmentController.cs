@@ -50,44 +50,43 @@ namespace HospitalManagement.Controllers
         {
             int pageSize = 12;
             int pageNumber = page ?? 1;
-            //Lấy danh sách SlotOptions để hiển thị trong ViewBag
-            var SlotOptions = await _context.Slots.ToListAsync();
-            ViewBag.SlotOptions = SlotOptions;
 
-            //Lấy role của người dùng hiện tại
-            string role = "";
-            if (User.IsInRole("Patient")) role = "Patient";
-            else if (User.IsInRole("Sales")) role = "Sales";
-            else if (User.IsInRole("Doctor")) role = "Doctor";
+            ViewBag.SlotOptions = await _context.Slots.ToListAsync();
 
-            //Hiển thị danh sách cuộc hẹn dựa trên role
-            var appointment = new List<Appointment>();
-            switch (role)
+            IQueryable<Appointment> appointmentQuery = Enumerable.Empty<Appointment>().AsQueryable();
+
+            if (User.IsInRole("Patient"))
             {
-                case "Patient":
-                    var patientIdClaim = User.FindFirst("PatientID")?.Value;
-                    if (patientIdClaim == null) return RedirectToAction("Login", "Auth");
-                    int PatientID = int.Parse(patientIdClaim);
-                    appointment = await _appointmentRepository.GetAppointmentByPatientIDAsync(PatientID);
-                    return View(appointment);
-                case "Sales":
-                    var staffIdClaim = User.FindFirst("StaffID")?.Value;
-                    if (staffIdClaim == null) return RedirectToAction("Login", "Auth");
-                    int StaffID = int.Parse(staffIdClaim);
-                    appointment = await _appointmentRepository.GetAppointmentBySalesIDAsync(StaffID);
-                    return View(appointment);
-                case "Doctor":
-                    var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
-                    if (doctorIdClaim == null) return RedirectToAction("Login", "Auth");
-                    int DoctorID = int.Parse(doctorIdClaim);
-                    appointment = await _appointmentRepository.GetAppointmentByDoctorIDAsync(DoctorID);
-                    return View(appointment);
-                default:
-                    break;
+                var patientIdClaim = User.FindFirst("PatientID")?.Value;
+                if (patientIdClaim == null) return RedirectToAction("Login", "Auth");
+
+                int PatientID = int.Parse(patientIdClaim);
+                appointmentQuery = _appointmentRepository.GetAppointmentByPatientID(PatientID);
             }
-            var pagedAppointments = appointment.ToPagedList(pageNumber, pageSize);
+            else if (User.IsInRole("Sales"))
+            {
+                var staffIdClaim = User.FindFirst("StaffID")?.Value;
+                if (staffIdClaim == null) return RedirectToAction("Login", "Auth");
+
+                int StaffID = int.Parse(staffIdClaim);
+                appointmentQuery = _appointmentRepository.GetAppointmentBySalesID(StaffID);
+            }
+            else if (User.IsInRole("Doctor"))
+            {
+                var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
+                if (doctorIdClaim == null) return RedirectToAction("Login", "Auth");
+
+                int DoctorID = int.Parse(doctorIdClaim);
+                appointmentQuery = _appointmentRepository.GetAppointmentByDoctorID(DoctorID);
+            }
+
+            var pagedAppointments = appointmentQuery
+                .OrderByDescending(a => a.AppointmentId)
+                .ToPagedList(pageNumber, pageSize);
+
             return View(pagedAppointments);
         }
+
 
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
