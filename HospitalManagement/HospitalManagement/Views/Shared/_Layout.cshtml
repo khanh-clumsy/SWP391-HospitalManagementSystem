@@ -116,6 +116,7 @@
 					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">About</a>
 					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
 					<a asp-action="ViewDoctors" asp-controller="Home" class="nav-item nav-link">Doctors</a>
+					<a asp-action="News" asp-controller="News" class="nav-item nav-link">News</a>
 					<a asp-action="Index" asp-controller="Medicine" class="nav-item nav-link">Medicine</a>
 
 					@if (User.IsInRole("Patient"))
@@ -146,6 +147,7 @@
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">View Profile</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">My Appointments</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
+								<a class="dropdown-item" asp-controller="News" asp-action="Index">Manage News</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Update Profile</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Change Password</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Logout</a>
@@ -167,6 +169,7 @@
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">View Profile</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Appointments</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">View Test</a>
+								<a class="dropdown-item" asp-controller="News" asp-action="Index">Manage News</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Update Profile</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Change Password</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Logout</a>

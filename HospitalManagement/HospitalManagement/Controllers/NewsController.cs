@@ -3,6 +3,7 @@ using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using X.PagedList.Extensions;
 
 namespace HospitalManagement.Controllers
 {
@@ -28,14 +29,15 @@ namespace HospitalManagement.Controllers
                 int doctorId = int.Parse(doctorIdClaim);
                 newsList = await _newsRepository.GetByDoctorIdAsync(doctorId);
             }
-            else if (User.IsInRole("Admin"))
+            else 
             {
                 newsList = await _newsRepository.GetAllAsync();
             }
+
             return View(newsList);
         }
 
-        public async Task<IActionResult> News()
+        public async Task<IActionResult> News(int? page)
         {
             var newsList = await _newsRepository.GetAllAsync();
             return View(newsList);
@@ -68,7 +70,7 @@ namespace HospitalManagement.Controllers
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-                var maxSize = 1024 * 1024;
+                var maxSize = 2 * 1024 * 1024;
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
@@ -124,7 +126,7 @@ namespace HospitalManagement.Controllers
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-                var maxSize = 1024 * 1024;
+              var maxSize = 1024 * 1024; 
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {

@@ -1,10 +1,10 @@
 ﻿// Repositories/INewsRepository.cs
 using HospitalManagement.Models;
-
+using HospitalManagement.ViewModels;
 public interface INewsRepository
 {
-    Task<List<News>> GetAllAsync();
-    Task<List<News>> GetByDoctorIdAsync(int doctorId);
+    Task<List<NewsViewModel>> GetAllAsync();
+    Task<List<NewsViewModel>> GetByDoctorIdAsync(int doctorId);
 
     Task<News> GetByIdAsync(int id);
     Task CreateAsync(News news);
