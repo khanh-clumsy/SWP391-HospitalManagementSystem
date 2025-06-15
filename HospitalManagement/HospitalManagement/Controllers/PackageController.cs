@@ -12,6 +12,7 @@ using static System.Net.Mime.MediaTypeNames;
 using X.PagedList;
 using X.PagedList.Mvc.Core;
 using X.PagedList.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace HospitalManagement.Controllers
 {
@@ -19,38 +20,30 @@ namespace HospitalManagement.Controllers
     {
         private readonly HospitalManagementContext _context;
         private readonly ITestRepository _testRepository;
-        public PackageController(HospitalManagementContext context, ITestRepository testRepository)
+        private readonly IPackageRepository _packageRepository;
+
+        public PackageController(HospitalManagementContext context, ITestRepository testRepository, IPackageRepository packageRepository)
         {
             _context = context;
             _testRepository = testRepository;
+            _packageRepository = packageRepository;
         }
 
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(string? CategoryFilter, string? AgeFilter, string? GenderFilter, string? PriceRangeFilter, int? page)
         {
             int pageSize = 9;
             int pageNumber = page ?? 1;
 
-            ViewBag.Categories = await GetCategoryOptions();
-            ViewBag.AgeRange = GetAgeRangeOptions();
-            ViewBag.PriceRange = GetPriceRangeOptions();
+            ViewBag.AgeRange = GetAgeRangeOptions(AgeFilter);
+            ViewBag.PriceRange = GetPriceRangeOptions(PriceRangeFilter);
+            ViewBag.Categories = new SelectList(await _context.PackageCategories.ToListAsync(), "PackageCategoryId", "CategoryName", CategoryFilter);
 
             // Truy vấn dữ liệu với Include và phân trang
-            var query = _context.Packages
-                .OrderBy(p => p.PackageId)
-                .Select(p => new PackageViewModel
-                {
-                    PackageId = p.PackageId,
-                    PackageName = p.PackageName,
-                    FinalPrice = p.FinalPrice,
-                    OriginalPrice = p.OriginalPrice,
-                    TargetGender = p.TargetGender,
-                    AgeFrom = p.AgeFrom,
-                    AgeTo = p.AgeTo,
-                    Thumbnail = p.Thumbnail,
-                    PackageCategory = p.PackageCategory
-                });
+            var filteredPackages = await _packageRepository.FilterPackagesAsync(CategoryFilter, AgeFilter, GenderFilter, PriceRangeFilter);
+            var pagedList = filteredPackages.ToPagedList(pageNumber, pageSize);
+            ViewBag.GenderFilter = GenderFilter;
 
-            var pagedList = query.ToPagedList(pageNumber, pageSize); 
+
             return View(pagedList);
         }
 
@@ -355,9 +348,9 @@ namespace HospitalManagement.Controllers
                                 })
                                 .ToListAsync();
         }
-        private List<SelectListItem> GetAgeRangeOptions()
+        private List<SelectListItem> GetAgeRangeOptions(string? selectedValue = null)
         {
-            return new List<SelectListItem>
+            var options = new List<SelectListItem>
             {
                 new SelectListItem { Text = "Tất cả độ tuổi", Value = "" },
                 new SelectListItem { Text = "0 - 2 tuổi", Value = "0-2" },
@@ -374,18 +367,31 @@ namespace HospitalManagement.Controllers
                 new SelectListItem { Text = "46 - 60 tuổi", Value = "46-60" },
                 new SelectListItem { Text = "Trên 60 tuổi", Value = "60+" }
             };
+
+            if (!string.IsNullOrEmpty(selectedValue))
+            {
+                var selected = options.FirstOrDefault(x => x.Value == selectedValue);
+                if (selected != null) selected.Selected = true;
+            }
+            return options;
         }
 
-        private List<SelectListItem> GetPriceRangeOptions()
+        private List<SelectListItem> GetPriceRangeOptions(string? selectedValue = null)
         {
-            return new List<SelectListItem>
-            {
+            var options = new List<SelectListItem>{            
                 new SelectListItem { Text = "Chọn khoảng giá", Value = "" },
                 new SelectListItem { Text = "Dưới 1 triệu", Value = "0-1000000" },
                 new SelectListItem { Text = "1 - 5 triệu", Value = "1000000-5000000" },
                 new SelectListItem { Text = "5 - 10 triệu", Value = "5000000-10000000" },
                 new SelectListItem { Text = "Trên 10 triệu", Value = "10000000+" }
             };
+
+            if (!string.IsNullOrEmpty(selectedValue))
+            {
+                var selected = options.FirstOrDefault(x => x.Value == selectedValue);
+                if (selected != null) selected.Selected = true;
+            }
+            return options;
         }
     }
 }

@@ -33,7 +33,7 @@
 		</div>
 
 		<!-- Filter Form -->
-		<form method="get" asp-action="Filter" asp-controller="Package" class="filter-section mb-5">
+		<form method="get" asp-action="Index" asp-controller="Package" class="filter-section mb-5">
 			<div class="row g-3">
 				<div class="col-lg-3 col-md-4 col-12">
 					<select name="CategoryFilter" asp-items="ViewBag.Categories" class="form-select">
@@ -48,9 +48,9 @@
 
 				<div class="col-lg-3 col-md-4 col-12">
 					<select name="GenderFilter" class="form-select">
-						<option value="A">Tất cả</option>
-						<option value="M">Nam</option>
-						<option value="F">Nữ</option>
+						<option value="A" selected="@(ViewBag.GenderFilter == "F")">Tất cả</option>
+						<option value="M" selected="@(ViewBag.GenderFilter == "m")">Nam</option>
+						<option value="F" selected="@(ViewBag.GenderFilter == "F")">Nữ</option>
 					</select>
 				</div>
 
@@ -109,8 +109,8 @@
 									<div class="info-item">
 										<i class="fas fa-venus-mars text-primary me-2"></i>
 										<span>
-											@(package.TargetGender == "F" ? "Nam" :
-																					package.TargetGender == "M" ? "Nữ" :
+											@(package.TargetGender == "F" ? "Nữ" :
+																					package.TargetGender == "M" ? "Nam" :
 																					package.TargetGender == "A" ? "Tất cả" :
 																					"Không rõ")
 										</span>
