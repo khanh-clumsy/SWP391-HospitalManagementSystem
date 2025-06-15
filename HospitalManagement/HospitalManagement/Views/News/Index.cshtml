@@ -677,3 +677,54 @@
     </script>
 </body>
 </html>
+﻿@model IEnumerable<HospitalManagement.Models.News>
+
+@{
+    ViewData["Title"] = "Danh sách bài viết";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Danh sách bài viết</h2>
+
+    <a asp-action="Create" class="btn btn-success mb-3">+ Viết bài mới</a>
+
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Tiêu đề</th>
+                <th>Ngày tạo</th>
+                <th>Nội dung</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Title</td>
+                        <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                           click view detail to show
+                        </td>
+                        <td>
+                            <a asp-action="Detail"  asp-route-id="@item.NewsId" class="btn btn-info btn-sm">Xem</a>
+                            <a asp-action="Edit" asp-route-id="@item.NewsId" class="btn btn-warning btn-sm">Sửa</a>
+                            <form asp-action="Delete" asp-route-id="@item.NewsId" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa?');">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center">Chưa có bài viết nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
