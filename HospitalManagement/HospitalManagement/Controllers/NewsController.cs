@@ -26,7 +26,7 @@ namespace HospitalManagement.Controllers
                     return RedirectToAction("Login", "Auth");
 
                 int doctorId = int.Parse(doctorIdClaim);
-                newsList = await _newsRepository.GetByIdAsync(doctorId);
+                newsList = await _newsRepository.GetByDoctorIdAsync(doctorId);
             }
             else if (User.IsInRole("Admin"))
             {
@@ -68,7 +68,7 @@ namespace HospitalManagement.Controllers
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-                var maxSize = 5 * 1024 * 1024;
+                var maxSize = 1024 * 1024;
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
@@ -117,23 +117,37 @@ namespace HospitalManagement.Controllers
             if (oldNews == null)
                 return NotFound();
 
-            if (!ModelState.IsValid)
-                return View(updatedNews);
-
             oldNews.Title = updatedNews.Title;
             oldNews.Description = updatedNews.Description;
             oldNews.Content = updatedNews.Content;
 
             if (photo != null && photo.Length > 0)
             {
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
+                var maxSize = 1024 * 1024;
+
+                if (!allowedTypes.Contains(photo.ContentType.ToLower()))
+                {
+                    TempData["Error"] = "Unsupported file type.";
+                    return View("Update", updatedNews);
+                }
+
+                if (photo.Length > maxSize)
+                {
+                    TempData["Error"] = "image must be <= 2mb.";
+                    return View("Update", updatedNews);
+                }
+
                 using var ms = new MemoryStream();
                 await photo.CopyToAsync(ms);
                 oldNews.Thumbnail = Convert.ToBase64String(ms.ToArray());
             }
 
             await _newsRepository.UpdateAsync(oldNews);
+            TempData["SuccessMessage"] = "Cập nhật thành công!";
             return RedirectToAction("Index");
         }
+
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
