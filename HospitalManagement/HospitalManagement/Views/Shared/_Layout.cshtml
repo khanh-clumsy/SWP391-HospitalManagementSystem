@@ -113,11 +113,11 @@
 			<div class="collapse navbar-collapse" id="navbarCollapse">
 				<div class="navbar-nav ms-auto p-4 p-lg-0">
 
-					<a asp-action="Index" asp-controller="Home" class="nav-item nav-link">Home</a>
-					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">About</a>
-					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Service</a>
-					<a asp-action="ViewDoctors" asp-controller="Home" class="nav-item nav-link">Doctors</a>
-					<a asp-action="Index" asp-controller="Medicine" class="nav-item nav-link">Medicine</a>
+					<a asp-action="Index" asp-controller="Home" class="nav-item nav-link">Trang chủ</a>
+					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">Về chúng tôi</a>
+					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Dịch vụ</a>
+					<a asp-action="ViewDoctors" asp-controller="Home" class="nav-item nav-link">Chuyên gia</a>
+					<a asp-action="Index" asp-controller="Package" class="nav-item nav-link">Gói khám sức khỏe</a>
 
 					@if (User.IsInRole("Patient"))
 					{

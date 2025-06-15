@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Newtonsoft.Json;
+using X.PagedList.Extensions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HospitalManagement.Controllers
@@ -45,8 +46,10 @@ namespace HospitalManagement.Controllers
 
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
-        public async Task<IActionResult> MyAppointments()
+        public async Task<IActionResult> MyAppointments(int? page)
         {
+            int pageSize = 12;
+            int pageNumber = page ?? 1;
             //Lấy danh sách SlotOptions để hiển thị trong ViewBag
             var SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SlotOptions = SlotOptions;
@@ -82,7 +85,8 @@ namespace HospitalManagement.Controllers
                 default:
                     break;
             }
-            return View();
+            var pagedAppointments = appointment.ToPagedList(pageNumber, pageSize);
+            return View(pagedAppointments);
         }
 
         [Authorize(Roles = "Patient, Sales, Doctor")]
