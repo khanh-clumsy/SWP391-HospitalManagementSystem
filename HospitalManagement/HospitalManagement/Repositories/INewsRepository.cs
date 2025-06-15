@@ -4,7 +4,7 @@ using HospitalManagement.Models;
 public interface INewsRepository
 {
     Task<List<News>> GetAllAsync();
-    Task<News> GetByIdAsync(int id);
+    Task<List<News>> GetByDoctorIdAsync(int doctorId);
     Task CreateAsync(News news);
     Task UpdateAsync(News news);
     Task DeleteAsync(int id);
