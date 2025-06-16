@@ -39,8 +39,13 @@ namespace HospitalManagement.Controllers
 
         public async Task<IActionResult> News(int? page)
         {
-            var newsList = await _newsRepository.GetAllAsync();
-            return View(newsList);
+            int pageSize = 2;
+            int pageNumber = page ?? 1;
+
+            var newsList = await _newsRepository.GetAllAsync(); 
+            var pagedNews = newsList.ToPagedList(pageNumber, pageSize);
+
+            return View(pagedNews);
         }
 
         public async Task<IActionResult> Detail(int id)

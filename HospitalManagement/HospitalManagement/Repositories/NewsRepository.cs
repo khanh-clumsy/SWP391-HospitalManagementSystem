@@ -21,23 +21,23 @@ public class NewsRepository : INewsRepository
             .Include(a => a.Staff)
             .FirstOrDefaultAsync(a => a.NewsId == id);
     }
-
     public async Task<List<NewsViewModel>> GetAllAsync()
     {
         return await _context.News
-       .Select(n => new NewsViewModel
-       {
-           NewsId = n.NewsId,
-           Title = n.Title,
-           Description = n.Description,
-           CreatedAt = n.CreatedAt,
-           Thumbnail = n.Thumbnail,
-           AuthorName = n.Doctor != null
-               ? n.Doctor.FullName
-               : (n.Staff != null ? n.Staff.FullName : "Không xác định")
-       })
-       .AsNoTracking()
-       .ToListAsync();
+            .AsNoTracking()
+            .OrderByDescending(n => n.CreatedAt) 
+            .Select(n => new NewsViewModel
+            {
+                NewsId = n.NewsId,
+                Title = n.Title,
+                Description = n.Description,
+                CreatedAt = n.CreatedAt,
+                Thumbnail = n.Thumbnail,
+                AuthorName = n.Doctor != null
+                    ? n.Doctor.FullName
+                    : (n.Staff != null ? n.Staff.FullName : "Không xác định")
+            })
+            .ToListAsync();
     }
 
     public async Task<List<NewsViewModel>> GetByDoctorIdAsync(int doctorId)
