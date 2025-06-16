@@ -1,0 +1,729 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Room Detail - Klinik</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <!-- Favicon -->
+    <link href="/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #06A3DA;
+            --secondary-color: #f8f9fa;
+            --dark-color: #2c3e50;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--primary-color), #0891b2);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .room-info-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .room-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-maintenance {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .schedule-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .schedule-header {
+            background: linear-gradient(135deg, var(--primary-color), #0891b2);
+            color: white;
+            padding: 1.5rem;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .schedule-table {
+            overflow-x: auto;
+        }
+
+        .table-schedule {
+            margin: 0;
+            font-size: 0.9rem;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+            .table-schedule th {
+                background: linear-gradient(135deg, var(--primary-color), #0891b2);
+                color: white;
+                font-weight: 600;
+                text-align: center;
+                padding: 1rem 0.5rem;
+                border: none;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+
+            .table-schedule td {
+                border: 1px solid #e9ecef;
+                vertical-align: middle;
+                padding: 0.8rem 0.5rem;
+                text-align: center;
+                min-width: 180px;
+            }
+
+        .slot-label {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-right: 2px solid var(--primary-color) !important;
+            min-width: 80px;
+            text-align: left;
+            padding-left: 1rem;
+        }
+
+        .appointment-block {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border: 2px solid #2196f3;
+            border-radius: 8px;
+            padding: 0.5rem;
+            margin: 0.2rem;
+            font-size: 0.8rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+            .appointment-block:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+            }
+
+        .appointment-code {
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+        .appointment-location {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .appointment-time {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2e7d32;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .appointment-status {
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .status-not-yet {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status-completed {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .btn-action {
+            background: var(--primary-color);
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.7rem;
+            margin: 0.1rem;
+            transition: all 0.3s ease;
+        }
+
+            .btn-action:hover {
+                background: #0891b2;
+                transform: translateY(-1px);
+            }
+
+        .empty-slot {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .weekend {
+            background-color: #f8f9fa;
+        }
+
+        .today {
+            background-color: #fff3e0;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .past-date {
+            opacity: 0.7;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .form-select, .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+            .form-select:focus, .form-control:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem rgba(6, 163, 218, 0.25);
+            }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+            .btn-primary:hover {
+                background: #0891b2;
+                border-color: #0891b2;
+                transform: translateY(-2px);
+            }
+
+        .legend {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+       
+
+        .table-schedule td, .table-schedule th {
+            padding: 0.5rem 0.3rem;
+            min-width: 140px;
+        }
+
+        .filter-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-hospital-symbol me-3"></i>
+                        Room Detail Management
+                    </h1>
+                    <p class="mb-0 mt-2 opacity-75">Manage room information and view schedules</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-light btn-lg" onclick="window.history.back()">
+                        <i class="fas fa-arrow-left me-2"></i>Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Room Information Card -->
+        <div class="room-info-card">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2 class="text-primary mb-3">
+                        <i class="fas fa-door-open me-2"></i>
+                        <span id="roomName">BE-204</span>
+                    </h2>
+                    <div class="mb-3">
+                        <strong>Status: </strong>
+                        <span id="roomStatus" class="room-status status-active">Active</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Capacity: </strong>
+                        <span id="roomCapacity">25 students</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Equipment: </strong>
+                        <span id="roomEquipment">Projector, Whiteboard, Air Conditioning</span>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#editRoomModal">
+                        <i class="fas fa-edit me-2"></i>Edit Room
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Section -->
+        <div class="schedule-container">
+            <div class="schedule-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Room Schedule
+                </h3>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <div class="filter-controls">
+                    <div>
+                        <label for="yearSelect" class="form-label mb-1">Year:</label>
+                        <select id="yearSelect" class="form-select" onchange="updateSchedule()">
+                            <option value="2024">2024</option>
+                            <option value="2025" selected>2025</option>
+                            <option value="2026">2026</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="weekSelect" class="form-label mb-1">Week:</label>
+                        <select id="weekSelect" class="form-select" onchange="updateSchedule()">
+                            <option value="16/06 To 22/06" selected>16/06 To 22/06</option>
+                            <option value="23/06 To 29/06">23/06 To 29/06</option>
+                            <option value="30/06 To 06/07">30/06 To 06/07</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="updateSchedule()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);"></div>
+                        <span>Scheduled</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color status-not-yet"></div>
+                        <span>Not Started</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color status-completed"></div>
+                        <span>Completed</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color status-cancelled"></div>
+                        <span>Cancelled</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Table -->
+            <div class="schedule-table">
+                <table class="table table-schedule">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 100px;">Time Slot</th>
+                            <th>MON<br><small>16/06</small></th>
+                            <th>TUE<br><small>17/06</small></th>
+                            <th>WED<br><small>18/06</small></th>
+                            <th>THU<br><small>19/06</small></th>
+                            <th>FRI<br><small>20/06</small></th>
+                            <th class="weekend">SAT<br><small>21/06</small></th>
+                            <th class="weekend">SUN<br><small>22/06</small></th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleTableBody">
+                        <tr>
+                            <td class="slot-label">Slot 1<br><small>08:00-09:30</small></td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                        </tr>
+                        <tr>
+                            <td class="slot-label">Slot 2<br><small>09:45-11:15</small></td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                        </tr>
+                        <tr>
+                            <td class="slot-label">Slot 3<br><small>12:50-14:20</small></td>
+                            <td class="empty-slot">-</td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">SWP391</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(12:50-15:10)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">SWT301</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(12:50-15:10)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">PRN212</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(12:50-15:10)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                        <button class="btn-action" style="background: #17a2b8;">EduNext</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">SWR302</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(12:50-15:10)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="weekend empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                        </tr>
+                        <tr>
+                            <td class="slot-label">Slot 4<br><small>14:35-16:05</small></td>
+                            <td class="empty-slot">-</td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">PRN212</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(15:20-17:40)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                        <button class="btn-action" style="background: #17a2b8;">EduNext</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">SWR302</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(15:20-17:40)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">SWP391</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(15:20-17:40)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="appointment-block">
+                                    <div class="appointment-code">SWT301</div>
+                                    <div class="appointment-location">at BE-204</div>
+                                    <div class="appointment-time">(15:20-17:40)</div>
+                                    <div class="appointment-status status-not-yet">(Not yet)</div>
+                                    <div class="mt-2">
+                                        <button class="btn-action">View Materials</button>
+                                        <button class="btn-action">Meet URL</button>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="weekend empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                        </tr>
+                        <tr>
+                            <td class="slot-label">Slot 5<br><small>16:20-17:50</small></td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                            <td class="weekend empty-slot">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Room Modal -->
+    <div class="modal fade" id="editRoomModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--primary-color); color: white;">
+                    <h5 class="modal-title">
+                        <i class="fas fa-edit me-2"></i>Edit Room Information
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editRoomForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editRoomName" class="form-label">Room Name</label>
+                                    <input type="text" class="form-control" id="editRoomName" value="BE-204">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editRoomStatus" class="form-label">Status</label>
+                                    <select class="form-select" id="editRoomStatus">
+                                        <option value="active" selected>Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="maintenance">Under Maintenance</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editRoomCapacity" class="form-label">Capacity</label>
+                                    <input type="number" class="form-control" id="editRoomCapacity" value="25">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="editRoomType" class="form-label">Room Type</label>
+                                    <select class="form-select" id="editRoomType">
+                                        <option value="classroom" selected>Classroom</option>
+                                        <option value="laboratory">Laboratory</option>
+                                        <option value="meeting">Meeting Room</option>
+                                        <option value="auditorium">Auditorium</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRoomEquipment" class="form-label">Equipment</label>
+                            <textarea class="form-control" id="editRoomEquipment" rows="3">Projector, Whiteboard, Air Conditioning</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editRoomNotes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="editRoomNotes" rows="2" placeholder="Any additional information about the room..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveRoomChanges()">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Sample data for different weeks
+        const scheduleData = {
+            '2025': {
+                '16/06 To 22/06': [
+                    // Current data as shown above
+                ],
+                '23/06 To 29/06': [
+                    // Different week data
+                ],
+                '30/06 To 06/07': [
+                    // Another week data
+                ]
+            }
+        };
+
+        function updateSchedule() {
+            const year = document.getElementById('yearSelect').value;
+            const week = document.getElementById('weekSelect').value;
+
+            // Here you would typically make an AJAX call to fetch new data
+            console.log(`Updating schedule for ${year}, week: ${week}`);
+
+            // For demo purposes, we'll just show a loading effect
+            const tbody = document.getElementById('scheduleTableBody');
+            tbody.style.opacity = '0.5';
+
+            setTimeout(() => {
+                tbody.style.opacity = '1';
+                // You would update the table content here with real data
+            }, 500);
+        }
+
+        function saveRoomChanges() {
+            const roomName = document.getElementById('editRoomName').value;
+            const roomStatus = document.getElementById('editRoomStatus').value;
+            const roomCapacity = document.getElementById('editRoomCapacity').value;
+            const roomEquipment = document.getElementById('editRoomEquipment').value;
+
+            // Update the display
+            document.getElementById('roomName').textContent = roomName;
+            document.getElementById('roomCapacity').textContent = roomCapacity + ' students';
+            document.getElementById('roomEquipment').textContent = roomEquipment;
+
+            // Update status
+            const statusElement = document.getElementById('roomStatus');
+            statusElement.textContent = roomStatus.charAt(0).toUpperCase() + roomStatus.slice(1);
+            statusElement.className = `room-status status-${roomStatus}`;
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editRoomModal'));
+            modal.hide();
+
+            // Show success message
+            alert('Room information updated successfully!');
+        }
+
+        // Initialize tooltips and other interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click handlers for appointment blocks
+            document.querySelectorAll('.appointment-block').forEach(block => {
+                block.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('btn-action')) {
+                        // Show appointment details
+                        const code = this.querySelector('.appointment-code').textContent;
+                        alert(`Appointment Details for ${code}`);
+                    }
+                });
+            });
+
+            // Highlight today's column (if applicable)
+            const today = new Date().toLocaleDateString('en-GB').slice(0, 5);
+            document.querySelectorAll('th').forEach(th => {
+                if (th.innerHTML.includes(today)) {
+                    const index = Array.from(th.parentNode.children).indexOf(th);
+                    document.querySelectorAll(`td:nth-child(${index + 1})`).forEach(td => {
+                        td.classList.add('today');
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

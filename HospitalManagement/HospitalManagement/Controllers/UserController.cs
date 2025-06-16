@@ -21,14 +21,16 @@ namespace HospitalManagement.Controllers
         private readonly IDoctorRepository _doctorRepo;
         private readonly IPatientRepository _patientRepo;
         private readonly IStaffRepository _staffRepo;
+        private readonly IRoomRepository _roomRepo;
         private readonly PasswordHasher<Patient> _passwordHasher;
         private readonly EmailService _emailService;
-        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, EmailService emailService)
+        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, IRoomRepository roomRepo, EmailService emailService)
         {
             _context = context;
             _doctorRepo = doctorRepo;
             _patientRepo = patientRepo;
             _staffRepo = staffRepo;
+            _roomRepo = roomRepo;
             _passwordHasher = new PasswordHasher<Patient>();
             _emailService = emailService;
         }
@@ -70,6 +72,38 @@ namespace HospitalManagement.Controllers
 
             return View(vm);
         }
+
+        
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status)
+        {
+            name = UserController.NormalizeName(name);
+            int pageSize = 10;
+            int pageNumber = page ?? 1;
+
+            List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, pageNumber, pageSize);
+            var totalRooms = await _roomRepo.CountAsync(name, building, floor, status);
+            var pagedRooms = new StaticPagedList<RoomWithDoctorDtoViewModel>(rooms, pageNumber, pageSize, totalRooms);
+            var allBuildings = await _roomRepo.GetAllDistinctBuildings();
+            var allFloors = await _roomRepo.GetAllDistinctFloors();
+
+            // Removed incorrect reference to vm.AccountType and added appropriate ViewBag assignments
+            ViewBag.Name = name;
+            ViewBag.Building = building;
+            ViewBag.Floor = floor;
+            ViewBag.Status = status;
+            ViewBag.AllBuildings = allBuildings;
+            ViewBag.AllFloors = allFloors;
+
+            return View(pagedRooms);
+        }
+
+        //[HttpGet]
+        //[Authorize(Roles = "Admin")]
+        //public IActionResult RoomDetail()
+        //{
+        //    return View();
+        //}
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -165,21 +199,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult AddDoctorAccount()
         {
-            ViewBag.Units = new List<SelectListItem>
-            {
-                new("Nội tim mạch", "Nội tim mạch"),
-                new("Dị ứng", "Dị ứng"),
-                new("Truyền nhiễm", "Truyền nhiễm"),
-                new("Thần kinh", "Thần kinh"),
-                new("Phụ sản", "Phụ sản"),
-                new("Nhi", "Nhi"),
-                new("Ngoại tiêu hóa", "Ngoại tiêu hóa"),
-                new("Mắt", "Mắt"),
-                new("Y học hạt nhân", "Y học hạt nhân"),
-                new("Y học cổ truyền", "Y học cổ truyền"),
-                new("Tâm thần", "Tâm thần"),
-                new("Vật lý trị liệu", "Vật lý trị liệu"),
-            };
+            ViewBag.Units = GetAllDepartmentName();
             return View();
         }
 
@@ -201,6 +221,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddDoctorAccount(ViewModels.Register model)
         {
+            ViewBag.Units = GetAllDepartmentName();
             // check if mail is used
             var existingAccount = await _context.Doctors.FirstOrDefaultAsync(a => a.Email == model.Email);
             if (existingAccount != null)
@@ -258,7 +279,7 @@ namespace HospitalManagement.Controllers
                 IsSpecial = false,
                 ProfileImage = model.ProfileImage
             };
-         
+
             // handle case add email is used exception in sqlserver
             try
             {
@@ -356,7 +377,7 @@ namespace HospitalManagement.Controllers
                 ProfileImage = model.ProfileImage
             };
 
-            
+
             // handle case add email is used exception in sqlserver
             try
             {
@@ -456,7 +477,7 @@ namespace HospitalManagement.Controllers
                 ProfileImage = model.ProfileImage
             };
 
-            
+
             // handle case add email is used exception in sqlserver
             try
             {
@@ -572,6 +593,25 @@ namespace HospitalManagement.Controllers
 
             // Trộn chuỗi để các ký tự không cố định vị trí
             return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
+        }
+        public List<SelectListItem> GetAllDepartmentName()
+        {
+
+            return new List<SelectListItem>
+            {
+                new ("Nội tim mạch", "Nội tim mạch"),
+                new ("Dị ứng", "Dị ứng"),
+                new ("Truyền nhiễm", "Truyền nhiễm"),
+                new ("Thần kinh", "Thần kinh"),
+                new ("Phụ sản", "Phụ sản"),
+                new ("Nhi", "Nhi"),
+                new ("Ngoại tiêu hóa", "Ngoại tiêu hóa"),
+                new ("Mắt", "Mắt"),
+                new ("Y học hạt nhân", "Y học hạt nhân"),
+                new ("Y học cổ truyền", "Y học cổ truyền"),
+                new ("Tâm thần", "Tâm thần"),
+                new ("Vật lý trị liệu", "Vật lý trị liệu"),
+            };
         }
     }
 }

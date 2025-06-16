@@ -709,6 +709,8 @@ namespace HospitalManagement.Controllers
             input = input.Trim();
             var words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             return string.Join(" ", words);
+
+
         }
     }
 }

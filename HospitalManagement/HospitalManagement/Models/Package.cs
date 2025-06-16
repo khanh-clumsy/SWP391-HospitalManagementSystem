@@ -34,5 +34,4 @@ public partial class Package
     public virtual PackageCategory PackageCategory { get; set; } = null!;
 
     public virtual ICollection<PackageTest> PackageTests { get; set; } = new List<PackageTest>();
-
 }

@@ -13,12 +13,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
 builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 
 
 // Add services to the container
@@ -31,6 +33,7 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader(); // Cho phép bất kỳ header nào
     });
 });
+
 
 
 
@@ -107,9 +110,6 @@ builder.Services.AddControllersWithViews(options =>
 
 var app = builder.Build();
 
-app.UseCors("AllowAll");  // Áp dụng CORS chính xác cho toàn bộ ứng dụng
-
-
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HospitalManagementContext>();
@@ -151,6 +151,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=User}/{action=ManageRoom}/{id?}");
 
 app.Run();

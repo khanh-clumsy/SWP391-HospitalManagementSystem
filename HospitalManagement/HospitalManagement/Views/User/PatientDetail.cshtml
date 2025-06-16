@@ -45,14 +45,12 @@
 	<div class="container-xxl doctor-profile py-5">
 		<div class="container">
 
-			<div class="row mb-4">
-				<div class="col-12">
-					<a asp-controller="User" asp-action="ManageAccount" class="back-to-list" asp-route-type="Patient">
-						<i class="fas fa-arrow-left"></i>
-						Back to Account list
-					</a>
-				</div>
+			<<div class="col-12">
+				<a href="javascript:history.back()" class="back-to-list">
+					<i class="fas fa-arrow-left"></i> Trở về
+				</a>
 			</div>
+
 
 			<div class="row g-4 align-items-stretch">
 				<!-- Image -->
@@ -67,7 +65,7 @@
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
-								<h3>Profile Image</h3>
+								<h3>Ảnh Cá Nhân</h3>
 							</div>
 						</div>
 					</div>
@@ -77,14 +75,14 @@
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
 					<div class="profile-card">
 						<div class="profile-info">
-							<h2> Profile Details</h2>
+							<h2>Thông tin cá nhân</h2>
 
 							<div class="info-item">
 								<div class="info-icon">
 									<i class="fas fa-user"></i>
 								</div>
 								<div class="info-content">
-									<h5>Full Name</h5>
+									<h5>Tên đầy đủ</h5>
 									<p>@Model.FullName</p>
 								</div>
 							</div>
@@ -94,7 +92,7 @@
 									<i class="fas fa-venus-mars"></i>
 								</div>
 								<div class="info-content">
-									<h5>Gender</h5>
+									<h5>Giới tính</h5>
 									<p>@Model.GetFullGender()</p>
 								</div>
 							</div>
@@ -114,7 +112,7 @@
 									<i class="fas fa-phone"></i>
 								</div>
 								<div class="info-content">
-									<h5>Phone</h5>
+									<h5>Số điện thoại</h5>
 									<p>@Model.PhoneNumber</p>
 								</div>
 							</div>
@@ -124,7 +122,7 @@
 									<i class="fas fa-calendar-alt"></i>
 								</div>
 								<div class="info-content">
-									<h5>Date of Birth</h5>
+									<h5>Ngày sinh</h5>
 									<p>@Model.Dob?.ToString("dd/MM/yyyy")</p>
 								</div>
 							</div>
@@ -134,7 +132,7 @@
 									<i class="fas fa-map-marker-alt"></i>
 								</div>
 								<div class="info-content">
-									<h5>Address</h5>
+									<h5>Địa chỉ</h5>
 									<p>@Model.Address</p>
 								</div>
 							</div>
@@ -144,7 +142,7 @@
 									<i class="fas fa-id-card"></i>
 								</div>
 								<div class="info-content">
-									<h5>Health Insurance</h5>
+									<h5>Bảo hiểm y tế</h5>
 									<p>@Model.HealthInsurance</p>
 								</div>
 							</div>
@@ -154,7 +152,7 @@
 									<i class="fas fa-tint"></i>
 								</div>
 								<div class="info-content">
-									<h5>Blood Group</h5>
+									<h5>Nhóm máu</h5>
 									<p>@Model.BloodGroup</p>
 								</div>
 							</div>

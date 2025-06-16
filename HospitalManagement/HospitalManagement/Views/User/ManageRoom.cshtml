@@ -1,0 +1,265 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+    @model X.PagedList.IPagedList<HospitalManagement.ViewModels.RoomWithDoctorDtoViewModel>;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Klinik - Clinic Website Template</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .popup-alert {
+            position: fixed;
+            text-align: center;
+            top: 5px;
+            right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div>
+        @if (TempData["error"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["error"]</div>
+            </div>
+        }
+        @if (TempData["success"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["success"]</div>
+            </div>
+        }
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <a asp-action="Index" asp-controller="Home" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Trở về trang chủ
+                    </a>
+                </div>
+            </div>
+            <a asp-action="AddRoom" asp-controller="User" class="btn btn-primary mb-3">Thêm Phòng</a>
+            <!-- Search & Filter Form -->
+            <form method="get" asp-action="ManageRoom" asp-controller="User">
+                <input type="hidden" name="type"/>
+                <div class="row g-2 wow fadeInUp" data-wow-delay="0.2s">
+
+                    <!-- Search by name -->
+                    <div class="col-md-2">
+                        <input type="text" name="name" class="form-control" placeholder="Tên phòng"
+                                value="@(ViewBag.Name ?? "")" />
+                    </div>
+
+                    <!-- Filter by Building -->
+                    <div class="col-md-2">
+                        <select name="building" class="form-select">
+                            <option value="">Chọn tòa nhà</option>
+                            @foreach (var building in ViewBag.AllBuildings)
+                            { 
+                                <option value="@building" selected="@(ViewBag.Building == building ? "selected" : null)">@building</option>
+                            }
+                        </select>
+                    </div>
+                    <!-- Filter by floors -->
+                    <div class="col-md-2">
+                        <select name="floor" class="form-select">
+                            <option value="">Chọn tầng</option>
+                            @foreach (var floor in ViewBag.AllFloors)
+                            {
+                                <option value="@floor" selected="@(ViewBag.Floor == floor ? "selected" : null)">@floor</option>
+                            }
+                        </select>
+                    </div>
+                    <!-- Filter by status -->
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="">Trạng thái</option>
+                            <option value="Hoạt động" selected="@(ViewBag.Status == "Hoạt động" ? "selected" : null)">Hoạt động</option>
+                            <option value="Bảo trì" selected="@(ViewBag.Status == "Bảo trì" ? "selected" : null)">Bảo trì</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Search Button -->
+                    <div class="col-md-2 d-grid">
+                        <button class="btn btn-primary" type="submit">Tìm Kiếm</button>
+                    </div>
+                </div>
+
+            </form>
+                
+            <table class="table table-bordered text-center mt-3">
+                <thead class="table-light">
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên phòng</th>
+                        <th>Bác sĩ đang phụ trách</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   <!-- Display index, roomname, doctor who in this room now, status, Action -->
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var room = Model[i];
+                        <tr>
+                            <td>@((Model.PageNumber - 1) * Model.PageSize + i + 1)</td>
+                            <td>@room.RoomName</td>
+                            <td>
+                                @if (room.DoctorID != null)
+                                {
+                                    <a asp-action="DoctorDetail" asp-controller="User" asp-route-id="@room.DoctorID">@room.DoctorName</a>
+                                }
+                                else
+                                {
+                                    <p>Trống</p>
+                                }
+                            </td>
+                            <td>@(room.Status)</td>
+                            <td>
+                                <a asp-action="RoomDetail" asp-controller="User" asp-route-id="@room.RoomId" class="btn btn-warning">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <!-- Pagination start -->
+            @{
+            int maxPagesToShow = 5;
+            int startPage = Model.PageNumber - maxPagesToShow / 2;
+            if (startPage < 1) startPage = 1;
+
+            int endPage = startPage + maxPagesToShow - 1;
+            if (endPage > Model.PageCount)
+            {
+                endPage = Model.PageCount;
+                startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+            }
+            }
+            @if (Model.PageCount > 1)
+            {
+                <div class="d-flex justify-content-center mt-5">
+                    <nav>
+                        <ul class="pagination">
+
+                            @* Previous button *@
+                            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                                <a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("ManageRoom", new {
+											page = Model.PageNumber - 1,
+											name = ViewBag.Name,
+											building = ViewBag.Building,
+											status = ViewBag.Status,
+                                            floor = ViewBag.Floor}) : "#")" tabindex="-1">Trước</a>
+                            </li>
+
+                            @* Trang đầu nếu startPage > 1 và dấu "..." *@
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("ManageRoom", new {
+                                            page = 1,
+											name = ViewBag.Name,
+											building = ViewBag.Building,
+											status = ViewBag.Status,
+                                            floor = ViewBag.Floor})">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                            }
+
+                            @* Các trang hiển thị trong khoảng từ startPage đến endPage *@
+                            @for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                    <a class="page-link" href="@Url.Action("ManageRoom", new {
+                                            page = i,
+											name = ViewBag.Name,
+											building = ViewBag.Building,
+											status = ViewBag.Status,
+                                            floor = ViewBag.Floor})">@i</a>
+                                        </li>
+                                    }
+
+                            @* Trang cuối nếu endPage < total pages và dấu "..." *@
+                            @if (endPage < Model.PageCount)
+                            {
+                                if (endPage < Model.PageCount - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("ManageRoom", new {
+                                            page = Model.PageNumber,
+											name = ViewBag.Name,
+											building = ViewBag.Building,
+											status = ViewBag.Status,
+                                            floor = ViewBag.Floor})">@Model.PageCount</a>
+                                        </li>
+                                    }
+
+                                    @* Next button *@
+                            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                                <a class="page-link" href="@(Model.HasNextPage ? Url.Action("ManageRoom", new {
+                                            page = Model.PageNumber + 1,
+											name = ViewBag.Name,
+											building = ViewBag.Building,
+											status = ViewBag.Status,
+                                            floor = ViewBag.Floor}) : "#")">Sau</a>
+                            </li>
+
+                        </ul>
+                    </nav>
+                </div>
+            }
+            <!-- Pagination end-->
+        </div>
+    </div>
+            
+    <a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+    <script>
+        // Auto-hide popup alerts after 3 seconds
+        window.setTimeout(function () {
+            const alertBox = document.getElementById('popup-alert');
+            if (alertBox) {
+                alertBox.classList.remove('show');
+                alertBox.classList.add('hide');
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 3000);
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/lib/easing/easing.min.js"></script>
+    <script src="/lib/waypoints/waypoints.min.js"></script>
+    <script src="/lib/counterup/counterup.min.js"></script>
+    <script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="~/js/main.js"></script>
+</body>
+</html>
