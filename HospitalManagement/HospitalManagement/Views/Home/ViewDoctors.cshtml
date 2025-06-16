@@ -33,11 +33,11 @@
 	<!-- Page Header Start -->
 	<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
 		<div class="container py-5">
-			<h1 class="display-3 text-white mb-3 animated slideInDown">Doctors</h1>
+			<h1 class="display-3 text-white mb-3 animated slideInDown">Bác sĩ</h1>
 			<nav aria-label="breadcrumb animated slideInDown">
 				<ol class="breadcrumb text-uppercase mb-0">
-					<li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home" class="text-white">Home</a></li>
-					<li class="breadcrumb-item text-primary active" aria-current="page">Doctors</li>
+					<li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home" class="text-white">Trang chủ</a></li>
+					<li class="breadcrumb-item text-primary active" aria-current="page">Bác sĩ</li>
 				</ol>
 			</nav>
 		</div>
@@ -47,8 +47,8 @@
 	<div class="container-xxl py-5">
 		<div class="container">
 			<div class="text-center mx-auto mb-4 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-				<p class="d-inline-block border rounded-pill py-1 px-4">Doctors</p>
-				<h1>Our Experience Doctors</h1>
+				<p class="d-inline-block border rounded-pill py-1 px-4">Bác sĩ</p>
+				<h1>Đội ngũ bác sĩ</h1>
 			</div>
 
 			<!-- Search & Filter Form -->
@@ -82,24 +82,24 @@
 					<!-- Filter by Experience -->
 					<div class="col-md-2">
 						<select class="form-select" name="exp">
-							<option value="">Experience</option>
+							<option value="">Kinh nghiệm</option>
 							@if ((int?)ViewBag.Experience == 1)
 							{
-								<option value="1" selected>1+ yrs</option>
+								<option value="1" selected>Trên 1 năm</option>
 							}
 							else
 							{
-								<option value="1">1+ yrs</option>
+								<option value="1">Trên 1 năm</option>
 							}
 							@for (int i = 5; i < 16; i = i + 5)
 							{
 								if ((int?)ViewBag.Experience == i)
 								{
-									<option value="@i" selected>@($"{i}+ yrs")</option>
+									<option value="@i" selected>@($"Trên {i} năm")</option>
 								}
 								else
 								{
-									<option value="@i">@($"{i}+ yrs")</option>
+									<option value="@i">@($"Trên {i} năm")</option>
 								}
 							}
 						</select>
@@ -108,21 +108,21 @@
 					<!-- Filter by Type -->
 					<div class="col-md-2">
 						<select class="form-select" name="isHead">
-							<option value="">Type</option>
+							<option value="">Loại</option>
 							@if (ViewBag.Type == null)
 							{
-								<option value="true">Department Head</option>
-								<option value="false">Doctor</option>
+								<option value="true">Trưởng khoa</option>
+								<option value="false">Bác sĩ</option>
 							}
 							else if (ViewBag.Type)
 							{
-								<option value="true" selected>Department Head</option>
-								<option value="false">Doctor</option>
+								<option value="true" selected>Trưởng khoa</option>
+								<option value="false">Bác sĩ</option>
 							}
 							else if (ViewBag.Type == false)
 							{
-								<option value="true">Department Head</option>
-								<option value="false" selected>Doctor</option>
+								<option value="true">Trưởng khoa</option>
+								<option value="false" selected>Bác sĩ</option>
 							}
 						</select>
 					</div>
@@ -131,29 +131,29 @@
 					<div class="col-md-2">
 						<select class="form-select" name="sort">
 							b
-							<option value="">Sort Exp</option>
+							<option value="">Sắp xếp theo kinh nghiệm</option>
 							@if ((string)ViewBag.Sort == "asc")
 							{
-								<option value="asc" selected>Ascending</option>
+								<option value="asc" selected>Tăng dần</option>
 							}
 							else
 							{
-								<option value="asc">Ascending</option>
+								<option value="asc">Tăng dần</option>
 							}
 							@if ((string)ViewBag.Sort == "desc")
 							{
-								<option value="desc" selected>Descending</option>
+								<option value="desc" selected>Giảm dần</option>
 							}
 							else
 							{
-								<option value="desc">Descending</option>
+								<option value="desc">Giảm dần</option>
 							}
 						</select>
 					</div>
 
 					<!-- Search Button -->
 					<div class="col-md-2 d-grid">
-						<button class="btn btn-primary" type="submit">Search</button>
+						<button class="btn btn-primary" type="submit">Tìm kiếm</button>
 					</div>
 				</div>
 			</form>
@@ -174,8 +174,8 @@
 								<h5>@doctor.FullName</h5>
 								<p class="text-primary">@doctor.DepartmentName (@doctor.ExperienceYear Exp Years)</p>
 								<div class="d-flex justify-content-center gap-2 mt-4">
-									<a asp-controller="Appointment" asp-action="Booking" asp-route-doctorId="@doctor.DoctorId" class="btn btn-sm btn-outline-primary">Make an Appointment</a>
-									<a href="/Home/DoctorDetail/@doctor.DoctorId" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center">Detail</a>
+									<a asp-controller="Appointment" asp-action="Booking" asp-route-doctorId="@doctor.DoctorId" class="btn btn-sm btn-outline-primary">Tạo cuộc hẹn</a>
+									<a href="/Home/DoctorDetail/@doctor.DoctorId" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center">Chi tiết</a>
 								</div>
 							</div>
 						</div>
@@ -209,7 +209,7 @@
 											department = ViewBag.Department,
 											exp = ViewBag.Experience,
 											isHead = ViewBag.Type,
-											sort = ViewBag.Sort }) : "#")" tabindex="-1">Previous</a>
+											sort = ViewBag.Sort }) : "#")" tabindex="-1">Trước</a>
 						</li>
 
 						@* Trang đầu nếu startPage > 1 và dấu "..." *@
@@ -271,7 +271,7 @@
 										department = ViewBag.Department,
 										exp = ViewBag.Experience,
 										isHead = ViewBag.Type,
-										sort = ViewBag.Sort}) : "#")">Next</a>
+										sort = ViewBag.Sort}) : "#")">Sau</a>
 						</li>
 
 					</ul>

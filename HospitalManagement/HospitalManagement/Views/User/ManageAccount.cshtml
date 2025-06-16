@@ -54,24 +54,24 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <a asp-action="Index" asp-controller="Home" class="btn btn-outline-primary">
-                        <i class="fas fa-arrow-left"></i> Back to Home
+                        <i class="fas fa-arrow-left"></i> Trở về trang chủ
                     </a>
                 </div>
             </div>
             <!-- Choose type table -->
             <div class="mb-4">
-                <h2 class="text-primary">Account List</h2>
+                <h2 class="text-primary">Danh sách tài khoản</h2>
                 <div class="btn-group mt-2" role="group">
-                    <a href="?type=Patient" class="btn btn-outline-primary @(Model.AccountType == "Patient" ? "active" : "")">Patient</a>
-                    <a href="?type=Doctor" class="btn btn-outline-success @(Model.AccountType == "Doctor" ? "active" : "")">Doctor</a>
-                    <a href="?type=Staff" class="btn btn-outline-warning @(Model.AccountType == "Staff" ? "active" : "")">Staff</a>
+                    <a href="?type=Patient" class="btn btn-outline-primary @(Model.AccountType == "Patient" ? "active" : "")">Bệnh Nhân</a>
+                    <a href="?type=Doctor" class="btn btn-outline-success @(Model.AccountType == "Doctor" ? "active" : "")">Bác Sĩ</a>
+                    <a href="?type=Staff" class="btn btn-outline-warning @(Model.AccountType == "Staff" ? "active" : "")">Nhân Viên</a>
                 </div>
             </div>
             <!-- Account Table -->
             <!-- Patient -->
             @if (Model.AccountType == "Patient")
             {
-                <a asp-action="AddPatientAccount" asp-controller="User" class="btn btn-primary mb-3">Add Account</a>
+                <a asp-action="AddPatientAccount" asp-controller="User" class="btn btn-primary mb-3">Thêm Tài Khoản</a>
                 <!-- Search & Filter Form -->
                 <form method="get" asp-action="ManageAccount" asp-controller="User">
                     <input type="hidden" name="type" value="Patient" />
@@ -79,44 +79,44 @@
 
                         <!-- Search by name -->
                         <div class="col-md-2">
-                            <input type="text" name="name" class="form-control" placeholder="Name"
+                            <input type="text" name="name" class="form-control" placeholder="Tên"
                                    value="@(ViewBag.Name ?? "")" />
                         </div>
 
                         <!-- Filter by Gender -->
                         <div class="col-md-2">
                             <select class="form-select" name="gender">
-                                <option value="">Gender</option>
+                                <option value="">Giới tính</option>
                                 @if ((string)ViewBag.Gender == null)
                                 {
-                                    <option value="M">Male</option>
-                                    <option value="F">Female</option>
-                                    <option value="O">Other</option>
+                                    <option value="M">Nam</option>
+                                    <option value="F">Nữ</option>
+                                    <option value="O">Khác</option>
                                 }
                                 else if ((string)ViewBag.Gender == "F")
                                 {
-                                    <option value="M">Male</option>
-                                    <option value="F" selected>Female</option>
-                                    <option value="O">Other</option>
+                                    <option value="M">Nam</option>
+                                    <option value="F" selected>Nữ</option>
+                                    <option value="O">Khác</option>
                                 }
                                 else if ((string)ViewBag.Gender == "M")
                                 {
-                                    <option value="M" selected>Male</option>
-                                    <option value="F">Female</option>
-                                    <option value="O">Other</option>
+                                    <option value="M" selected>Nam</option>
+                                    <option value="F">Nữ</option>
+                                    <option value="O">Khác</option>
                                 }
                                 else
                                 {
-                                    <option value="M">Male</option>
-                                    <option value="F">Female</option>
-                                    <option value="O" selected>Other</option>
+                                    <option value="M">Nam</option>
+                                    <option value="F">Nữ</option>
+                                    <option value="O" selected>Khác</option>
                                 }
 
                             </select>
                         </div>
                         <!-- Search Button -->
                         <div class="col-md-2 d-grid">
-                            <button class="btn btn-primary" type="submit">Search</button>
+                            <button class="btn btn-primary" type="submit">Tìm Kiếm</button>
                         </div>
                     </div>
 
@@ -126,13 +126,13 @@
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Full Name</th>
-                                <th>Gender</th>
-                                <th>Date of birth</th>
+                                <th>Tên</th>
+                                <th>Giới tính</th>
+                                <th>Ngày sinh</th>
                                 <th>Email</th>
-                                <th>Phone Number</th>
-                                <th>Active</th>
-                                <th>Action</th>
+                                <th>Số điện thoại</th>
+                                <th>Trạng thái kích hoạt</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -158,7 +158,7 @@
 
                                     </td>
                                     <td>
-                                        <a href="/User/PatientDetail?id=@Model.Patients[i].PatientId" class="btn btn-sm btn-outline-secondary">Detail</a>
+                                        <a href="/User/PatientDetail?id=@Model.Patients[i].PatientId" class="btn btn-sm btn-outline-secondary">Chi tiết</a>
                                     </td>
                                 </tr>
                             }
@@ -166,7 +166,7 @@
                     </table>
 
                     <div class="mt-3 text-end">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                     </div>
                 </form>
                 <!-- Pagination start -->
@@ -194,7 +194,7 @@
                                                 Type = "Patient",
 											    page = Model.Patients.PageNumber - 1,
 											    name = ViewBag.Name,
-											    gender = ViewBag.Gender}) : "#")" tabindex="-1">Previous</a>
+											    gender = ViewBag.Gender}) : "#")" tabindex="-1">Trước</a>
                                 </li>
 
                                 @* Trang đầu nếu startPage > 1 và dấu "..." *@
@@ -247,7 +247,7 @@
                                                 Type = "Patient",
 										        page = Model.Patients.PageNumber + 1,
 										        name = ViewBag.Name,
-										        gender = ViewBag.Gender}) : "#")">Next</a>
+										        gender = ViewBag.Gender}) : "#")">Sau</a>
                                 </li>
 
                             </ul>
@@ -259,7 +259,7 @@
             }
             else if (Model.AccountType == "Doctor")
             {
-                <a asp-action="AddDoctorAccount" asp-controller="User" class="btn btn-primary mb-3">Add Account</a>
+                <a asp-action="AddDoctorAccount" asp-controller="User" class="btn btn-primary mb-3">Thêm Tài Khoản</a>
                 <!-- Search & Filter Form -->
                 <form method="get" asp-action="ManageAccount" asp-controller="User">
                     <input type="hidden" name="type" value="Doctor" />
@@ -267,14 +267,14 @@
 
                         <!-- Search by name -->
                         <div class="col-md-2">
-                            <input type="text" name="name" class="form-control" placeholder="Name"
+                            <input type="text" name="name" class="form-control" placeholder="Tên"
                                    value="@(ViewBag.Name ?? "")" />
                         </div>
 
                         <!-- Filter by Department -->
                         <div class="col-md-2">
                             <select class="form-select" name="department">
-                                <option value="">Department</option>
+                                <option value="">Khoa</option>
                                 @foreach (var dept in ViewBag.Departments as List<string>)
                                 {
                                     if ((string)ViewBag.Department == dept)
@@ -290,7 +290,7 @@
                         </div>
                         <!-- Search Button -->
                         <div class="col-md-2 d-grid">
-                            <button class="btn btn-primary" type="submit">Search</button>
+                            <button class="btn btn-primary" type="submit">Tìm kiếm</button>
                         </div>
                     </div>
                 </form>
@@ -299,15 +299,15 @@
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Full Name</th>
-                                <th>Gender</th>
+                                <th>Tên</th>
+                                <th>Giới tính</th>
                                 <th>Email</th>
-                                <th>Phone Number</th>
-                                <th>Department</th>
-                                <th>Department Head</th>
-                                <th>Special</th>
-                                <th>Active</th>
-                                <th>Action</th>
+                                <th>Số điện thoại</th>
+                                <th>Khoa</th>
+                                <th>Trưởng khoa</th>
+                                <th>Ưu tú</th>
+                                <th>Trạng thái kích hoạt</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -353,7 +353,7 @@
                         </tbody>
                     </table>
                     <div class="mt-3 text-end">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                     </div>
                 </form>
                 <!-- Pagination start -->
@@ -381,7 +381,7 @@
                                                 Type = "Doctor",
 											    page = Model.Doctors.PageNumber - 1,
 											    name = ViewBag.Name,
-											    department = ViewBag.Department}) : "#")" tabindex="-1">Previous</a>
+											    department = ViewBag.Department}) : "#")" tabindex="-1">Trước</a>
                                 </li>
 
                                 @* Trang đầu nếu startPage > 1 và dấu "..." *@
@@ -434,7 +434,7 @@
                                                 Type = "Doctor",
 										        page = Model.Doctors.PageNumber + 1,
 										        name = ViewBag.Name,
-										        department = ViewBag.Department}) : "#")">Next</a>
+										        department = ViewBag.Department}) : "#")">Sau</a>
                                 </li>
 
                             </ul>
@@ -445,7 +445,7 @@
             }
             else if (Model.AccountType == "Staff")
             {
-                <a asp-action="AddStaffAccount" asp-controller="User" class="btn btn-primary mb-3">Add Account</a>
+                <a asp-action="AddStaffAccount" asp-controller="User" class="btn btn-primary mb-3">Thêm Tài Khoản</a>
                 <!-- Search & Filter Form -->
                 <form method="get" asp-action="ManageAccount" asp-controller="User">
                     <input type="hidden" name="type" value="Staff" />
@@ -453,14 +453,14 @@
 
                         <!-- Search by name -->
                         <div class="col-md-2">
-                            <input type="text" name="name" class="form-control" placeholder="Name"
+                            <input type="text" name="name" class="form-control" placeholder="Tên"
                                    value="@(ViewBag.Name ?? "")" />
                         </div>
 
                         <!-- Filter by Role -->
                         <div class="col-md-2">
                             <select class="form-select" name="roleName">
-                                <option value="">Role</option>
+                                <option value="">Vai trò</option>
                                 @foreach (var rol in ViewBag.Roles as List<string>)
                                 {
                                     if ((string)ViewBag.Role == rol)
@@ -476,7 +476,7 @@
                         </div>
                         <!-- Search Button -->
                         <div class="col-md-2 d-grid">
-                            <button class="btn btn-primary" type="submit">Search</button>
+                            <button class="btn btn-primary" type="submit">Tìm Kiếm</button>
                         </div>
                 </form>
                 <form asp-action="UpdateStaffStatus" method="post">
@@ -484,13 +484,13 @@
                         <thead class="table-light">
                             <tr>
                                 <th>ID</th>
-                                <th>Full Name</th>
-                                <th>Gender</th>
+                                <th>Tên</th>
+                                <th>Giới tính</th>
                                 <th>Email</th>
-                                <th>Phone Number</th>
-                                <th>Role</th>
-                                <th>Active</th>
-                                <th>Action</th>
+                                <th>Số điện thoại</th>
+                                <th>Vai trò</th>
+                                <th>Trạng thái kích hoạt</th>
+                                <th>Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -522,7 +522,7 @@
                         </tbody>
                     </table>
                     <div class="mt-3 text-end">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                     </div>
                 </form>
 
@@ -551,7 +551,7 @@
                                                 Type = "Staff",
 											    page = Model.Staffs.PageNumber - 1,
 											    name = ViewBag.Name,
-											    roleName = ViewBag.Role}) : "#")" tabindex="-1">Previous</a>
+											    roleName = ViewBag.Role}) : "#")" tabindex="-1">Trước</a>
                                 </li>
 
                                 @* Trang đầu nếu startPage > 1 và dấu "..." *@
@@ -604,7 +604,7 @@
                                                 Type = "Staff",
 										        page = Model.Staffs.PageNumber + 1,
 										        name = ViewBag.Name,
-										        roleName = ViewBag.Role}) : "#")">Next</a>
+										        roleName = ViewBag.Role}) : "#")">Sau</a>
                                 </li>
 
                             </ul>
