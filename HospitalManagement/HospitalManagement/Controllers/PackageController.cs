@@ -33,17 +33,18 @@ namespace HospitalManagement.Controllers
         {
             int pageSize = 9;
             int pageNumber = page ?? 1;
+            ViewBag.CategoryFilter = CategoryFilter ?? "";
+            ViewBag.AgeFilter = AgeFilter ?? "";
+            ViewBag.GenderFilter = GenderFilter ?? "A";
+            ViewBag.PriceRangeFilter = PriceRangeFilter ?? "";
 
             ViewBag.AgeRange = GetAgeRangeOptions(AgeFilter);
             ViewBag.PriceRange = GetPriceRangeOptions(PriceRangeFilter);
             ViewBag.Categories = new SelectList(await _context.PackageCategories.ToListAsync(), "PackageCategoryId", "CategoryName", CategoryFilter);
-
-            // Truy vấn dữ liệu với Include và phân trang
-            var filteredPackages = await _packageRepository.FilterPackagesAsync(CategoryFilter, AgeFilter, GenderFilter, PriceRangeFilter);
-            var pagedList = filteredPackages.ToPagedList(pageNumber, pageSize);
             ViewBag.GenderFilter = GenderFilter;
 
-
+            // Truy vấn dữ liệu với Include và phân trang
+            var pagedList = await _packageRepository.FilterPackagesAsync(CategoryFilter, AgeFilter, GenderFilter, PriceRangeFilter, pageNumber, pageSize);
             return View(pagedList);
         }
 
@@ -163,15 +164,13 @@ namespace HospitalManagement.Controllers
             _context.Packages.Add(package);
             await _context.SaveChangesAsync();
 
-            foreach (var test in tests)
+            var packageTests = tests.Select(test => new PackageTest
             {
-                PackageTest packageTest = new PackageTest
-                {
-                    PackageId = package.PackageId,
-                    TestId = test.TestId
-                };
-                _context.PackageTests.Add(packageTest);
-            }
+                PackageId = package.PackageId,
+                TestId = test.TestId
+            }).ToList();
+            _context.PackageTests.AddRange(packageTests);
+
             await _context.SaveChangesAsync();
 
             TempData["success"] = "Tạo gói khám thành công!";
@@ -378,7 +377,7 @@ namespace HospitalManagement.Controllers
 
         private List<SelectListItem> GetPriceRangeOptions(string? selectedValue = null)
         {
-            var options = new List<SelectListItem>{            
+            var options = new List<SelectListItem>{
                 new SelectListItem { Text = "Chọn khoảng giá", Value = "" },
                 new SelectListItem { Text = "Dưới 1 triệu", Value = "0-1000000" },
                 new SelectListItem { Text = "1 - 5 triệu", Value = "1000000-5000000" },
@@ -393,5 +392,6 @@ namespace HospitalManagement.Controllers
             }
             return options;
         }
+
     }
 }

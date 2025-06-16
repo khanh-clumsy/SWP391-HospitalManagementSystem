@@ -206,7 +206,7 @@
 										Phần trăm giảm giá (%)
 									</label>
 									<input asp-for="DiscountPercent" type="number" class="form-control"
-										   min="0" max="100" step="5" onchange="calculatePricing()" value="@Model.DiscountPercent" />
+										   min="0" max="100" step="5" asp-format="{0:0}" onchange="calculatePricing()"/>
 									<span asp-validation-for="DiscountPercent" class="invalid-feedback"></span>
 								</div>
 							</div>

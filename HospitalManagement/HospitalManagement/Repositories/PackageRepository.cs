@@ -1,6 +1,10 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.ViewModels.Package;
 using Microsoft.EntityFrameworkCore;
+using X.PagedList;
+using X.PagedList.Extensions;
+using X.PagedList.EF;
+using System.Threading.Tasks;
 
 namespace HospitalManagement.Repositories
 {
@@ -13,9 +17,9 @@ namespace HospitalManagement.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<PackageViewModel>> FilterPackagesAsync(string? categoryFilter, string? ageFilter, string? genderFilter, string? priceRangeFilter)
+        public async Task<IPagedList<PackageViewModel>> FilterPackagesAsync(string? categoryFilter, string? ageFilter, string? genderFilter, string? priceRangeFilter, int pageNumber, int pageSize)
         {
-            var query = _context.Packages.Include(p => p.PackageCategory).AsQueryable();
+            var query = _context.Packages.AsQueryable();
 
             if (!string.IsNullOrEmpty(categoryFilter))
             {
@@ -75,8 +79,12 @@ namespace HospitalManagement.Repositories
                     AgeFrom = p.AgeFrom,
                     AgeTo = p.AgeTo,
                     Thumbnail = p.Thumbnail,
-                    PackageCategory = p.PackageCategory
-                }).ToListAsync();
+                    PackageCategory = new Models.PackageCategory
+                    {
+                        CategoryName = p.PackageCategory.CategoryName
+                    }
+                })
+                .ToPagedListAsync(pageNumber, pageSize);
         }
     }
 }

@@ -46,66 +46,34 @@ namespace HospitalManagement.Controllers
 
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
-        public async Task<IActionResult> MyAppointments(int? page)
+        public async Task<IActionResult> MyAppointments(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter, int? page)
         {
             int pageSize = 12;
             int pageNumber = page ?? 1;
 
-            ViewBag.SlotOptions = await _context.Slots.ToListAsync();
+            // Chuẩn hóa tên
+            SearchName = NormalizeName(SearchName);
 
-            IQueryable<Appointment> appointmentQuery = Enumerable.Empty<Appointment>().AsQueryable();
-
-            if (User.IsInRole("Patient"))
-            {
-                var patientIdClaim = User.FindFirst("PatientID")?.Value;
-                if (patientIdClaim == null) return RedirectToAction("Login", "Auth");
-
-                int PatientID = int.Parse(patientIdClaim);
-                appointmentQuery = _appointmentRepository.GetAppointmentByPatientID(PatientID);
-            }
-            else if (User.IsInRole("Sales"))
-            {
-                var staffIdClaim = User.FindFirst("StaffID")?.Value;
-                if (staffIdClaim == null) return RedirectToAction("Login", "Auth");
-
-                int StaffID = int.Parse(staffIdClaim);
-                appointmentQuery = _appointmentRepository.GetAppointmentBySalesID(StaffID);
-            }
-            else if (User.IsInRole("Doctor"))
-            {
-                var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
-                if (doctorIdClaim == null) return RedirectToAction("Login", "Auth");
-
-                int DoctorID = int.Parse(doctorIdClaim);
-                appointmentQuery = _appointmentRepository.GetAppointmentByDoctorID(DoctorID);
-            }
-
-            var pagedAppointments = appointmentQuery
-                .OrderByDescending(a => a.AppointmentId)
-                .ToPagedList(pageNumber, pageSize);
-
-            return View(pagedAppointments);
-        }
-
-
-        [Authorize(Roles = "Patient, Sales, Doctor")]
-        [HttpGet]
-        public async Task<IActionResult> Filter(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter)
-        {
-            //Lấy role và id hiện tại của người dùng
+            // Lấy role & ID người dùng
             var (roleKey, userId) = GetUserRoleAndId(User);
             if (userId == null) return RedirectToAction("Login", "Auth");
 
-            //Lấy danh sách SlotOptions để hiển thị trong ViewBag
-            var SlotOptions = await _context.Slots.ToListAsync();
-            ViewBag.SlotOptions = SlotOptions;
+            // Trả lại giá trị cho Views
+            ViewBag.SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SearchName = SearchName;
             ViewBag.SlotFilter = SlotFilter;
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
 
-            var result = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
-            return View("MyAppointments", result);
+            // Truy vấn lọc
+            var filteredList = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
+
+            // Phân trang
+            var pagedAppointments = filteredList
+                .OrderByDescending(a => a.AppointmentId)
+                .ToPagedList(pageNumber, pageSize);
+
+            return View(pagedAppointments);
         }
 
         [Authorize(Roles = "Sales")]
@@ -258,7 +226,12 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-
+            string code;
+            do
+            {
+                code = GenerateUniqueAppointmentCode(patientId);
+            }
+            while (_context.Appointments.Any(a => a.AppointmentCode == code));
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -269,7 +242,8 @@ namespace HospitalManagement.Controllers
                 Status = "Pending",
                 Doctor = doctor,
                 ServiceId = model.SelectedServiceId,
-                StaffId = StaffID  
+                StaffId = StaffID,
+                AppointmentCode = code
             };
 
             _context.Appointments.Add(appointment);
@@ -294,6 +268,7 @@ namespace HospitalManagement.Controllers
                 var emailBodyBuilder = new StringBuilder();
 
                 emailBodyBuilder.AppendLine("<h3>✅ New Appointment Successfully Booked!</h3>");
+                emailBodyBuilder.AppendLine($"<p><strong>Appointment Code:</strong> {savedAppointment.AppointmentCode}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>");
 
@@ -375,6 +350,12 @@ namespace HospitalManagement.Controllers
                 AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1))
             };
             return View(model);
+        }
+        public static string GenerateUniqueAppointmentCode(int userId)
+        {
+            // Ví dụ: APPT-20250617-00123-7F3A
+            var random = new Random().Next(1000, 9999);
+            return $"APPT-{userId:D5}-{random}";
         }
 
         [Authorize(Roles = "Patient")]
@@ -461,7 +442,12 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-
+            string code;
+            do
+            {
+                code = GenerateUniqueAppointmentCode(patientId);
+            }
+            while (_context.Appointments.Any(a => a.AppointmentCode == code));
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -471,7 +457,8 @@ namespace HospitalManagement.Controllers
                 Date = model.AppointmentDate,
                 Status = "Pending",
                 Doctor = doctor,
-                ServiceId = model.SelectedServiceId
+                ServiceId = model.SelectedServiceId,
+                AppointmentCode = code
             };
 
             _context.Appointments.Add(appointment);
@@ -496,6 +483,7 @@ namespace HospitalManagement.Controllers
                 var emailBodyBuilder = new StringBuilder();
 
                 emailBodyBuilder.AppendLine("<h3>✅ New Appointment Successfully Booked!</h3>");
+                emailBodyBuilder.AppendLine($"<p><strong>Appointment Code:</strong> {savedAppointment.AppointmentCode}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>");
 
@@ -712,6 +700,15 @@ namespace HospitalManagement.Controllers
             TempData["error"] = "Bạn không có quyền truy cập";
 
             return RedirectToAction("Index", "Home");
+        }
+        public static string NormalizeName(string? input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = input.Trim();
+            var words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return string.Join(" ", words);
         }
     }
 }

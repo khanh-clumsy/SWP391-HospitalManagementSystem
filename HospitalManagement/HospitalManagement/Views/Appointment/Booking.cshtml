@@ -101,13 +101,13 @@
 						<i class="fas fa-stethoscope me-2 text-primary"></i>Chọn Bác Sĩ
 					</h3>
 					<div class="doctor-carousel">
-						<button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+						<button type="button" class="carousel-nav prev">
 							<i class="fas fa-chevron-left"></i>
 						</button>
 						<div class="doctor-scroll-container">
 							<div class="doctor-list" id="doctorList"></div>
 						</div>
-						<button type="button" class="carousel-nav next" onclick="nextDoctor()">
+						<button type="button" class="carousel-nav next">
 							<i class="fas fa-chevron-right"></i>
 						</button>
 					</div>
@@ -160,5 +160,5 @@
 	</div>
 </div>
 @section Scripts {
-	<script src="~/js/BookingAppointment.js"></script>
+	<script src="~/js/BookingAppointment.js" asp-append-version="true"></script>
 }
