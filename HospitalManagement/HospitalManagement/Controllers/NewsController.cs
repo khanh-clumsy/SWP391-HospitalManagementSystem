@@ -75,7 +75,7 @@ namespace HospitalManagement.Controllers
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-                var maxSize = 2 * 1024 * 1024;
+                var maxSize = 5 * 1024 * 1024;
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
@@ -85,7 +85,7 @@ namespace HospitalManagement.Controllers
 
                 if (photo.Length > maxSize)
                 {
-                    TempData["Error"] = "File too large.";
+                    TempData["Error"] = "image must be <= 5mb.";
                     return View(model);
                 }
 
@@ -131,7 +131,7 @@ namespace HospitalManagement.Controllers
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-              var maxSize = 1024 * 1024; 
+              var maxSize = 5 * 1024 * 1024; 
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
@@ -141,7 +141,7 @@ namespace HospitalManagement.Controllers
 
                 if (photo.Length > maxSize)
                 {
-                    TempData["Error"] = "image must be <= 2mb.";
+                    TempData["Error"] = "image must be <= 5mb.";
                     return View("Update", updatedNews);
                 }
 
