@@ -1,15 +1,18 @@
 ﻿
 using HospitalManagement.Data;
 using HospitalManagement.Models;
+using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 public class NewsRepository : INewsRepository
 {
     private readonly HospitalManagementContext _context;
+  
 
     public NewsRepository(HospitalManagementContext context)
     {
         _context = context;
+       
     }
     public async Task<News> GetByIdAsync(int id)
     {
@@ -18,23 +21,47 @@ public class NewsRepository : INewsRepository
             .Include(a => a.Staff)
             .FirstOrDefaultAsync(a => a.NewsId == id);
     }
-
-    public async Task<List<News>> GetAllAsync()
+    public async Task<List<NewsViewModel>> GetAllAsync()
     {
         return await _context.News
-            .Include(n => n.Doctor)
-            .Include(n => n.Staff)
+            .AsNoTracking()
+            .OrderByDescending(n => n.CreatedAt) 
+            .Select(n => new NewsViewModel
+            {
+                NewsId = n.NewsId,
+                Title = n.Title,
+                Description = n.Description,
+                CreatedAt = n.CreatedAt,
+                Thumbnail = n.Thumbnail,
+                AuthorName = n.Doctor != null
+                    ? n.Doctor.FullName
+                    : (n.Staff != null ? n.Staff.FullName : "Không xác định")
+            })
+            .ToListAsync();
+    }
+
+    public async Task<List<NewsViewModel>> GetByDoctorIdAsync(int doctorId)
+    {
+        return await _context.News
+            .Where(n => n.DoctorId == doctorId)
+            .Select(n => new NewsViewModel
+            {
+                NewsId = n.NewsId,
+                Title = n.Title,
+                Description = n.Description,
+                CreatedAt = n.CreatedAt,
+                Thumbnail = n.Thumbnail,
+                AuthorName = n.Doctor != null
+                    ? n.Doctor.FullName
+                    : (n.Staff != null ? n.Staff.FullName : "Không xác định"),
+                DoctorId = n.DoctorId,
+                StaffId = n.StaffId
+            })
+            .AsNoTracking()
             .OrderByDescending(n => n.CreatedAt)
             .ToListAsync();
     }
 
-    public async Task<List<News>> GetByDoctorIdAsync(int DoctorID)
-    {
-        return await _context.News
-            .Include(a => a.Staff)
-            .Where(a => a.DoctorId == DoctorID)
-            .ToListAsync();
-    }
 
     public async Task CreateAsync(News news)
     {

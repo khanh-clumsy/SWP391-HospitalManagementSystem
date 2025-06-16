@@ -1,4 +1,4 @@
-﻿@model IEnumerable<HospitalManagement.Models.News>
+﻿@model IEnumerable<HospitalManagement.ViewModels.NewsViewModel>
 
 @{
     ViewData["Title"] = "Danh sách bài viết";
@@ -27,16 +27,7 @@
                     <tr>
                         <td>@item.Title</td>
                         <td>
-                            @{
-                                if (item.DoctorId != null && item.Doctor != null)
-                                {
-                                    <span> @item.Doctor.FullName</span>
-                                }
-                                else if (item.StaffId != null && item.Staff != null)
-                                {
-                                    <span>@item.Staff.FullName</span>
-                                }
-                            }
+                            @item.AuthorName
                         </td>
                         <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>
