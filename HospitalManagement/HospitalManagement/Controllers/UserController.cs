@@ -1,12 +1,14 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
+using HospitalManagement.Services;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using X.PagedList;
@@ -19,20 +21,25 @@ namespace HospitalManagement.Controllers
         private readonly IDoctorRepository _doctorRepo;
         private readonly IPatientRepository _patientRepo;
         private readonly IStaffRepository _staffRepo;
+        private readonly IRoomRepository _roomRepo;
         private readonly PasswordHasher<Patient> _passwordHasher;
-        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo)
+        private readonly EmailService _emailService;
+        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, IRoomRepository roomRepo, EmailService emailService)
         {
             _context = context;
             _doctorRepo = doctorRepo;
             _patientRepo = patientRepo;
             _staffRepo = staffRepo;
+            _roomRepo = roomRepo;
             _passwordHasher = new PasswordHasher<Patient>();
+            _emailService = emailService;
         }
 
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ManageAccount(int? page, string? name, string? department, string? gender, string? roleName, string type = "Patient")
         {
+            name = UserController.NormalizeName(name);
             int pageSize = 10;
             int pageNumber = page ?? 1;
 
@@ -42,8 +49,8 @@ namespace HospitalManagement.Controllers
             var totalPatients = await _patientRepo.CountAsync(name, gender);
             vm.Patients = new StaticPagedList<Patient>(patients, pageNumber, pageSize, totalPatients);
 
-            List<Doctor> doctors = await _doctorRepo.SearchAsync(name, department, null, null, null, pageNumber, pageSize);
-            var totalDoctors = await _doctorRepo.CountAsync(name, department, null, null);
+            List<Doctor> doctors = await _doctorRepo.SearchAsync(name, department, null, null, null, null, pageNumber, pageSize);
+            var totalDoctors = await _doctorRepo.CountAsync(name, department, null, null, null);
             vm.Doctors = new StaticPagedList<Doctor>(doctors, pageNumber, pageSize, totalDoctors);
 
             List<Staff> staffs = await _staffRepo.SearchAsync(name, roleName, pageNumber, pageSize);
@@ -65,6 +72,38 @@ namespace HospitalManagement.Controllers
 
             return View(vm);
         }
+
+        
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status)
+        {
+            name = UserController.NormalizeName(name);
+            int pageSize = 10;
+            int pageNumber = page ?? 1;
+
+            List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, pageNumber, pageSize);
+            var totalRooms = await _roomRepo.CountAsync(name, building, floor, status);
+            var pagedRooms = new StaticPagedList<RoomWithDoctorDtoViewModel>(rooms, pageNumber, pageSize, totalRooms);
+            var allBuildings = await _roomRepo.GetAllDistinctBuildings();
+            var allFloors = await _roomRepo.GetAllDistinctFloors();
+
+            // Removed incorrect reference to vm.AccountType and added appropriate ViewBag assignments
+            ViewBag.Name = name;
+            ViewBag.Building = building;
+            ViewBag.Floor = floor;
+            ViewBag.Status = status;
+            ViewBag.AllBuildings = allBuildings;
+            ViewBag.AllFloors = allFloors;
+
+            return View(pagedRooms);
+        }
+
+        //[HttpGet]
+        //[Authorize(Roles = "Admin")]
+        //public IActionResult RoomDetail()
+        //{
+        //    return View();
+        //}
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -100,6 +139,7 @@ namespace HospitalManagement.Controllers
                     {
                         existing.IsActive = updated.IsActive;
                         existing.IsDepartmentHead = updated.IsDepartmentHead;
+                        existing.IsSpecial = updated.IsSpecial;
                     }
                 }
 
@@ -159,6 +199,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult AddDoctorAccount()
         {
+            ViewBag.Units = GetAllDepartmentName();
             return View();
         }
 
@@ -180,6 +221,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddDoctorAccount(ViewModels.Register model)
         {
+            ViewBag.Units = GetAllDepartmentName();
             // check if mail is used
             var existingAccount = await _context.Doctors.FirstOrDefaultAsync(a => a.Email == model.Email);
             if (existingAccount != null)
@@ -220,10 +262,12 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
+            string password = UserController.RandomString(10);
+
             var doctor = new Models.Doctor
             {
                 Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                PasswordHash = _passwordHasher.HashPassword(null, password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
@@ -236,12 +280,46 @@ namespace HospitalManagement.Controllers
                 ProfileImage = model.ProfileImage
             };
 
-            _context.Doctors.Add(doctor);
-            await _context.SaveChangesAsync();
+            // handle case add email is used exception in sqlserver
+            try
+            {
+                _context.Doctors.Add(doctor);
+                await _context.SaveChangesAsync();
+                // send account information email
+                try
+                {
+                    var emailBody = $@"
+                        <h3>✅ Welcome! Your New Employee Account Details</h3>
+                        <p><strong>Email:</strong> {model.Email}</p>
+                        <p><strong>Password:</strong> {password}</p>
+                        ";
 
+                    await _emailService.SendEmailAsync(
+                        toEmail: model.Email,
+                        subject: "✅ Your New Account Information",
+                        body: emailBody
+                    );
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Failed to send email";
+                    return View(model);
+                }
 
-            TempData["success"] = "Doctor added successfully!";
-            return RedirectToAction("ManageAccount", new { type = "Doctor" });
+                TempData["success"] = "Doctor added successfully!";
+                return RedirectToAction("ManageAccount", new { type = "Doctor" });
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException != null && ex.InnerException.Message.Contains("Cannot insert duplicate key row"))
+                {
+                    TempData["error"] = "Email is already registered.";
+                    return View(model);
+                }
+
+                TempData["error"] = "An unexpected error occurred while saving the doctor account.";
+                return View(model);
+            }
         }
 
         [HttpPost]
@@ -287,11 +365,11 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "This phone number was used before.";
                 return View(model);
             }
-
+            string password = UserController.RandomString(10);
             var patient = new Models.Patient
             {
                 Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                PasswordHash = _passwordHasher.HashPassword(null, password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
@@ -299,12 +377,48 @@ namespace HospitalManagement.Controllers
                 ProfileImage = model.ProfileImage
             };
 
-            _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
+
+            // handle case add email is used exception in sqlserver
+            try
+            {
+                _context.Patients.Add(patient);
+                await _context.SaveChangesAsync();
+                // send account information email
+                try
+                {
+                    var emailBody = $@"
+                    <h3>✅ Welcome! Your New Account Details</h3>
+                    <p><strong>Email:</strong> {model.Email}</p>
+                    <p><strong>Password:</strong> {password}</p>
+                    ";
+
+                    await _emailService.SendEmailAsync(
+                        toEmail: model.Email,
+                        subject: "✅ Your New Account Information",
+                        body: emailBody
+                    );
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Failed to send email";
+                    return View(model);
+                }
 
 
-            TempData["success"] = "Patient added successfully!";
-            return RedirectToAction("ManageAccount", new { type = "Patient" });
+                TempData["success"] = "Patient added successfully!";
+                return RedirectToAction("ManageAccount", new { type = "Patient" });
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException != null && ex.InnerException.Message.Contains("Cannot insert duplicate key row"))
+                {
+                    TempData["error"] = "Email is already registered.";
+                    return View(model);
+                }
+
+                TempData["error"] = "An unexpected error occurred while saving the patient account.";
+                return View(model);
+            }
         }
 
         [HttpPost]
@@ -350,11 +464,11 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "This phone number was used before.";
                 return View(model);
             }
-
+            string password = UserController.RandomString(10);
             var staff = new Models.Staff
             {
                 Email = model.Email,
-                PasswordHash = _passwordHasher.HashPassword(null, model.Password),
+                PasswordHash = _passwordHasher.HashPassword(null, password),
                 FullName = model.FullName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
@@ -363,12 +477,47 @@ namespace HospitalManagement.Controllers
                 ProfileImage = model.ProfileImage
             };
 
-            _context.Staff.Add(staff);
-            await _context.SaveChangesAsync();
 
+            // handle case add email is used exception in sqlserver
+            try
+            {
+                _context.Staff.Add(staff);
+                await _context.SaveChangesAsync();
+                // send account information email
+                try
+                {
+                    var emailBody = $@"
+                    <h3>✅ Welcome! Your New Employee Account Details</h3>
+                    <p><strong>Email:</strong> {model.Email}</p>
+                    <p><strong>Password:</strong> {password}</p>
+                    ";
 
-            TempData["success"] = "Staff added successfully!";
-            return RedirectToAction("ManageAccount", new { type = "Staff" });
+                    await _emailService.SendEmailAsync(
+                        toEmail: model.Email,
+                        subject: "✅ Your New Account Information",
+                        body: emailBody
+                    );
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Failed to send email";
+                    return View(model);
+                }
+
+                TempData["success"] = "Staff added successfully!";
+                return RedirectToAction("ManageAccount", new { type = "Staff" });
+            }
+            catch (DbUpdateException ex)
+            {
+                if (ex.InnerException != null && ex.InnerException.Message.Contains("Cannot insert duplicate key row"))
+                {
+                    TempData["error"] = "Email is already registered.";
+                    return View(model);
+                }
+
+                TempData["error"] = "An unexpected error occurred while saving the staff account.";
+                return View(model);
+            }
 
         }
         [Authorize(Roles = "Admin")]
@@ -403,14 +552,66 @@ namespace HospitalManagement.Controllers
             return View(staff);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Logout()
-        {
-            // Đăng xuất người dùng khỏi Identity (cookie authentication)
-            await HttpContext.SignOutAsync();
+        //[HttpGet]
+        //public async Task<IActionResult> Logout()
+        //{
+        //    // Đăng xuất người dùng khỏi Identity (cookie authentication)
+        //    await HttpContext.SignOutAsync();
 
-            TempData["success"] = "Logout successful!";
-            return RedirectToAction("Index", "Home");
+        //    TempData["success"] = "Logout successful!";
+        //    return RedirectToAction("Index", "Home");
+        //}
+        public static string NormalizeName(string? input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return input;
+
+            input = input.Trim();
+            var words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return string.Join(" ", words);
+        }
+        public static string RandomString(int length)
+        {
+            const string allChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            const string uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const string digitChars = "0123456789";
+
+            var random = new Random();
+
+            // Bắt buộc có ít nhất 1 chữ hoa và 1 số
+            char upper = uppercaseChars[random.Next(uppercaseChars.Length)];
+            char digit = digitChars[random.Next(digitChars.Length)];
+
+            // Sinh các ký tự còn lại
+            var remainingChars = Enumerable.Range(0, length - 2)
+                .Select(_ => allChars[random.Next(allChars.Length)])
+                .ToList();
+
+            // Thêm 2 ký tự bắt buộc vào danh sách
+            remainingChars.Add(upper);
+            remainingChars.Add(digit);
+
+            // Trộn chuỗi để các ký tự không cố định vị trí
+            return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
+        }
+        public List<SelectListItem> GetAllDepartmentName()
+        {
+
+            return new List<SelectListItem>
+            {
+                new ("Nội tim mạch", "Nội tim mạch"),
+                new ("Dị ứng", "Dị ứng"),
+                new ("Truyền nhiễm", "Truyền nhiễm"),
+                new ("Thần kinh", "Thần kinh"),
+                new ("Phụ sản", "Phụ sản"),
+                new ("Nhi", "Nhi"),
+                new ("Ngoại tiêu hóa", "Ngoại tiêu hóa"),
+                new ("Mắt", "Mắt"),
+                new ("Y học hạt nhân", "Y học hạt nhân"),
+                new ("Y học cổ truyền", "Y học cổ truyền"),
+                new ("Tâm thần", "Tâm thần"),
+                new ("Vật lý trị liệu", "Vật lý trị liệu"),
+            };
         }
     }
 }

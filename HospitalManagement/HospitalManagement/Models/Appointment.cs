@@ -7,11 +7,15 @@ public partial class Appointment
 {
     public int AppointmentId { get; set; }
 
+    public string? AppointmentCode { get; set; }
+
     public int? DoctorId { get; set; }
 
     public int PatientId { get; set; }
 
-    public int ServiceId { get; set; }
+    public int? ServiceId { get; set; }
+
+    public int? PackageId { get; set; }
 
     public int? StaffId { get; set; }
 
@@ -21,7 +25,7 @@ public partial class Appointment
 
     public string Status { get; set; } = null!;
 
-    public decimal? MedicinePrice { get; set; }
+    public string? PrescriptionNote { get; set; }
 
     public string? PaymentMethod { get; set; }
 
@@ -41,11 +45,11 @@ public partial class Appointment
 
     public virtual Doctor? Doctor { get; set; }
 
-    public virtual ICollection<MedicineList> MedicineLists { get; set; } = new List<MedicineList>();
+    public virtual Package? Package { get; set; }
 
     public virtual Patient Patient { get; set; } = null!;
 
-    public virtual Service Service { get; set; } = null!;
+    public virtual Service? Service { get; set; }
 
     public virtual Slot? Slot { get; set; }
 

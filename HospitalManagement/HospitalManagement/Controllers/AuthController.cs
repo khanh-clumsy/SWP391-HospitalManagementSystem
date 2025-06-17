@@ -101,7 +101,7 @@ namespace HospitalManagement.Controllers
             }
 
             //Patient
-            if (LogInfo.Role == "Patient")
+            else if (LogInfo.Role == "Patient")
             {
                 var user = _context.Patients.SingleOrDefault(u => u.Email == LogInfo.Email);
 
@@ -151,9 +151,9 @@ namespace HospitalManagement.Controllers
                     {
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.Role, "Doctor"),
-                        new Claim("DoctorID", user.DoctorId.ToString())
+                        new Claim("DoctorID", user.DoctorId.ToString()),
+                        new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString())
                     };
-
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 

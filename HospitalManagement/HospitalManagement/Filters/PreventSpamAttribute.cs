@@ -9,7 +9,7 @@ namespace HospitalManagement.Filters
     public class PreventSpamAttribute : ActionFilterAttribute
     {
         private static readonly ConcurrentDictionary<string, DateTime> _lastPostTimes = new();
-        public int Seconds { get; set; } = 2; // khoảng cách tối thiểu giữa 2 lần submit mặc định 2s
+        public int Seconds { get; set; } = 1; // khoảng cách tối thiểu giữa 2 lần submit mặc định 1s
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
