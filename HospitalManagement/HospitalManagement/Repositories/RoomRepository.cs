@@ -116,73 +116,76 @@ namespace HospitalManagement.Repositories
 
 
         public async Task<List<RoomWithDoctorDtoViewModel>> SearchAsync(string? name,
-                                                                        string? building,
-                                                                        string? floor,
-                                                                        string? status,
-                                                                        int page,
-                                                                        int pageSize)
+                                                                string? building,
+                                                                string? floor,
+                                                                string? status,
+                                                                int page,
+                                                                int pageSize)
         {
             var now = TimeOnly.FromDateTime(DateTime.Now);
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            var query = from room in _context.Rooms
+            // Lấy toàn bộ rooms
+            var rooms = await _context.Rooms.ToListAsync();
 
-                        join schedule in _context.Schedules
-                            on room.RoomId equals schedule.RoomId into scheduleJoin
-                        from schedule in scheduleJoin
-                            .Where(s => s.Day == today)
-                            .DefaultIfEmpty()
+            // Lấy tất cả schedule của ngày hôm nay kèm slot và doctor
+            var schedules = await (from s in _context.Schedules
+                                   join sl in _context.Slots on s.SlotId equals sl.SlotId
+                                   join d in _context.Doctors on s.DoctorId equals d.DoctorId
+                                   where s.Day == today
+                                   select new
+                                   {
+                                       s.RoomId,
+                                       s.DoctorId,
+                                       d.FullName,
+                                       sl.StartTime,
+                                       sl.EndTime
+                                   }).ToListAsync();
 
-                        join slot in _context.Slots
-                            on schedule.SlotId equals slot.SlotId into slotJoin
-                        from slot in slotJoin
-                            .Where(sl => sl.StartTime <= now && sl.EndTime >= now)
-                            .DefaultIfEmpty()
+            // Ánh xạ phòng + lịch (nếu có trong giờ hiện tại)
+            var result = rooms.Select(room =>
+            {
+                var activeSchedule = schedules.FirstOrDefault(s =>
+                    s.RoomId == room.RoomId &&
+                    s.StartTime <= now &&
+                    s.EndTime >= now
+                );
 
-                        join doctor in _context.Doctors
-                            on schedule.DoctorId equals doctor.DoctorId into doctorJoin
-                        from doctor in doctorJoin.DefaultIfEmpty()
+                return new RoomWithDoctorDtoViewModel
+                {
+                    RoomId = room.RoomId,
+                    RoomName = room.RoomName,
+                    Status = room.Status,
+                    DoctorID = activeSchedule?.DoctorId,
+                    DoctorName = activeSchedule?.FullName ?? "Trống"
+                };
+            }).AsQueryable();
 
-                        select new RoomWithDoctorDtoViewModel
-                        {
-                            RoomId = room.RoomId,
-                            RoomName = room.RoomName,
-                            Status = room.Status,
-                            DoctorID = doctor != null ? doctor.DoctorId : (int?)null,
-                            DoctorName = doctor != null ? doctor.FullName : null
-                        };
-
+            // Lọc thêm các tiêu chí
             if (!string.IsNullOrEmpty(name))
-                query = query.Where(r => r.RoomName.Contains(name));
+                result = result.Where(r => r.RoomName.Contains(name));
 
             if (!string.IsNullOrEmpty(building))
-                query = query.Where(r => r.RoomName.StartsWith(building));
+                result = result.Where(r => r.RoomName.StartsWith(building));
 
             if (!string.IsNullOrEmpty(status))
-                query = query.Where(r => r.Status == status);
+                result = result.Where(r => r.Status == status);
 
-            // Gọi ToListAsync trước để đưa dữ liệu vào bộ nhớ
-            var rawData = await query.ToListAsync();
-
-            // Bổ sung lọc theo floor sau khi đưa vào bộ nhớ
             if (!string.IsNullOrEmpty(floor) && int.TryParse(floor, out int parsedFloor))
-            {
-                rawData = rawData
-                    .Where(r => ExtractFloor(r.RoomName) == parsedFloor)
-                    .ToList();
-            }
+                result = result.Where(r => ExtractFloor(r.RoomName) == parsedFloor);
 
-            // Group và phân trang
-            var grouped = rawData
-                .GroupBy(r => new { r.RoomId, r.RoomName, r.Status })
-                .Select(g => g.First())
+            // Phân trang
+            var paged = result
                 .OrderBy(r => r.RoomName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            return grouped;
+            return paged;
         }
+
+
+
 
 
 

@@ -216,6 +216,48 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult AddRoom()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public IActionResult AddRoom(Room room)
+        {
+            // Kiểm tra thủ công định dạng RoomName bằng controller
+            if (string.IsNullOrWhiteSpace(room.RoomName))
+            {
+                TempData["error"] = "Tên phòng không được để trống.";
+                return View(room);
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(room.RoomName, @"^[A-Z][0-9]{3,4}$"))
+            {
+                TempData["error"] = "Tên phòng phải có dạng A101 hoặc A1001.";
+                return View(room);
+            }
+
+            // Kiểm tra trùng tên phòng 
+            var existingRoom = _context.Rooms.FirstOrDefault(r => r.RoomName == room.RoomName);
+            if (existingRoom != null)
+            {
+                TempData["error"] = "Tên phòng này đã tồn tại.";
+                return View(room);
+            }
+
+            // Lưu phòng mới
+            room.Status = "Hoạt động"; // Hoặc null nếu bạn không cần trạng thái
+            _context.Rooms.Add(room);
+            _context.SaveChanges();
+
+            // Thông báo thành công
+            TempData["success"] = "Phòng đã được thêm thành công.";
+            return RedirectToAction("ManageRoom");
+        }
+
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
