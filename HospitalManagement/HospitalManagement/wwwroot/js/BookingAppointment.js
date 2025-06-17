@@ -228,9 +228,11 @@
         const note = $(this).val();
         $('#modelNote').val(note);
     });
-
+    let isSubmitting = false;
     // Enable submit button when required fields are filled
     function updateSubmitButton() {
+        if (isSubmitting) return; // Không cập nhật trạng thái nút nếu đang submit
+
         const isServiceMode = $('#serviceForm').is(':visible');
         const isDoctorMode = $('#doctorForm').is(':visible');
         let isValid = false;
@@ -245,9 +247,10 @@
     }
 
     // Update submit button on input changes
-    $('#appointmentDate, #serviceDropdown, #serviceDropdownDoctor, .time-slot.available, #noteService, #noteDoctor').on('change input click', updateSubmitButton);
+    $('#appointmentDate, #serviceDropdown, #serviceDropdownDoctor, .time-slot.available').on('change input click', updateSubmitButton);
 
     $('.submit-btn').on('click', function () {
+        isSubmitting = true;
         $(this).prop('disabled', true);
         $('#appointmentForm').submit();
     });
