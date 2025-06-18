@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@daypilot/daypilot-lite-javascript": "^4.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^9.28.0"
+  }
+}

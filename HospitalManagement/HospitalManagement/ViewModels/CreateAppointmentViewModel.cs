@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using HospitalManagement.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class CreateAppointmentViewModel
@@ -20,21 +21,28 @@ public class CreateAppointmentViewModel
     [DataType(DataType.Date)]
     public DateOnly AppointmentDate { get; set; }
 
-    [Required(ErrorMessage = "Please select a doctor.")]
-    public int SelectedDoctorId { get; set; }
+    public int? SelectedDoctorId { get; set; }
 
-    public List<SelectListItem> DoctorOptions { get; set; } = new List<SelectListItem>();
+    public List<Doctor> Doctors { get; set; } = new List<Doctor>();
 
-    [Required(ErrorMessage = "Please select a time slot.")]
-    public int SelectedSlotId { get; set; }
+    public List<Slot> Slots { get; set; } = new List<Slot>();
 
-    public List<SelectListItem> SlotOptions { get; set; } = new List<SelectListItem>();
+    public int? SelectedSlotId { get; set; }
 
-    [Required(ErrorMessage = "Please select a service.")]
     public int SelectedServiceId { get; set; }
 
     public List<SelectListItem> ServiceOptions { get; set; } = new List<SelectListItem>();
 
     [StringLength(500, ErrorMessage = "Note must be under 500 characters.")]
     public string? Note { get; set; }
+
+    // Custom validation method to ensure appointment date is not before tomorrow
+    public static ValidationResult ValidateAppointmentDate(DateTime date, ValidationContext context)
+    {
+        if (date.Date < DateTime.Now.Date.AddDays(1))
+        {
+            return new ValidationResult("Appointment date must be from tomorrow onward.");
+        }
+        return ValidationResult.Success;
+    }
 }

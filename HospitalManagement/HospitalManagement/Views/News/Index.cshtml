@@ -31,10 +31,10 @@
                         </td>
                         <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>
-                           click view detail to show
+                            click view detail to show
                         </td>
                         <td>
-                            <a asp-action="Detail"  asp-route-id="@item.NewsId" class="btn btn-info btn-sm">Xem</a>
+                            <a asp-action="Detail" asp-route-id="@item.NewsId" class="btn btn-info btn-sm">Xem</a>
                             <a asp-action="Edit" asp-route-id="@item.NewsId" class="btn btn-warning btn-sm">Sửa</a>
                             <form asp-action="Delete" asp-route-id="@item.NewsId" method="post" style="display:inline;">
                                 @Html.AntiForgeryToken()

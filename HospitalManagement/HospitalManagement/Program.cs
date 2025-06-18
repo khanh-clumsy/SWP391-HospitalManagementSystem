@@ -7,17 +7,21 @@ using HospitalManagement.Services;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using HospitalManagement.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+
 builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
-builder.Services.AddScoped<IMedicineRepository, MedicineRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
+builder.Services.AddScoped<IPackageRepository, PackageRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+
 
 // Add services to the container
 builder.Services.AddCors(options =>
@@ -29,6 +33,8 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader(); // Cho phép bất kỳ header nào
     });
 });
+
+
 
 
 // Cấu hình Authentication và Authorization
@@ -81,7 +87,7 @@ builder.Services.AddControllersWithViews()
 
 builder.Services.AddDistributedMemoryCache();
 builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 
 
@@ -96,10 +102,13 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new PreventSpamAttribute { Seconds = 2 }); // mặc định trong filters là 2s
+});
+
+
 var app = builder.Build();
-
-app.UseCors("AllowAll");  // Áp dụng CORS chính xác cho toàn bộ ứng dụng
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -142,6 +151,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=User}/{action=ManageRoom}/{id?}");
 
 app.Run();

@@ -1,0 +1,35 @@
+﻿@model HospitalManagement.ViewModels.BookingApointmentViewModel
+
+<!-- Partial View: _CalendarAndSlots.cshtml -->
+<div id="schedule" style="display: none">
+    <!-- Calendar Header -->
+    <div class="calendar mt-4">
+        <h3 class="section-title mb-3">
+            <i class="fas fa-clock me-2 text-primary"></i>Chọn Ngày và Giờ
+        </h3>
+
+        <div class="calendar">
+            <div class="calendar-header" id="calendarHeader">
+                <button type="button" class="calendar-nav prev" onclick="prevWeek()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span>Tuần 1, Tháng 6, 2025</span>
+                <button type="button" class="calendar-nav next" onclick="nextWeek()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Lịch tuần sẽ được fill bằng JavaScript -->
+            </div>
+        </div>
+
+        <!-- Time Slots -->
+        <div class="time-slots" id="timeSlots" style="display: none;">
+            <!-- Slot theo ngày + bác sĩ sẽ render động -->
+        </div>
+
+        <!-- Hidden Inputs -->
+        <input asp-for="AppointmentDate" id="appointmentDate" type="hidden" />
+        <input asp-for="SelectedSlotId" id="SelectedSlotId" type="hidden" />
+    </div>
+</div>

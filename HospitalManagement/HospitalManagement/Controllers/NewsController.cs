@@ -67,15 +67,25 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor, Admin")]
         public async Task<IActionResult> Create(News model, IFormFile photo)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            ViewBag.Title = model.Title;
+            ViewBag.Description = model.Description;
+            ViewBag.Content = model.Content;
 
             model.CreatedAt = DateTime.Now;
 
+            if(model.Description.Length > 4000)
+            {
+                TempData["Error"] = "Mô tả ít hơn 4000 ký tự";
+            }
+            if(photo == null)
+            {
+                TempData["Error"] = "Thiếu ảnh thumbnail";
+                return View(model);
+            }
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-                var maxSize = 5 * 1024 * 1024;
+                var maxSize = 2 * 1024 * 1024;
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
@@ -85,7 +95,7 @@ namespace HospitalManagement.Controllers
 
                 if (photo.Length > maxSize)
                 {
-                    TempData["Error"] = "image must be <= 5mb.";
+                    TempData["Error"] = "File too large.";
                     return View(model);
                 }
 
@@ -131,7 +141,7 @@ namespace HospitalManagement.Controllers
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-              var maxSize = 5 * 1024 * 1024; 
+              var maxSize = 1024 * 1024; 
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
@@ -141,7 +151,7 @@ namespace HospitalManagement.Controllers
 
                 if (photo.Length > maxSize)
                 {
-                    TempData["Error"] = "image must be <= 5mb.";
+                    TempData["Error"] = "image must be <= 2mb.";
                     return View("Update", updatedNews);
                 }
 

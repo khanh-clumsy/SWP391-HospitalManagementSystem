@@ -11,7 +11,7 @@ public partial class TestList
 
     public int AppointmentId { get; set; }
 
-    public string Result { get; set; } = null!;
+    public string? Result { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
