@@ -32,6 +32,12 @@ namespace HospitalManagement.Controllers
             _appointmentRepository = appointmentRepository;
             _emailService = emailService;
         }
+
+        public IActionResult BookingType()
+        {
+            return View();
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string? searchName, string? timeFilter, string? dateFilter, string? statusFilter)

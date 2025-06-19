@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Klinik - Mẫu Website Phòng Khám</title>
+	<title>@ViewData["Title"] - F Klinic</title>
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<meta content="" name="keywords">
 	<meta content="" name="description">
@@ -134,7 +134,7 @@
                                 <a class="dropdown-item" asp-controller="Patient" asp-action="Logout">Đăng xuất</a>
                             </div>
                         </div>
-                        <a asp-action="Booking" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
+                        <a asp-action="BookingType" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
                     }
                     else if (User.IsInRole("Doctor"))
                     {
