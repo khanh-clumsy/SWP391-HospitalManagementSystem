@@ -1,0 +1,197 @@
+﻿@model HospitalManagement.ViewModels.Booking.BookingByServiceViewModel
+@{
+    ViewData["Title"] = "Đặt Lịch Khám";
+    var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+    var isReadonly = !string.IsNullOrEmpty(Model.Name);
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/booking.css" asp-append-version="true" />
+    <style>
+        /* Container tests */
+        #package-tests-container {
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+            /* UL list-group để hiển thị tests */
+            #package-tests-container ul.list-group {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+                /* Mỗi item của test */
+                #package-tests-container ul.list-group .list-group-item {
+                    background: var(--light);
+                    border: 1px solid var(--primary);
+                    border-radius: 8px;
+                    padding: 0.75rem 1rem;
+                    margin-bottom: 0.5rem;
+                    color: var(--dark);
+                    font-weight: 500;
+                    transition: background 0.2s, transform 0.2s;
+                    cursor: default;
+                }
+                    /* Hover effect */
+                    #package-tests-container ul.list-group .list-group-item:hover {
+                        background: #fff;
+                        transform: translateY(-2px);
+                    }
+                    /* Disabled style */
+                    #package-tests-container ul.list-group .list-group-item.disabled {
+                        opacity: 0.6;
+                        cursor: not-allowed;
+                        background: #f1f1f1;
+                        border-color: var(--secondary);
+                    }
+
+            /* Loading & error in container */
+            #package-tests-container .text-center,
+            #package-tests-container .text-muted,
+            #package-tests-container .text-danger {
+                text-align: center;
+                padding: 1rem;
+            }
+    </style>
+}
+
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="form-header text-center mb-4">
+            <h2><i class="fas fa-calendar-alt text-primary me-2"></i>Đặt Lịch Khám</h2>
+            <p>Chọn loại khám, dịch vụ/gói, ngày và giờ phù hợp cho cuộc hẹn của bạn.</p>
+
+            <!-- Nút điều hướng -->
+            <div class="mt-3">
+                <a asp-controller="Appointment" asp-action="BookingByDoctor" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-user-md me-1"></i> Đặt Lịch Theo Bác Sĩ
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-home me-1"></i> Về Trang Chủ
+                </a>
+            </div>
+        </div>
+
+        <form asp-action="BookingByService" asp-controller="Appointment" method="post" id="serviceForm">
+            @Html.AntiForgeryToken()
+
+            <!-- Thông tin bệnh nhân -->
+            <div class="section-title mb-3">
+                <h3 class="section-title">
+                    <i class="fas fa-user me-2 text-primary"></i>Thông Tin Cá Nhân
+                </h3>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <input asp-for="Name" class="form-control" placeholder="Họ và tên" style="height: 55px;" readonly="@(isReadonly ? "readonly" : null)" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="col-12 col-sm-6">
+                    <input asp-for="Email" class="form-control" placeholder="Email" style="height: 55px;" readonly="@(isReadonly ? "readonly" : null)" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-12 col-sm-6">
+                    <input asp-for="PhoneNumber" class="form-control" placeholder="Số điện thoại" style="height: 55px;" readonly="@(isReadonly ? "readonly" : null)" />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Chọn loại khám -->
+            <div class="section-title mb-3">
+                <h3 class="section-title">
+                    <i class="fas fa-briefcase-medical me-2 text-primary"></i>Chọn Loại Khám
+                </h3>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-12">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="ServiceType"
+                               id="serviceRadio"
+                               value="service"
+                        @(Model.SelectedPackageId.HasValue ? "" : "checked") />
+                        <label class="form-check-label" for="serviceRadio">Khám cơ bản</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="ServiceType"
+                               id="packageRadio"
+                               value="package"
+                        @(Model.SelectedPackageId.HasValue ? "checked" : "") />
+                        <label class="form-check-label" for="packageRadio">Gói khám</label>
+                    </div>
+                </div>
+                <div class="col-12 service-dropdown">
+                    <select asp-for="SelectedServiceId" id="serviceDropdown" asp-items="Model.ServiceOptions" class="form-select">
+                        <option value="">-- Chọn dịch vụ --</option>
+                    </select>
+                    <span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+                </div>
+                <div class="col-12 package-dropdown" style="display: none;">
+                    <select asp-for="SelectedPackageId" id="packageDropdown" asp-items="Model.PackageOptions" class="form-select">
+                        <option value="">-- Chọn gói khám --</option>
+                    </select>
+                    <span asp-validation-for="SelectedPackageId" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Tiêu đề & Nơi hiển thị danh sách xét nghiệm -->
+            <div class="section-title mb-3 test-title" style="display: none;">
+                <h3 class="section-title">
+                    <i class="fas fa-vials me-2 text-primary"></i>Danh Sách Xét Nghiệm
+                </h3>
+            </div>
+            <div id="package-tests-container" class="mt-3"></div>
+
+            <!-- Chọn ngày -->
+            <div class="section-title mb-3">
+                <h3 class="section-title">
+                    <i class="fas fa-calendar-day me-2 text-primary"></i>Chọn Ngày Khám
+                </h3>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-12 form-group">
+                    <input asp-for="AppointmentDate" id="appointmentDate" type="date" class="form-control" min="@minDate" required />
+                    <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Chọn giờ -->
+            <div class="section-title mb-3" id="timeSlotsTitle">
+                <h3 class="section-title">
+                    <i class="fas fa-clock me-2 text-primary"></i>Chọn Giờ Khám
+                </h3>
+            </div>
+            <div id="time-slots-container" class="time-slots-grid" style="display: none;"></div>
+            <input type="hidden" asp-for="SelectedSlotId" id="SelectedSlotId" />
+
+            <!-- Ghi chú -->
+            <div class="section-title mb-3 note-area" style="margin-top: 2%">
+                <h3 class="section-title">
+                    <i class="fas fa-notes-medical me-2 text-primary"></i>Ghi Chú Khám Bệnh (Tùy chọn)
+                </h3>
+            </div>
+            <div class="mb-4 note-area">
+                <label for="noteService" class="form-label fw-semibold">
+                    <i class="me-2 text-primary"></i>Ghi chú thêm (triệu chứng, yêu cầu...)
+                </label>
+                <textarea asp-for="Note" id="noteService" class="form-control" rows="5"
+                          placeholder="Bạn có thể mô tả sơ qua tình trạng sức khỏe, triệu chứng hiện tại hoặc ghi chú đặc biệt nếu có..."></textarea>
+                <span asp-validation-for="Note" class="text-danger"></span>
+            </div>
+
+            <div class="submit-section text-center">
+                <button type="submit" class="submit-btn" disabled>
+                    <i class="fas fa-check me-2"></i>Đặt Lịch Hẹn
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/BookingByService.js" asp-append-version="true"></script>
+}

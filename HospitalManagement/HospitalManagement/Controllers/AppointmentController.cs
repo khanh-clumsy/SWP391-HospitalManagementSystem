@@ -4,7 +4,7 @@ using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using HospitalManagement.Services;
-using HospitalManagement.ViewModels;
+using HospitalManagement.ViewModels.Booking;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -37,6 +37,191 @@ namespace HospitalManagement.Controllers
         {
             return View();
         }
+
+        [HttpGet]
+        public async Task<IActionResult> BookingByService(int? serviceId, int? packageId)
+        {
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var context = new HospitalManagementContext();
+            var user = context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                return RedirectToAction("UpdateProfile", "Patient");
+            }
+            var model = new BookingByServiceViewModel
+            {
+                Name = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ServiceOptions = await GetServiceListAsync(),
+                PackageOptions = await GetPackageListAsync(),
+                AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
+                SelectedServiceId = serviceId,
+                SelectedPackageId = packageId
+            };
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BookingByService(BookingByServiceViewModel model)
+        {
+            ModelState.Remove(nameof(model.ServiceOptions));
+            ModelState.Remove(nameof(model.PackageOptions));
+            if (!ModelState.IsValid)
+            {
+
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                foreach (var error in errors)
+                {
+                    // Ghi log các lỗi
+                    Console.WriteLine(error);
+                }
+                model.ServiceOptions = await GetServiceListAsync();
+                // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
+                TempData["error"] = "Thiếu các trường dữ liệu!";
+                return View(model);
+            }
+            // Lấy PatientId từ Claims
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            int patientId = int.Parse(patientIdClaim);
+            var patient = _context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (patient == null)
+            {
+                return RedirectToAction("Login", "Auth");
+
+            }
+            Slot? slot = null;
+            if (model.SelectedSlotId.HasValue)
+            {
+                slot = await _context.Slots.FirstOrDefaultAsync(d => d.SlotId == model.SelectedSlotId);
+            }
+
+            var service = await _context.Services.FirstOrDefaultAsync(d => d.ServiceId == model.SelectedServiceId);
+            var package = await _context.Packages.FirstOrDefaultAsync(d => d.PackageId == model.SelectedPackageId);
+            if (service == null && package == null)
+            {
+                model.ServiceOptions = await GetServiceListAsync();
+                model.PackageOptions = await GetPackageListAsync();
+                TempData["error"] = "Invalid package or service selection!";
+                return View(model);
+            }
+
+            //bool exists = false;
+            //if (doctor != null && slot != null)
+            //{
+            //    exists = _context.Appointments.Any(a =>
+            //            a.DoctorId == model.SelectedDoctorId &&
+            //            a.PatientId == patientId &&
+            //            a.Date == model.AppointmentDate &&
+            //            a.SlotId == model.SelectedSlotId);
+            //}
+
+            //if (exists)
+            //{
+            //    ModelState.Clear();
+            //    model.ServiceOptions = await GetServiceListAsync();
+            //    TempData["error"] = $"Đã có appointment rồi!";
+            //    return View(model);
+            //}
+
+            var appointment = new Appointment
+            {
+                PatientId = patient.PatientId,
+                Note = model.Note,
+                SlotId = model.SelectedSlotId ?? null,
+                Date = model.AppointmentDate,
+                Status = "Pending",
+                ServiceId = model.SelectedServiceId,
+                PackageId = model.SelectedPackageId
+            };
+
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+
+            var savedAppointment = await _context.Appointments
+                .Include(a => a.Doctor)
+                .Include(a => a.Service)
+                .Include(a => a.Package)
+                .Include(a => a.Staff)
+                .Include(a => a.Patient)
+                .Include(a => a.Slot)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
+
+            if (savedAppointment == null)
+            {
+                TempData["error"] = $"Error!";
+                return View(model);
+            }
+
+            try
+            {
+                var emailBodyBuilder = new StringBuilder();
+
+                emailBodyBuilder.AppendLine("<h3>✅ New Appointment Successfully Booked, Please wait to be Confirmed!</h3>");
+                emailBodyBuilder.AppendLine($"<p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>");
+                emailBodyBuilder.AppendLine($"<p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>");
+
+                if (savedAppointment.Doctor != null)
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Doctor:</strong> {savedAppointment.Doctor.FullName}</p>");
+                    emailBodyBuilder.AppendLine($"<p><strong>Department:</strong> {savedAppointment.Doctor.DepartmentName}</p>");
+                }
+
+                if (savedAppointment.Slot != null)
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Time:</strong> {savedAppointment.Slot.StartTime} - {savedAppointment.Slot.EndTime}</p>");
+                }
+
+                if (!string.IsNullOrWhiteSpace(savedAppointment.Note))
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Note:</strong> {savedAppointment.Note}</p>");
+                }
+
+                if (savedAppointment.Staff != null)
+                {
+                    emailBodyBuilder.AppendLine($"<p><strong>Sales:</strong> {savedAppointment.Staff.FullName}</p>");
+                }
+
+                var emailBody = emailBodyBuilder.ToString();
+
+
+                await _emailService.SendEmailAsync(
+                    toEmail: patient.Email,
+                    subject: "✅ Appointment Booking Successfully!",
+                    body: emailBody
+                );
+
+                TempData["success"] = "✅ Appointment booking email sent successfully.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = $"❌ Failed to send booking email: {ex.Message}";
+            }
+
+            return RedirectToAction("MyAppointments");
+        }
+
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -231,13 +416,6 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = $"Đã có appointment rồi!";
                 return View(model);
             }
-
-            string code;
-            do
-            {
-                code = GenerateUniqueAppointmentCode(patientId);
-            }
-            while (_context.Appointments.Any(a => a.AppointmentCode == code));
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -249,7 +427,6 @@ namespace HospitalManagement.Controllers
                 Doctor = doctor,
                 ServiceId = model.SelectedServiceId,
                 StaffId = StaffID,
-                AppointmentCode = code
             };
 
             _context.Appointments.Add(appointment);
@@ -274,7 +451,6 @@ namespace HospitalManagement.Controllers
                 var emailBodyBuilder = new StringBuilder();
 
                 emailBodyBuilder.AppendLine("<h3>✅ New Appointment Successfully Booked!</h3>");
-                emailBodyBuilder.AppendLine($"<p><strong>Appointment Code:</strong> {savedAppointment.AppointmentCode}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>");
 
@@ -448,12 +624,6 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            string code;
-            do
-            {
-                code = GenerateUniqueAppointmentCode(patientId);
-            }
-            while (_context.Appointments.Any(a => a.AppointmentCode == code));
             var appointment = new Appointment
             {
                 PatientId = patient.PatientId,
@@ -464,7 +634,6 @@ namespace HospitalManagement.Controllers
                 Status = "Pending",
                 Doctor = doctor,
                 ServiceId = model.SelectedServiceId,
-                AppointmentCode = code
             };
 
             _context.Appointments.Add(appointment);
@@ -489,7 +658,6 @@ namespace HospitalManagement.Controllers
                 var emailBodyBuilder = new StringBuilder();
 
                 emailBodyBuilder.AppendLine("<h3>✅ New Appointment Successfully Booked!</h3>");
-                emailBodyBuilder.AppendLine($"<p><strong>Appointment Code:</strong> {savedAppointment.AppointmentCode}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Patient:</strong> {savedAppointment.Patient.FullName}</p>");
                 emailBodyBuilder.AppendLine($"<p><strong>Date:</strong> {savedAppointment.Date:dd/MM/yyyy}</p>");
 
@@ -554,6 +722,41 @@ namespace HospitalManagement.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetSlots(DateOnly date, int? SelectedServiceId, int? SelectedPackageId)
+        {
+            // Lấy danh sách SlotId đã được đặt (Confirmed), đúng theo loại (Service hoặc Package)
+            var bookedSlotIdsQuery = _context.Appointments
+                .Where(a => a.Date == date && a.Status == "Confirmed");
+
+            if (SelectedServiceId.HasValue)
+            {
+                bookedSlotIdsQuery = bookedSlotIdsQuery
+                    .Where(a => a.ServiceId == SelectedServiceId.Value);
+            }
+            else if (SelectedPackageId.HasValue)
+            {
+                bookedSlotIdsQuery = bookedSlotIdsQuery
+                    .Where(a => a.PackageId == SelectedPackageId.Value);
+            }
+
+            var bookedSlotIds = await bookedSlotIdsQuery
+                .Select(a => a.SlotId)
+                .ToListAsync();
+
+            // Lấy toàn bộ slot trong bảng Slot (không cần theo doctor)
+            var slots = await _context.Slots
+                .Select(s => new
+                {
+                    s.SlotId,
+                    SlotTime = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}",
+                    IsBooked = bookedSlotIds.Contains(s.SlotId)
+                })
+                .ToListAsync();
+            Console.WriteLine("Slots: " + string.Join(", ", slots.Select(s => s.SlotTime)));
+            return Json(slots);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetSlotsByDoctorAndDate(DateOnly date, int doctorId)
         {
             var bookedSlotIds = await _context.Appointments
@@ -581,6 +784,22 @@ namespace HospitalManagement.Controllers
             return View();
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetTestsByPackage(int packageId)
+        {
+            var tests = await _context.PackageTests
+                                      .Where(pt => pt.PackageId == packageId)
+                                      .Include(pt => pt.Test)
+                                      .Select(pt => pt.Test)
+                                      .ToListAsync();
+            foreach (var test in tests)
+            {
+                Console.WriteLine($"Test: {test.TestId} - {test.Name} - {test.Price}");
+
+            };
+            return Json(tests);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Delete(int appointmentId)
         {
@@ -604,6 +823,17 @@ namespace HospitalManagement.Controllers
                 {
                     Value = s.ServiceId.ToString(),
                     Text = $"{s.ServiceType} - {s.ServicePrice.ToString("0")}k"
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<SelectListItem>> GetPackageListAsync()
+        {
+            return await _context.Packages
+                .Select(s => new SelectListItem
+                {
+                    Value = s.PackageId.ToString(),
+                    Text = $"{s.PackageName} - {s.FinalPrice.ToString("0")}k"
                 })
                 .ToListAsync();
         }
@@ -653,7 +883,7 @@ namespace HospitalManagement.Controllers
             return int.TryParse(claim.Value, out var id) ? id : null;
         }
 
-      
+
         [Authorize(Roles = "Patient, Sales, Admin, Doctor")]
         public IActionResult Detail(int appId)
         {

@@ -19,6 +19,8 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
+                .Include(a => a.Package)
+                .Include(a => a.Service)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.StaffId == UserID) ||

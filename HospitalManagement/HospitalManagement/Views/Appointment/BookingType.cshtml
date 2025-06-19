@@ -8,16 +8,16 @@
         <p>Vui lòng chọn cách đặt lịch phù hợp với bạn:</p>
         <div class="row g-4">
             <div class="col-md-6">
-                <a href="/Appointment/Booking" class="btn btn-primary btn-lg w-100 py-3">
-                    <i class="fas fa-calendar-day me-2"></i>Đặt Theo Ngày
+                <a href="@Url.Action("BookingByService", "Appointment")" class="btn btn-primary btn-lg w-100 py-4">
+                    <i class="fas fa-briefcase-medical me-2"></i>Đặt Theo Gói Khám
                 </a>
-                <p class="mt-2 text-muted">Chọn ngày bạn muốn khám, sau đó chọn dịch vụ, gói khám hoặc bác sĩ.</p>
+                <p class="mt-2 text-muted">Chọn dịch vụ, gói khám trước.</p>
             </div>
             <div class="col-md-6">
-                <a href="/Appointment/DoctorBooking" class="btn btn-primary btn-lg w-100 py-3">
-                    <i class="fas fa-stethoscope me-2"></i>Đặt Theo Bác Sĩ/Dịch Vụ/Gói Khám
+                <a href="@Url.Action("BookingByDoctor", "Appointment")" class="btn btn-primary btn-lg w-100 py-4">
+                    <i class="fas fa-stethoscope me-2"></i>Đặt Theo Bác Sĩ
                 </a>
-                <p class="mt-2 text-muted">Chọn bác sĩ hoặc dịch vụ/gói khám trước, xem lịch tuần và đặt lịch.</p>
+                <p class="mt-2 text-muted">Chọn bác sĩ trước, xem lịch tuần và đặt lịch.</p>
             </div>
         </div>
     </div>

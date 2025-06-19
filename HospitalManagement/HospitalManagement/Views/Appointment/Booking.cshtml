@@ -1,6 +1,6 @@
-﻿@model HospitalManagement.ViewModels.BookingApointmentViewModel
+﻿@model HospitalManagement.ViewModels.Booking.BookingApointmentViewModel
 @{
-	ViewData["Title"] = "Booking";
+	ViewData["Title"] = "Đặt lịch hẹn";
 	var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 	var isReadonly = !string.IsNullOrEmpty(Model.Name);
 }

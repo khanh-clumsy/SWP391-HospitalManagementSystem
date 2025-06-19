@@ -85,8 +85,6 @@
 				<thead class="table-light">
 					<tr>
 						<th>ID</th>
-						<th>Mã cuộc hẹn</th>
-						
 						<th>Email</th>
 						<th></th>
 						<th>Mô tả</th>
@@ -96,6 +94,7 @@
 						<th>Ngày</th>
 						<th>Giờ bắt đầu</th>
 						<th>Giờ kết thúc</th>
+						<th>Dịch vụ</th>
 						<th>Trạng thái</th>
 						<th>Hành động</th>
 					</tr>
@@ -107,7 +106,6 @@
 						{
 							<tr>
 								<td>@item.AppointmentId</td>
-								<td>@item.AppointmentCode</td>
 								<td>@item.Patient.Email</td>
 								<td>@item.Patient.PhoneNumber</td>
 								<td>@item.Note</td>
@@ -117,6 +115,20 @@
 								<td>@item.Date</td>
 								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
 								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>
+								<td>
+									@if (item.Service != null)
+									{
+										<text>Khám cơ bản: @item.Service.ServiceType</text>
+									}
+									else if (item.Package != null)
+									{
+										<text>Gói khám: @item.Package.PackageName</text>
+									}
+									else
+									{
+										<span class="text-muted">N/A</span>
+									}
+								</td>
 								<td>
 									@if (item.Status == "Pending")
 									{
@@ -129,6 +141,10 @@
 									else if (item.Status == "Rejected")
 									{
 										<span class="badge bg-danger">Rejected</span>
+									}
+									else if (item.Status == "Confirmed")
+									{
+										<span class="badge bg-success">Confirmed</span>
 									}
 									else
 									{
@@ -168,17 +184,17 @@
 						DateFilter = ViewBag.DateFilter,
 						StatusFilter = ViewBag.StatusFilter
 					}), new PagedListRenderOptions
-			{
-				DisplayLinkToFirstPage = PagedListDisplayMode.Always,
-				DisplayLinkToLastPage = PagedListDisplayMode.Always,
-				DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
-				DisplayLinkToNextPage = PagedListDisplayMode.Always,
-				DisplayLinkToIndividualPages = true,
-				MaximumPageNumbersToDisplay = 5,
-				UlElementClasses = new[] { "pagination" },
-				LiElementClasses = new[] { "page-item" },
-				PageClasses = new[] { "page-link" }
-			})
+{
+	DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+	DisplayLinkToLastPage = PagedListDisplayMode.Always,
+	DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+	DisplayLinkToNextPage = PagedListDisplayMode.Always,
+	DisplayLinkToIndividualPages = true,
+	MaximumPageNumbersToDisplay = 5,
+	UlElementClasses = new[] { "pagination" },
+	LiElementClasses = new[] { "page-item" },
+	PageClasses = new[] { "page-link" }
+})
 			</div>
 		}
 	</div>
