@@ -1,6 +1,6 @@
-﻿@model HospitalManagement.ViewModels.BookingApointmentViewModel
+﻿@model HospitalManagement.ViewModels.Booking.BookingApointmentViewModel
 @{
-	ViewData["Title"] = "Booking";
+	ViewData["Title"] = "Đặt lịch hẹn";
 	var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
 	var isReadonly = !string.IsNullOrEmpty(Model.Name);
 }
@@ -56,7 +56,7 @@
 				</h3>
 			</div>
 			<div class="row g-3 mb-4">
-				<div class="col-12">
+				<div class="col-12 form-group">
 					<input asp-for="AppointmentDate" id="appointmentDate" type="date" class="form-control" min="@minDate" required />
 					<span asp-validation-for="AppointmentDate" class="text-danger"></span>
 				</div>
@@ -100,14 +100,15 @@
 					<h3 class="section-title">
 						<i class="fas fa-stethoscope me-2 text-primary"></i>Chọn Bác Sĩ
 					</h3>
+					<input type="text" id="doctorSearch" class="form-control" placeholder="🔍 Tìm bác sĩ theo tên, khoa...">
 					<div class="doctor-carousel">
-						<button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+						<button type="button" class="carousel-nav prev">
 							<i class="fas fa-chevron-left"></i>
 						</button>
 						<div class="doctor-scroll-container">
 							<div class="doctor-list" id="doctorList"></div>
 						</div>
-						<button type="button" class="carousel-nav next" onclick="nextDoctor()">
+						<button type="button" class="carousel-nav next">
 							<i class="fas fa-chevron-right"></i>
 						</button>
 					</div>
@@ -160,5 +161,5 @@
 	</div>
 </div>
 @section Scripts {
-	<script src="~/js/booking.js"></script>
+	<script src="~/js/BookingAppointment.js" asp-append-version="true"></script>
 }

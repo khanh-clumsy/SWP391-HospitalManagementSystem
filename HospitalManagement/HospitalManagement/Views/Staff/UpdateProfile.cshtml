@@ -112,19 +112,19 @@
 		document.getElementById('photoForm').addEventListener('submit', function (e) {
 			const input = document.getElementById('photoInput');
 			const file = input.files[0];
-			const maxSize = 6 * 1024 * 1024; // 6MB
-			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg'];
+			const maxSize = 2 * 1024 * 1024; // 2MB
+			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/webp'];
 
 			if (!file) return; // file null
 
 			let errors = [];
 
 			if (!allowedTypes.includes(file.type)) {
-				errors.push("Ảnh phải là .jpg, .jpeg, .png hoặc .gif.");
+				errors.push("Ảnh phải là .jpg, .jpeg, .png, .webp hoặc .gif.");
 			}
 
 			if (file.size > maxSize) {
-				errors.push("Dung lượng ảnh không được vượt quá 6MB.");
+				errors.push("Dung lượng ảnh không được vượt quá 2MB.");
 			}
 
 			if (errors.length > 0) {

@@ -39,6 +39,11 @@ namespace HospitalFETemplate.Controllers
         {
             return View();
         }
+        public IActionResult TooMuchAttempt()
+        {
+            return View();
+        }
+
         /**
          * Controller for ViewDoctors page, get name, department, exp year, isHead,
          * sort type, to filter out doctor, handle pagination

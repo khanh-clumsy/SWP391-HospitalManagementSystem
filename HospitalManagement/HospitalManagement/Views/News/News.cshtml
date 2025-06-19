@@ -1,0 +1,282 @@
+﻿@model X.PagedList.IPagedList<HospitalManagement.ViewModels.NewsViewModel>
+
+@{
+	ViewData["Title"] = "Trang Tin Tức";
+}
+
+<div class="container-fluid px-4 py-5">
+	<div class="row justify-content-center">
+		<div class="col-lg-10 col-xl-8">
+			<!-- Header Section -->
+			<div class="text-center mb-5">
+				<h1 class="display-4 fw-bold text-primary mb-3">
+					<i class="fas fa-newspaper me-3"></i>Tin Tức Mới Nhất
+				</h1>
+				<p class="lead text-muted">Cập nhật thông tin y tế và hoạt động bệnh viện</p>
+				<hr class="w-25 mx-auto border-primary border-3">
+			</div>
+
+			@* <form method="get"> *@
+			@* 	<select name="pageSize" id="pageSize" onchange="this.form.submit()"> *@
+			@* 		@for (int i = 1; i <= 10; i++) *@
+			@* 		{ *@
+			@* 			<option value="@i" >@i</option> *@
+			@* 		} *@
+			@* 	</select> *@
+			@* </form> *@
+			@if (Model != null && Model.Any())
+			{
+				<!-- News Articles -->
+				<div class="row g-4">
+					@foreach (var item in Model)
+					{
+						<div class="col-12">
+							<article class="card shadow-sm border-0 h-100 news-card">
+								<div class="row g-0">
+									<!-- Thumbnail Image -->
+									<div class="col-md-4 col-lg-3">
+										<div class="news-thumbnail">
+											<img src="@(string.IsNullOrEmpty(item.Thumbnail)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/"+item.Thumbnail))"
+												 alt="Current Photo"
+												 class="shadow mb-2" />
+										</div>
+
+										<!-- Content -->
+										<div class="col-md-8 col-lg-9">
+											<div class="card-body p-4 h-100 d-flex flex-column">
+												<!-- Article Header -->
+												<div class="d-flex flex-wrap align-items-start justify-content-between mb-3">
+													<h2 class="card-title h4 fw-bold text-dark mb-2 flex-grow-1">
+														@item.Title
+													</h2>
+													<span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">
+														<i class="far fa-clock me-1"></i>
+														@item.CreatedAt.ToString("dd/MM/yyyy")
+													</span>
+												</div>
+
+												<!-- Author and Date Info -->
+												<div class="d-flex flex-wrap align-items-center gap-3 mb-3 text-muted small">
+													<div class="d-flex align-items-center">
+														<i class="fas fa-user-md me-2 text-primary"></i>
+														<span>
+															<strong>@item.AuthorName</strong>
+														</span>
+													</div>
+													<div class="d-flex align-items-center">
+														<i class="far fa-calendar-alt me-2 text-primary"></i>
+														<span>@item.CreatedAt.ToString("HH:mm - dd/MM/yyyy")</span>
+													</div>
+												</div>
+
+												<!-- Article Description -->
+												<div class="card-text mb-4 flex-grow-1">
+													<p class="text-muted mb-0 lh-lg">
+														@(item.Description ?? "Nội dung đang được cập nhật...")
+													</p>
+												</div>
+
+												<!-- Action Button -->
+												<div class="d-flex justify-content-between align-items-center mt-auto">
+													<a asp-action="Detail"
+													   asp-route-id="@item.NewsId"
+													   class="btn btn-primary btn-lg px-4 py-2 rounded-pill shadow-sm">
+														<i class="fas fa-arrow-right me-2"></i>
+														Xem chi tiết
+													</a>
+													<div class="text-muted small">
+														<i class="fas fa-eye me-1"></i>
+														Bài viết #@item.NewsId
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+							</article>
+						</div>
+					}
+				</div>
+
+				<!-- Pagination Start -->
+				int maxPagesToShow = 5;
+				int startPage = Model.PageNumber - maxPagesToShow / 2;
+				if (startPage < 1) startPage = 1;
+
+				int endPage = startPage + maxPagesToShow - 1;
+				if (endPage > Model.PageCount)
+				{
+					endPage = Model.PageCount;
+					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+				}
+
+
+				<div class="d-flex justify-content-center mt-5">
+					<nav>
+						<ul class="pagination">
+
+							<li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+								<a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("News", new { page = Model.PageNumber - 1 }) : "#")" tabindex="-1">Previous</a>
+							</li>
+
+							@if (startPage > 1)
+							{
+								<li class="page-item">
+									<a class="page-link" href="@Url.Action("News", new { page = 1 })">1</a>
+								</li>
+								@if (startPage > 2)
+								{
+									<li class="page-item disabled"><span class="page-link">...</span></li>
+								}
+							}
+
+							@for (int i = startPage; i <= endPage; i++)
+							{
+								<li class="page-item @(i == Model.PageNumber ? "active" : "")">
+									<a class="page-link" href="@Url.Action("News", new { page = i })">@i</a>
+								</li>
+							}
+
+							@if (endPage < Model.PageCount)
+							{
+								if (endPage < Model.PageCount - 1)
+								{
+									<li class="page-item disabled"><span class="page-link">...</span></li>
+								}
+								<li class="page-item">
+									<a class="page-link" href="@Url.Action("News", new { page = Model.PageCount })">@Model.PageCount</a>
+								</li>
+							}
+
+							<li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+								<a class="page-link" href="@(Model.HasNextPage ? Url.Action("News", new { page = Model.PageNumber + 1 }) : "#")">Next</a>
+							</li>
+
+						</ul>
+					</nav>
+				</div>
+				<!-- Pagination End -->
+			}
+			else
+			{
+				<!-- Empty State -->
+				<div class="text-center py-5">
+					<div class="mb-4">
+						<i class="fas fa-newspaper fa-5x text-muted opacity-50"></i>
+					</div>
+					<div class="alert alert-light border-0 shadow-sm p-4 mx-auto" style="max-width: 500px;">
+						<h4 class="alert-heading text-muted mb-3">
+							<i class="fas fa-info-circle me-2"></i>
+							Chưa có tin tức
+						</h4>
+						<p class="mb-3 text-muted">
+							Hiện tại chưa có bài viết tin tức nào được đăng tải.
+							Vui lòng quay lại sau để cập nhật thông tin mới nhất.
+						</p>
+						<a href="@Url.Action("Index", "Home")" class="btn btn-primary rounded-pill px-4">
+							<i class="fas fa-home me-2"></i>
+							Về trang chủ
+						</a>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+	.news-card {
+		transition: all 0.3s ease;
+		border-left: 4px solid transparent;
+		overflow: hidden;
+	}
+
+		.news-card:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+			border-left-color: var(--bs-primary);
+		}
+
+	.news-thumbnail {
+		height: 200px;
+		overflow: hidden;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: #f8f9fa;
+	}
+
+	.news-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+		transition: transform 0.3s ease;
+	}
+
+	.news-card:hover .news-image {
+		transform: scale(1.05);
+	}
+
+	.btn-primary {
+		transition: all 0.3s ease;
+	}
+
+		.btn-primary:hover {
+			transform: translateY(-1px);
+			box-shadow: 0 4px 15px rgba(var(--bs-primary-rgb), 0.3);
+		}
+
+	.badge {
+		font-size: 0.75rem;
+		font-weight: 500;
+	}
+
+	.display-4 {
+		font-weight: 700;
+	}
+
+	@@media (max-width: 768px) {
+		.display-4 {
+			font-size: 2rem;
+		}
+
+		.news-thumbnail {
+			height: 150px;
+		}
+
+		.card-body {
+			padding: 1.5rem !important;
+		}
+
+		.d-flex.justify-content-between {
+			flex-direction: column;
+			gap: 1rem;
+		}
+
+		.col-md-4 {
+			order: 1;
+		}
+
+		.col-md-8 {
+			order: 2;
+		}
+	}
+
+	@@media (max-width: 576px) {
+		.news-thumbnail {
+			height: 120px;
+		}
+
+		.h4 {
+			font-size: 1.1rem;
+		}
+
+		.btn-lg {
+			padding: 0.5rem 1.5rem !important;
+			font-size: 0.9rem;
+		}
+	}
+</style>

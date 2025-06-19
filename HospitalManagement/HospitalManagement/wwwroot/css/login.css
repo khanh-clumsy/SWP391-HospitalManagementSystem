@@ -540,3 +540,56 @@ iframe {
     width: 100%;
   }
 }
+
+#loadingOverlay {
+	display: flex; /* <-- thêm dòng này */
+	visibility: hidden; /* <-- mặc định ẩn */
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 20, 0.5);
+	z-index: 4000;
+	align-items: center;
+	justify-content: center;
+}
+
+
+/* HTML: <div class="loader"></div> */
+.custom-spinner {
+	width: 50px;
+	aspect-ratio: 1;
+	color: #000;
+	border: 2px solid;
+	display: grid;
+	box-sizing: border-box;
+	animation: l1 4s infinite linear;
+}
+
+	.custom-spinner::before,
+	.custom-spinner::after {
+		content: "";
+		grid-area: 1/1;
+		margin: auto;
+		width: 70.7%;
+		aspect-ratio: 1;
+		border: 2px solid;
+		box-sizing: content-box;
+		animation: inherit;
+	}
+
+	.custom-spinner::after {
+		width: 50%;
+		aspect-ratio: 1;
+		border: 2px solid;
+		animation-duration: 2s;
+	}
+
+@keyframes l1 {
+	100% {
+		transform: rotate(1turn)
+	}
+}

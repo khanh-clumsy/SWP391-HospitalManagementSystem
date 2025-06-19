@@ -19,6 +19,8 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
+                .Include(a => a.Package)
+                .Include(a => a.Service)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.StaffId == UserID) ||
@@ -27,8 +29,13 @@ namespace HospitalManagement.Repositories
 
             if (!string.IsNullOrEmpty(Name))
             {
-                Name = Name.Trim();
-                query = query.Where(a => a.Patient.FullName.Contains(Name));
+                Name = string.Join(" ", Name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+
+                query = RoleKey switch
+                {
+                    "PatientID" => query.Where(a => a.Doctor.FullName.Contains(Name)),
+                    _ => query.Where(a => a.Patient.FullName.Contains(Name))
+                };
             }
 
             if (!string.IsNullOrEmpty(slotId) && int.TryParse(slotId, out int parsedSlotId))
@@ -81,43 +88,44 @@ namespace HospitalManagement.Repositories
             return await query.ToListAsync();
         }
 
-       
-        public async Task<List<Appointment>> GetAppointmentByDoctorIDAsync(int DoctorID)
+
+        public IQueryable<Appointment> GetAppointmentByDoctorID(int DoctorID)
         {
-            return await _context.Appointments
+            return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.DoctorId == DoctorID)
-                .ToListAsync();
+                .OrderByDescending(a => a.AppointmentId);
         }
 
-        public async Task<List<Appointment>> GetAppointmentByPatientIDAsync(int PatientID)
+        public IQueryable<Appointment> GetAppointmentByPatientID(int PatientID)
         {
-            return await _context.Appointments
+            return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.PatientId == PatientID)
-                .ToListAsync();
+                .OrderByDescending(a => a.AppointmentId);
         }
 
-        public async Task<List<Appointment>> GetAppointmentBySalesIDAsync(int SalesID)
+        public IQueryable<Appointment> GetAppointmentBySalesID(int SalesID)
         {
-            return await _context.Appointments
+            return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.StaffId == SalesID)
-                .ToListAsync();
+                .OrderByDescending(a => a.AppointmentId);
         }
-        public async Task<Appointment> GetByIdAsync(int id)
+
+        public async Task<Appointment?> GetByIdAsync(int id)
         {
             return await _context.Appointments.FindAsync(id);
         }
@@ -127,5 +135,6 @@ namespace HospitalManagement.Repositories
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
         }
+
     }
 }

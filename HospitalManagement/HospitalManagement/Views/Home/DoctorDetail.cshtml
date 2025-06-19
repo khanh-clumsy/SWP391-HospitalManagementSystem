@@ -16,12 +16,12 @@
 	<!-- Page Header Start -->
 	<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
 		<div class="container py-5">
-			<h1 class="display-3 text-white mb-3 animated slideInDown">DOCTOR PROFILE</h1>
+			<h1 class="display-3 text-white mb-3 animated slideInDown">Thông tin chi tiết</h1>
 			<nav aria-label="breadcrumb animated slideInDown">
 				<ol class="breadcrumb text-uppercase mb-0">
-					<li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home" class="text-white">Home</a></li>
-					<li class="breadcrumb-item"><a asp-action="ViewDoctors" asp-controller="Home" class="text-white">Doctors</a></li>
-					<li class="breadcrumb-item text-primary active" aria-current="page">Doctor Details</li>
+					<li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home" class="text-white">Trang chủ</a></li>
+					<li class="breadcrumb-item"><a asp-action="ViewDoctors" asp-controller="Home" class="text-white">Bác si</a></li>
+					<li class="breadcrumb-item text-primary active" aria-current="page">Thông tin chi tiết</li>
 
 				</ol>
 			</nav>
@@ -33,7 +33,7 @@
 			<div class="row mb-4">
 				<div class="col-12">
 					<a asp-action="ViewDoctors" asp-controller="Home" class="back-to-list">
-						<i class="fas fa-arrow-left"></i> Back to Doctor List
+						<i class="fas fa-arrow-left"></i> Trở về danh sách bác sĩ
 					</a>
 				</div>
 			</div>
@@ -49,7 +49,7 @@
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
-								<a href="#" class="btn btn-primary">Book Appointment</a>
+								<a href="#" class="btn btn-primary">Tạo cuộc hẹn</a>
 							</div>
 						</div>
 					</div>
@@ -59,14 +59,14 @@
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
 					<div class="profile-card">
 						<div class="profile-info">
-							<h2>Doctor Profile Details</h2>
+							<h2>Thông tin chi tiết</h2>
 
 							<div class="info-item">
 								<div class="info-icon">
 									<i class="fas fa-user"></i>
 								</div>
 								<div class="info-content">
-									<h5>Full Name</h5>
+									<h5>Tên</h5>
 									<p>@Model.FullName (@Model.ExperienceYear Experience Years)</p>
 								</div>
 							</div>
@@ -96,7 +96,7 @@
 									<i class="fas fa-stethoscope"></i>
 								</div>
 								<div class="info-content">
-									<h5>Specialization</h5>
+									<h5>Khoa</h5>
 									<p>@Model.DepartmentName</p>
 								</div>
 							</div>
@@ -106,7 +106,7 @@
 									<i class="fas fa-award"></i>
 								</div>
 								<div class="info-content">
-									<h5>Doctor Level</h5>
+									<h5>Bằng cấp</h5>
 									<p>@Model.Degree</p>
 								</div>
 							</div>

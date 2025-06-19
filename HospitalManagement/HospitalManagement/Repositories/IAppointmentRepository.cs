@@ -4,9 +4,9 @@ namespace HospitalManagement.Repositories
 {
     public interface IAppointmentRepository
     {
-        Task<List<Appointment>> GetAppointmentByPatientIDAsync(int PatientID);
-        Task<List<Appointment>> GetAppointmentByDoctorIDAsync(int DoctorID);
-        Task<List<Appointment>> GetAppointmentBySalesIDAsync(int SalesID);
+        IQueryable<Appointment> GetAppointmentByPatientID(int PatientID);
+        IQueryable<Appointment> GetAppointmentByDoctorID(int DoctorID);
+        IQueryable<Appointment> GetAppointmentBySalesID(int SalesID);
         Task<Appointment> GetByIdAsync(int id);
         Task DeleteAsync(Appointment appointment);
         Task<List<Appointment>> Filter(string RoleKey, int UserID, string? Name, string? Slot, string? Date, string? Status);
