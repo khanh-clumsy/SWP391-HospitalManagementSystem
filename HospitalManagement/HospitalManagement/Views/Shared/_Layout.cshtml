@@ -31,7 +31,8 @@
 	<link href="/css/bootstrap.min.css" rel="stylesheet">
 
 	<!-- Template Stylesheet -->
-	<link href="~/css/style.css" rel="stylesheet">
+	<link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+
 
 	<style>
 		.popup-alert {
@@ -54,6 +55,7 @@
 			</div>
 		</div>
 		<!-- Spinner End -->
+
 		<!-- Topbar Start -->
 		<div class="container-fluid bg-light p-0 wow fadeIn" data-wow-delay="0.1s">
 			<div class="row gx-0 d-none d-lg-flex">
@@ -82,6 +84,7 @@
 			</div>
 		</div>
 		<!-- Topbar End -->
+
 		<!-- Notifications-->
 		@if (TempData["error"] != null)
 		{
@@ -145,6 +148,13 @@
                                 <a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">Xem thông tin cá nhân</a>
                                 <a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn của tôi</a>
                                 <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
+								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
+
+								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
+													User.FindFirst("IsDepartmentHead")?.Value == "True")
+								{
+									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Quản lý lịch làm việc</a>
+								}
                                 <a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
                                 <a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Cập nhật thông tin</a>
                                 <a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Đổi mật khẩu</a>
@@ -165,6 +175,8 @@
                                 <a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Cuộc hẹn</a>
                                 <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
                                 <a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
+								<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Quản lý lịch làm việc</a>
+
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
@@ -181,6 +193,7 @@
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
                                 <a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
                                 <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
+								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
@@ -197,6 +210,7 @@
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
                                 <a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
                                 <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
+								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
@@ -217,10 +231,13 @@
 		<!-- Navbar End -->
 	</header>
 
-	@RenderBody()
-	<div id="loadingOverlay" style="display:none">
-		<div class="custom-spinner" style="display:none"></div>
+	<div id="loadingOverlay" style="visibility:hidden">
+		<div class="custom-spinner"></div>
 	</div>
+
+	@RenderBody()
+
+
 
 	<!-- Footer Start -->
 	<footer>
@@ -295,20 +312,19 @@
 			}
 		}, 3000);
 
-		// anti spam
-		function submitForm() {
-			// nhớ đổi lại đúng id form
-			var form = $("#loginForm");
 
-			if (!form.valid()) {
-				// Không hợp lệ -> không bật loading, không submit
-				return false;
-			}
-			//Hiển thị overlay loading
-			document.getElementById("loadingOverlay").style.display = "flex";
-			document.querySelector(".custom-spinner").style.display = "flex";
-			return true;
-		}
+		document.addEventListener("DOMContentLoaded", function () {
+			document.querySelectorAll("form").forEach(form => {
+				form.addEventListener("submit", function () {
+					const overlay = document.getElementById("loadingOverlay");
+					if (overlay) {
+						overlay.style.visibility = "visible";
+						overlay.style.opacity = "1";
+					}
+				});
+			});
+		});
+
 	</script>
 	<!--Start of Tawk.to Script-->
 	@if (!User.Identity.IsAuthenticated || User.IsInRole("Patient"))

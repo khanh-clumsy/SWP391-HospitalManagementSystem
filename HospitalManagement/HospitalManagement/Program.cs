@@ -104,7 +104,7 @@ builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.Add(new PreventSpamAttribute { Seconds = 2 }); // mặc định trong filters là 2s
+    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
 });
 
 
@@ -151,6 +151,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=User}/{action=ManageRoom}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

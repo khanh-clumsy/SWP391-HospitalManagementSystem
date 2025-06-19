@@ -9,12 +9,13 @@
 	<title>Sign up</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="icon" type="image/png" href="~/img/icons/favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="~/vendor/bootstrap/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="~/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="~/fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/animate/animate.css">
-	<link rel="stylesheet" type="text/css" href="~/css-hamburgers/hamburgers.min.css">
+	<link rel="stylesheet" type="text/css" href="~/vendor/css-hamburgers/hamburgers.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/animsition/css/animsition.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/select2/select2.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/daterangepicker/daterangepicker.css">
@@ -26,12 +27,6 @@
 			text-align: center;
 			top: 5px;
 			right: 5px;
-		}
-
-		.login100-form-btn:disabled {
-			background: #ccc;
-			cursor: not-allowed;
-			box-shadow: none;
 		}
 	</style>
 </head>
@@ -59,7 +54,8 @@
 					}
 
 				</div>
-				<form id="loginForm" asp-action="Register" method="post" class="login100-form validate-form flex-sb flex-w">
+
+				<form id="loginForm" onsubmit="return submitForm()" asp-action="Register" method="post" class="login100-form validate-form flex-sb flex-w">
 					<span class="login100-form-title p-b-53">
 						Sign Up
 					</span>
@@ -173,8 +169,8 @@
 		</div>
 	</div>
 
-	<div id="loadingOverlay" style="display:none">
-		<div class="custom-spinner" style="display:none"></div>
+	<div id="loadingOverlay">
+		<div class="custom-spinner"></div>
 	</div>
 	<!-- Scripts -->
 	<script src="~/vendor/jquery/jquery-3.2.1.min.js"></script>
@@ -189,46 +185,37 @@
 	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 	<script>
-				window.setTimeout(function () {
-					const alertBox = document.getElementById('popup-alert');
-					if (alertBox) {
-						alertBox.classList.remove('show');
-						alertBox.classList.add('hide');
-						setTimeout(() => alertBox.remove(), 500);
-						// popup animation
-					}
-				}, 3000);
+		window.setTimeout(function () {
+			const alertBox = document.getElementById('popup-alert');
+			if (alertBox) {
+				alertBox.classList.remove('show');
+				alertBox.classList.add('hide');
+				setTimeout(() => alertBox.remove(), 500);
+				// popup animation
+			}
+		}, 3000);
 
-								function submitForm() {
+
+		function submitForm() {
 			var form = $("#loginForm");
 
 			if (!form.valid()) {
-				// Không hợp lệ -> không bật loading, không submit
 				return false;
 			}
-
-			// Disable nút sau khi form hợp lệ
-			$('.login100-form-btn').prop('disabled', true);
+			const overlay = document.getElementById("loadingOverlay");
+			overlay.style.visibility = "visible";
+			overlay.style.opacity = "1";
 
 			return true;
 		}
 
-		$('.login100-form-btn').on('click', function (e) {
-			e.preventDefault(); // Ngăn form submit mặc định để kiểm tra trước
-
-			if (submitForm()) {
-				$('#loginForm').submit(); // Nếu hợp lệ mới submit
-			} else {
-				$(this).prop('disabled', false); // Nếu không hợp lệ thì đảm bảo nút không bị disable
+		document.addEventListener('keydown', function (e) {
+			if (e.key === "Enter") {
+				e.preventDefault();
+				e.stopPropagation();
+				return false;
 			}
 		});
-				document.addEventListener('keydown', function (e) {
-					if (e.key === "Enter") {
-						e.preventDefault();
-						e.stopPropagation();
-						return false;
-					}
-				});
 
 	</script>
 </body>
