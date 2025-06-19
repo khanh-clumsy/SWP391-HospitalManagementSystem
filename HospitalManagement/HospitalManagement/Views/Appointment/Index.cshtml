@@ -43,7 +43,7 @@
 				}
 			</select>
 
-			<input type="text" id="dateFilter" name="dateFilter" class="form-control" style="width: 180px;" />
+			<input type="date" id="dateFilter" name="dateFilter" class="form-control" style="width: 180px;" />
 
 			<select name="statusFilter" class="form-select" style="width: 150px;">
 				<option value="">All Status</option>
@@ -129,18 +129,18 @@
 					else
 					{
 						<tr>
-							<td colspan="11" class="text-center text-muted">No appointments.</td>
+							<td colspan="14" class="text-center text-muted">No appointments.</td>
 						</tr>
 					}
 				</tbody>
 			</table>
 		</div>
-		<script>
-			flatpickr("#dateFilter", {
-				dateFormat: "d/m/Y", // Định dạng dd/mm/yyyy
-				defaultDate: "today" // Hoặc giá trị từ server nếu có
-			});
-		</script>
+		@* <script> *@
+		@* 	flatpickr("#dateFilter", { *@
+		@* 		dateFormat: "d/m/Y", *@
+		@* 		defaultDate: "today" *@
+		@* 	}); *@
+		@* </script> *@
 	</div>
 
 </div>

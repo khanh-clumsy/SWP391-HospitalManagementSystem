@@ -27,7 +27,7 @@ namespace HospitalManagement.Repositories
 
             if (!string.IsNullOrEmpty(Name))
             {
-                Name = Name.Trim();
+                Name = string.Join(" ", Name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
                 query = RoleKey switch
                 {
                     "PatientID" => query.Where(a => a.Doctor.FullName.Contains(Name)),

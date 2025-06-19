@@ -37,7 +37,7 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> Index(string? searchName, string? timeFilter, string? dateFilter, string? statusFilter)
         {
             var appointments = await _appointmentRepository.FilterForAdmin(searchName, timeFilter, dateFilter, statusFilter);
-
+            ViewBag.DateFilter = DateTime.Now.ToString("dd/MM/yyyy");
             var slots = await _context.Slots.ToListAsync();
             ViewBag.SlotOptions = slots;
 

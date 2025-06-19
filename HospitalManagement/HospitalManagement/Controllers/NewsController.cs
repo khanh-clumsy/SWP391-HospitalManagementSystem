@@ -39,7 +39,8 @@ namespace HospitalManagement.Controllers
 
         public async Task<IActionResult> News(int? page)
         {
-            int pageSize = 2;
+            int pageSize = 5;
+
             int pageNumber = page ?? 1;
 
             var newsList = await _newsRepository.GetAllAsync(); 
@@ -73,35 +74,46 @@ namespace HospitalManagement.Controllers
 
             model.CreatedAt = DateTime.Now;
 
-            if(model.Description.Length > 4000)
+            if (model.Description.Length > 4000)
             {
                 TempData["Error"] = "Mô tả ít hơn 4000 ký tự";
+                return View(model);
             }
-            if(photo == null)
+
+            if (photo == null)
             {
                 TempData["Error"] = "Thiếu ảnh thumbnail";
                 return View(model);
             }
-            if (photo != null && photo.Length > 0)
+
+            if (photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
                 var maxSize = 2 * 1024 * 1024;
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
-                    TempData["Error"] = "Unsupported file type.";
+                    TempData["Error"] = "Loại file không được hỗ trợ.";
                     return View(model);
                 }
 
                 if (photo.Length > maxSize)
                 {
-                    TempData["Error"] = "File too large.";
+                    TempData["Error"] = "File quá lớn, phải nhỏ hơn 2MB.";
                     return View(model);
                 }
 
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                model.Thumbnail = Convert.ToBase64String(ms.ToArray());
+                // Tạo tên file duy nhất để tránh trùng
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(photo.FileName);
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+
+                // Lưu file vào wwwroot/uploads
+                using (var stream = new FileStream(uploadPath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(stream);
+                }
+
+                model.Thumbnail =  fileName;
             }
 
             var (roleKey, userId) = GetUserRoleAndId(User);
@@ -141,17 +153,17 @@ namespace HospitalManagement.Controllers
             if (photo != null && photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-              var maxSize = 1024 * 1024; 
+              var maxSize = 2* 1024 * 1024; 
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
-                    TempData["Error"] = "Unsupported file type.";
+                    TempData["Error"] = "Loại file không được hỗ trợ.";
                     return View("Update", updatedNews);
                 }
 
                 if (photo.Length > maxSize)
                 {
-                    TempData["Error"] = "image must be <= 2mb.";
+                    TempData["Error"] = "File quá lớn phải nhỏ hơn 2mb.";
                     return View("Update", updatedNews);
                 }
 
