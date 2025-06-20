@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Klinik - Mẫu Website Phòng Khám</title>
+	<title>@ViewData["Title"] - F Klinic</title>
 	<meta content="width=device-width, initial-scale=1.0" name="viewport">
 	<meta content="" name="keywords">
 	<meta content="" name="description">
@@ -137,7 +137,7 @@
                                 <a class="dropdown-item" asp-controller="Patient" asp-action="Logout">Đăng xuất</a>
                             </div>
                         </div>
-                        <a asp-action="Booking" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
+                        <a asp-action="BookingType" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
                     }
                     else if (User.IsInRole("Doctor"))
                     {
@@ -176,6 +176,7 @@
                                 <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
                                 <a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Quản lý lịch làm việc</a>
+
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
                                 <a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
@@ -285,11 +286,9 @@
 				<div class="copyright">
 					<div class="row">
 						<div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-							© <a class="border-bottom" href="#">Tên Website</a>, Mọi quyền được bảo lưu.
+							© <a class="border-bottom" href="#">LC Hospital</a>, Mọi quyền được bảo lưu.
 						</div>
-						<div class="col-md-6 text-center text-md-end">
-							Thiết kế bởi <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a>
-						</div>
+						
 					</div>
 				</div>
 			</div>
@@ -312,6 +311,7 @@
 				// popup animation
 			}
 		}, 3000);
+
 
 		document.addEventListener("DOMContentLoaded", function () {
 			document.querySelectorAll("form").forEach(form => {

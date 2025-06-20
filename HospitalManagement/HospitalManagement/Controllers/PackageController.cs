@@ -31,7 +31,7 @@ namespace HospitalManagement.Controllers
 
         public async Task<IActionResult> Index(string? CategoryFilter, string? AgeFilter, string? GenderFilter, string? PriceRangeFilter, int? page)
         {
-            int pageSize = 9;
+            int pageSize = 6;
             int pageNumber = page ?? 1;
             ViewBag.CategoryFilter = CategoryFilter ?? "";
             ViewBag.AgeFilter = AgeFilter ?? "";

@@ -1,0 +1,45 @@
+﻿@model List<DoctorScheduleViewModel.ScheduleItem>
+@{
+
+	var daysInWeek = (List<DateOnly>)ViewBag.DaysInWeek;
+	var slotsPerDay = (int)ViewBag.SlotsPerDay;
+	var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+}
+
+
+	<table class="table table-bordered text-center">
+		<thead class="table-light">
+			<tr>
+				<th>Slot</th>
+				@foreach (var day in daysInWeek)
+				{
+					<th>@day.ToString("ddd dd/MM")</th>
+				}
+			</tr>
+		</thead>
+		<tbody>
+			@for (int slot = 1; slot <= slotsPerDay; slot++)
+			{
+				<tr>
+					<td><strong>Slot @slot</strong></td>
+					@foreach (var day in daysInWeek)
+					{
+						var key = (slot, day);
+						<td>
+							@if (grouped.ContainsKey(key))
+							{
+								foreach (var item in grouped[key])
+								{
+									<div class="schedule-card">
+										<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+										<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+									</div>
+								}
+							}
+						</td>
+					}
+				</tr>
+			}
+
+		</tbody>
+	</table>

@@ -75,6 +75,7 @@
     width: max-content; /* ✅ Đảm bảo chiều rộng mở rộng theo nội dung */
 }
 
+
 .carousel-nav {
     background: white;
     border: 1px solid #ccc;
@@ -470,4 +471,16 @@
         flex-wrap: wrap;
         gap: 15px;
     }
+}
+
+.time-slots-grid {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center; /* căn các ô vào giữa hàng */
+    gap: 3%;
+    margin-top: 20px;
+}
+
+.time-slot {
+    flex: 0 0 140px; /* mỗi ô rộng cố định */
 }
