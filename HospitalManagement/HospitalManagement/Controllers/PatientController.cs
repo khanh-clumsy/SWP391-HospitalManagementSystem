@@ -183,14 +183,19 @@ namespace HospitalManagement.Controllers
                     return RedirectToAction("UpdateProfile");
 
                 }
-                // convert img -> Byte ->  Base64String
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                var imageBytes = ms.ToArray();
-                user.ProfileImage = Convert.ToBase64String(imageBytes);
+                // Tạo tên file duy nhất để tránh trùng
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(photo.FileName);
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+
+                // Lưu file vào wwwroot/uploads
+                using (var stream = new FileStream(uploadPath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(stream);
+                }
+
+                user.ProfileImage = fileName;
 
                 // add in database
-
                 var dbUser = context.Patients.FirstOrDefault(u => u.PatientId == user.PatientId);
                 if (dbUser != null)
                 {
@@ -206,7 +211,7 @@ namespace HospitalManagement.Controllers
             }
 
             // do nothing
-            TempData["success"] = null;
+            TempData["success"] = "Không có ảnh được tải lên";
             return RedirectToAction("UpdateProfile");
         }
         [HttpPost]

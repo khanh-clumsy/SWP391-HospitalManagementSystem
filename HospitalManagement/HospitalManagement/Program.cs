@@ -137,7 +137,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // Xử lý lỗi trang không tồn tại
-app.UseStatusCodePagesWithReExecute("/Home/NotFound");
+app.UseStatusCodePagesWithRedirects("/Home/NotFound");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
