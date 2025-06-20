@@ -7,7 +7,7 @@
 	DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
 	DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
 	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-(int)new DateTime(selectedYear, 1, 1).DayOfWeek + 1);
-	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 31).AddDays(-(int)new DateTime(selectedYear, 12, 31).DayOfWeek + 1);
+	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-(int)new DateTime(selectedYear, 12, 25).DayOfWeek + 1);
 
 	DateOnly prevWeek = selectedWeekStart.AddDays(-7);
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
@@ -53,13 +53,11 @@
 	<div class="justify-content-center">
 		<h1 class="mb-3">Lịch làm việc trong tuần</h1>
 	</div>
-
-	<!-- Bộ chọn năm, tuần, nút điều hướng -->
-	<div class="d-flex justify-content-between align-items-center mb-3">
+	<div>
 		<!-- Dropdown chọn năm bên trái -->
-		<div>
-			<select id="yearDropdown" class="form-select" style="width:100px;" onchange="updateSchedule(1)">
-				@for (int y = 2023; y <= 2025; y++)
+		<div class="d-flex justify-content-between align-items-center mb-3">
+			<select id="yearDropdown" class="form-select" style="width:100px;" onchange="updateSchedule(this.value)">
+				@for (int y = 2023; y <= (int)DateTime.Now.Year + 1; y++)
 				{
 					if (y == selectedYear)
 					{
@@ -72,90 +70,97 @@
 				}
 			</select>
 		</div>
+	</div>
+	<!-- Bộ chọn tuần, nút điều hướng -->
+	<div id="scheduleTable" >
+		<div class="d-flex justify-content-center align-items-center mb-3 gap-2">
+			<!-- Cụm nút tuần ở giữa -->
+			<div class="d-flex align-items-center gap-2">
+				<!-- Nút tuần trước -->
+				<button class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
+					<i class="bi bi-chevron-left"></i>
+				</button>
 
-		<!-- Cụm nút tuần ở giữa -->
-		<div class="d-flex align-items-center gap-2">
-			<!-- Nút tuần trước -->
-			<button class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
-				<i class="bi bi-chevron-left"></i>
-			</button>
-
-			<!-- Dropdown tuần -->
-			<select id="weekDropdown" class="form-select" onchange="updateSchedule(0)" style="width:250px;">
-				@{
-					var start = firstWeekStart;
-					var end = new DateOnly(selectedYear, 12, 31);
-					while (start <= end)
-					{
-						var endOfWeek = start.AddDays(6);
-						var label = $"{start:dd/MM} - {endOfWeek:dd/MM}";
-						if (start == selectedWeekStart)
+				<!-- Dropdown tuần -->
+				<select id="weekDropdown" class="form-select" onchange="updateSchedule()" style="width:250px;">
+					@{
+						var start = firstWeekStart;
+						var end = lastWeekStart;
+						while (start <= end)
 						{
-							<option value="@start.ToString("yyyy-MM-dd")" selected> @label </option>
-						}
-						else
-						{
-							<option value="@start.ToString("yyyy-MM-dd")"> @label </option>
-						}
+							var endOfWeek = start.AddDays(6);
+							var label = $"{start:dd/MM} - {endOfWeek:dd/MM}";
+							if (start == selectedWeekStart)
+							{
+								<option value="@start.ToString("yyyy-MM-dd")" selected> @label </option>
+							}
+							else
+							{
+								<option value="@start.ToString("yyyy-MM-dd")"> @label </option>
+							}
 
-						start = start.AddDays(7);
+							start = start.AddDays(7);
+						}
 					}
-				}
-			</select>
+				</select>
 
-			<!-- Nút tuần sau -->
-			<button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
-				<i class="bi bi-chevron-right"></i>
-			</button>
+				<!-- Nút tuần sau -->
+				<button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
+					<i class="bi bi-chevron-right"></i>
+				</button>
+			</div>
+
+			<!-- (Có thể để trống hoặc thêm gì đó bên phải nếu muốn căn giữa tốt hơn) -->
+			<div style="width:100px;"></div>
 		</div>
 
-		<!-- (Có thể để trống hoặc thêm gì đó bên phải nếu muốn căn giữa tốt hơn) -->
-		<div style="width:100px;"></div>
-	</div>
 
 
-
-	<!-- Bảng lịch -->
-	<div id="scheduleTable">
-		<table class="table table-bordered text-center">
-			<thead class="table-light">
-				<tr>
-					<th>Slot</th>
-					@foreach (var day in daysInWeek)
-					{
-						<th>@day.ToString("ddd dd/MM")</th>
-					}
-				</tr>
-			</thead>
-			<tbody>
-				@for (int slot = 1; slot <= slotsPerDay; slot++)
-				{
+		<!-- Bảng lịch -->
+		<div>
+			<table class="table table-bordered text-center">
+				<thead class="table-light">
 					<tr>
-						<td><strong>Slot @slot</strong></td>
+						<th>Slot</th>
 						@foreach (var day in daysInWeek)
 						{
-							var key = (slot, day);
-							<td>
-								@if (grouped.ContainsKey(key))
-								{
-									foreach (var item in grouped[key])
-									{
-										<div class="schedule-card">
-											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
-											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
-										</div>
-									}
-								}
-							</td>
+							<th>@day.ToString("ddd dd/MM")</th>
 						}
 					</tr>
-				}
+				</thead>
+				<tbody>
+					@for (int slot = 1; slot <= slotsPerDay; slot++)
+					{
+						<tr>
+							<td><strong>Slot @slot</strong></td>
+							@foreach (var day in daysInWeek)
+							{
+								var key = (slot, day);
+								<td>
+									@if (grouped.ContainsKey(key))
+									{
+										foreach (var item in grouped[key])
+										{
+											<a href="#">
+												<div class="schedule-card">
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+												</div>
+											</a>
+										}
+									}
+								</td>
+							}
+						</tr>
+					}
 
-			</tbody>
-		</table>
+				</tbody>
+			</table>
+		</div>
 	</div>
 
 </div>
+
  @section Scripts { 
  	<script src="~/js/Schedule.js" asp-append-version="true"></script> 
  } 

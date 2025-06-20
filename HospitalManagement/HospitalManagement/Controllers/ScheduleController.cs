@@ -102,6 +102,8 @@ namespace HospitalManagement.Controllers
 
             ViewBag.DaysInWeek = daysInWeek;
             ViewBag.SlotsPerDay = 6;
+            ViewBag.SelectedYear = year;
+            ViewBag.SelectedWeekStart = weekStart;
 
             return PartialView("_ScheduleTablePartial", schedule);
         }

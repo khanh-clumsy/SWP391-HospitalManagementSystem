@@ -1,12 +1,63 @@
 ﻿@model List<DoctorScheduleViewModel.ScheduleItem>
 @{
+	int selectedYear = (int)ViewBag.SelectedYear;
+	DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
+	DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-(int)new DateTime(selectedYear, 1, 1).DayOfWeek + 1);
+	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-(int)new DateTime(selectedYear, 12, 25).DayOfWeek + 1);
 
+	DateOnly prevWeek = selectedWeekStart.AddDays(-7);
+	DateOnly nextWeek = selectedWeekStart.AddDays(7);
 	var daysInWeek = (List<DateOnly>)ViewBag.DaysInWeek;
 	var slotsPerDay = (int)ViewBag.SlotsPerDay;
 	var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
 }
 
+<div class="d-flex justify-content-center align-items-center mb-3 gap-2">
+	<!-- Cụm nút tuần ở giữa -->
+	<div class="d-flex align-items-center gap-2">
+		<!-- Nút tuần trước -->
+		<button class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
+			<i class="bi bi-chevron-left"></i>
+		</button>
 
+		<!-- Dropdown tuần -->
+		<select id="weekDropdown" class="form-select" onchange="updateSchedule()" style="width:250px;">
+			@{
+				var start = firstWeekStart;
+				var end = lastWeekStart;
+				while (start <= end)
+				{
+					var endOfWeek = start.AddDays(6);
+					var label = $"{start:dd/MM} - {endOfWeek:dd/MM}";
+					if (start == selectedWeekStart)
+					{
+						<option value="@start.ToString("yyyy-MM-dd")" selected> @label </option>
+					}
+					else
+					{
+						<option value="@start.ToString("yyyy-MM-dd")"> @label </option>
+					}
+
+					start = start.AddDays(7);
+				}
+			}
+		</select>
+
+		<!-- Nút tuần sau -->
+		<button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
+			<i class="bi bi-chevron-right"></i>
+		</button>
+	</div>
+
+	<!-- (Có thể để trống hoặc thêm gì đó bên phải nếu muốn căn giữa tốt hơn) -->
+	<div style="width:100px;"></div>
+</div>
+
+
+
+<!-- Bảng lịch -->
+<div>
 	<table class="table table-bordered text-center">
 		<thead class="table-light">
 			<tr>
@@ -30,10 +81,12 @@
 							{
 								foreach (var item in grouped[key])
 								{
-									<div class="schedule-card">
-										<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
-										<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
-									</div>
+									<a href="#">
+										<div class="schedule-card">
+											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+										</div>
+									</a>
 								}
 							}
 						</td>
@@ -43,3 +96,4 @@
 
 		</tbody>
 	</table>
+</div>

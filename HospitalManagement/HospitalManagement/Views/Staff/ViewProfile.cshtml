@@ -27,12 +27,12 @@
                 <div class="col-lg-4">
                     <div class="profile-card text-center">
                         <div class="profile-image">
-                            <img src="@(Model.ProfileImage != null
-                                         ? $"data:image/png;base64,{Model.ProfileImage}"
-                                         : Url.Content("~/img/logo.jpg"))"
-                                 alt="Profile Image"
-                                 class="shadow mb-2" />
-                        </div>
+							<img src="@(string.IsNullOrEmpty(Model.ProfileImage)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/"+Model.ProfileImage))"
+								 alt="Current Photo"
+								 class="shadow mb-2" />
+						</div>
                         <div class="profile-buttons">
                             <div class="d-flex gap-2 justify-content-center flex-wrap">
                                 <a class="btn btn-primary flex-fill" asp-controller="Staff" asp-action="UpdateProfile">Update Profile</a>

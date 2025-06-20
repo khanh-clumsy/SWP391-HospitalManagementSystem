@@ -4,9 +4,5 @@
       "Default": "Information",
       "Microsoft.AspNetCore": "Warning"
     }
-  },
-  "AllowedHosts": "*",
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=DESKTOP-D77R1TJ;Database=Hospital_Management;User ID=sa;Password=123;Encrypt=False;TrustServerCertificate=True"
   }
 }

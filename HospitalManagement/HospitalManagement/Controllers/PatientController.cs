@@ -211,7 +211,7 @@ namespace HospitalManagement.Controllers
             }
 
             // do nothing
-            TempData["success"] = null;
+            TempData["success"] = "Không có ảnh được tải lên";
             return RedirectToAction("UpdateProfile");
         }
         [HttpPost]
