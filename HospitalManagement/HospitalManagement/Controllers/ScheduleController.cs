@@ -62,7 +62,7 @@ namespace HospitalManagement.Controllers
 
             ViewBag.SelectedYear = selectedYear;
             ViewBag.SelectedWeekStart = selectedWeekStart;
-            TempData["success"] = $"Size: {schedules.Capacity}";
+            // TempData["success"] = $"Size: {schedules.Capacity}";
             //return Redirect("Home/NotFound");
             return View(schedules);
         }
@@ -73,6 +73,7 @@ namespace HospitalManagement.Controllers
             return date.AddDays(-diff);
         }
 
+        [Authorize(Roles = "Cashier, Sales, Doctor")]
         [HttpGet]
         public IActionResult GetScheduleTable(int year, DateOnly weekStart)
         {
@@ -84,6 +85,7 @@ namespace HospitalManagement.Controllers
             if (doctor == null) return NotFound();
 
             // Tính toán các thông số như ViewSchedule
+            weekStart = GetStartOfWeek(weekStart);
             var weekEnd = weekStart.AddDays(6);
             var daysInWeek = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
 
@@ -105,8 +107,117 @@ namespace HospitalManagement.Controllers
             ViewBag.SelectedYear = year;
             ViewBag.SelectedWeekStart = weekStart;
 
+            // TempData["success"] = $"{weekStart} -> {ViewBag.SelectedWeekStart}";
             return PartialView("_ScheduleTablePartial", schedule);
         }
 
+
+        [Authorize(Roles = "Admin, Doctor")]
+        public async Task<IActionResult> ManageSchedule(int? year, string? weekStart)
+        {
+            var user = HttpContext.User;
+            string email = user.FindFirstValue(ClaimTypes.Email);
+            if (email == null) Unauthorized();
+
+            if (User.IsInRole("Doctor"))
+            {
+                if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
+                                User.FindFirst("IsDepartmentHead")?.Value == "True")
+                {
+                    var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Email == email);
+                    if (doctor == null) return NotFound();
+
+                    // Nếu không truyền gì, dùng tuần hiện tại
+                    int selectedYear = year ?? DateTime.Today.Year;
+
+                    DateOnly selectedWeekStart;
+                    if (!string.IsNullOrEmpty(weekStart) &&
+                        DateOnly.TryParseExact(weekStart, "yyyy-MM-dd", out var parsed))
+                    {
+                        selectedWeekStart = GetStartOfWeek(parsed);
+                    }
+                    else
+                    {
+                        selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
+                    }
+
+                    DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+
+                    var slots = _context.Slots.ToList();
+
+                    ViewBag.SelectedYear = selectedYear;
+                    ViewBag.SelectedWeekStart = selectedWeekStart;
+                    // TempData["success"] = $"Size: {schedules.Capacity}";
+                    //return Redirect("Home/NotFound");
+                    return View(slots);
+                }
+                else
+                {
+                    TempData["error"] = "Bạn không có quyền truy cập";
+                    return Redirect("Home/AccessDenied");
+                }
+            }
+            else if (user.IsInRole("Admin"))
+            {
+                var staff = await _context.Staff.FirstOrDefaultAsync(d => d.Email == email);
+                if (staff == null) return NotFound();
+
+                // Nếu không truyền gì, dùng tuần hiện tại
+                int selectedYear = year ?? DateTime.Today.Year;
+
+                DateOnly selectedWeekStart;
+                if (!string.IsNullOrEmpty(weekStart) &&
+                    DateOnly.TryParseExact(weekStart, "yyyy-MM-dd", out var parsed))
+                {
+                    selectedWeekStart = GetStartOfWeek(parsed);
+                }
+                else
+                {
+                    selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
+                }
+
+                DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+
+                var slots = _context.Slots.ToList();
+
+                ViewBag.SelectedYear = selectedYear;
+                ViewBag.SelectedWeekStart = selectedWeekStart;
+                // TempData["success"] = $"Size: {schedules.Capacity}";
+                //return Redirect("Home/NotFound");
+                
+                return View(slots);
+            }
+            else
+            {
+                TempData["error"] = "Bạn không có quyền truy cập";
+                return Redirect("Home/AccessDenied");
+            }
+
+        }
+
+        [Authorize(Roles = "Admin, Doctor")]
+        [HttpGet]
+        public IActionResult GetScheduleTable2(int year, DateOnly weekStart)
+        {
+            var user = HttpContext.User;
+            string email = user.FindFirstValue(ClaimTypes.Email);
+            if (email == null) Unauthorized();
+
+            // Tính toán các thông số như ViewSchedule
+            weekStart = GetStartOfWeek(weekStart);
+            var weekEnd = weekStart.AddDays(6);
+            var daysInWeek = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
+
+            var slots = _context.Slots.ToList();
+
+
+            ViewBag.DaysInWeek = daysInWeek;
+            ViewBag.SlotsPerDay = 6;
+            ViewBag.SelectedYear = year;
+            ViewBag.SelectedWeekStart = weekStart;
+
+            // TempData["success"] = $"{weekStart}";
+            return PartialView("_ScheduleTablePartial2", slots);
+        }
     }
 }

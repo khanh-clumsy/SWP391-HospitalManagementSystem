@@ -1,4 +1,4 @@
-﻿
+
 
 function updateSchedule(newyear = 0) {
     let year = newyear !== 0 ? newyear : document.getElementById("yearDropdown").value;
@@ -7,7 +7,7 @@ function updateSchedule(newyear = 0) {
     : document.getElementById("weekDropdown").value;
     
     $.ajax({
-        url: '/Schedule/GetScheduleTable',
+        url: '/Schedule/GetScheduleTable2',
         type: 'GET',
         data: { year: year, weekStart: weekStart },
         success: function (html) {
