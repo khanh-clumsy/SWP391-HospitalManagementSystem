@@ -222,6 +222,43 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("MyAppointments");
         }
 
+        public async Task<IActionResult> BookingByDoctor(int? doctorId)
+        {
+            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            if (patientIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            int patientId = int.Parse(patientIdClaim);
+
+            // Lấy thông tin từ DB
+            var user = _context.Patients.FirstOrDefault(p => p.PatientId == patientId);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                return RedirectToAction("UpdateProfile", "Patient");
+            }
+            var model = new BookingByDoctorViewModel
+            {
+                Name = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ServiceOptions = await GetServiceListAsync(),
+                PackageOptions = await GetPackageListAsync(),
+                AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
+                SelectedDoctorId = doctorId,
+                DepartmentOptions = await GetDepartmentListAsync()
+            };
+            return View(model);
+        }
+
+        
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -825,6 +862,24 @@ namespace HospitalManagement.Controllers
                     Text = $"{s.ServiceType} - {s.ServicePrice.ToString("0")}k"
                 })
                 .ToListAsync();
+        }
+        private async Task<List<SelectListItem>> GetDepartmentListAsync()
+        {
+            var depts = await _context.Doctors
+                .Select(d => d.DepartmentName)     
+                .Where(name => !string.IsNullOrEmpty(name))
+                .Distinct()                        
+                .OrderBy(name => name)          
+                .ToListAsync();
+
+            // Chuyển thành SelectListItem
+            return depts
+                .Select(name => new SelectListItem
+                {
+                    Value = name, 
+                    Text = name
+                })
+                .ToList();
         }
 
         private async Task<List<SelectListItem>> GetPackageListAsync()
