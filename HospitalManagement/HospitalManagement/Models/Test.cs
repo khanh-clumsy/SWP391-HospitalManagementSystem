@@ -15,5 +15,7 @@ public partial class Test
 
     public virtual ICollection<PackageTest> PackageTests { get; set; } = new List<PackageTest>();
 
+    public virtual ICollection<RoomTest> RoomTests { get; set; } = new List<RoomTest>();
+
     public virtual ICollection<TestList> TestLists { get; set; } = new List<TestList>();
 }

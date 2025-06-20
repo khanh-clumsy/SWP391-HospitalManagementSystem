@@ -20,11 +20,30 @@
 		</nav>
 	</div>
 </div>
-
 <div class="container-xxl py-5">
 	<div class="container">
-		<div class="mb-4">
-			<h2 class="text-primary">Appointment List</h2>
+		<div class="mb-4"> 
+			@{
+				string header = ViewBag.FilterType switch
+				{
+					"Today" => "Danh sách cuộc hẹn hôm nay",
+					"Ongoing" => "Danh sách cuộc hẹn sắp tới",
+					"Completed" => "Danh sách cuộc hẹn đã hoàn tất",
+					_ => "Danh sách cuộc hẹn"
+				};
+			}
+			<h2 class="text-primary">@header</h2>
+
+		</div>
+		<div class="btn-group mb-3" role="group">
+			<a asp-action="MyAppointments" asp-route-Type="Today"
+			   class="btn @(ViewBag.Type == "Today" ? "btn-success fw-bold" : "btn-outline-success")">Today's</a>
+
+			<a asp-action="MyAppointments" asp-route-Type="Ongoing"
+			   class="btn @(ViewBag.Type == "Ongoing" ? "btn-warning text-white fw-bold" : "btn-outline-warning")">Ongoing</a>
+
+			<a asp-action="MyAppointments" asp-route-Type="Completed"
+			   class="btn @(ViewBag.Type == "Completed" ? "btn-danger fw-bold" : "btn-outline-danger")">Completed</a>
 		</div>
 
 		<form method="get" asp-action="MyAppointments" asp-controller="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">

@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
+using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using X.PagedList.Extensions;
@@ -19,7 +20,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor, Admin")]
         public async Task<IActionResult> Index()
         {
-            var newsList = await _newsRepository.GetAllAsync();
+            List<NewsViewModel> newsList;
             if (User.IsInRole("Doctor"))
             {
                 var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
@@ -33,7 +34,6 @@ namespace HospitalManagement.Controllers
             {
                 newsList = await _newsRepository.GetAllAsync();
             }
-
             return View(newsList);
         }
 
@@ -113,7 +113,7 @@ namespace HospitalManagement.Controllers
                     await photo.CopyToAsync(stream);
                 }
 
-                model.Thumbnail =  fileName;
+                model.Thumbnail = fileName;
             }
 
             var (roleKey, userId) = GetUserRoleAndId(User);
@@ -146,30 +146,49 @@ namespace HospitalManagement.Controllers
             if (oldNews == null)
                 return NotFound();
 
+            // Cập nhật các trường văn bản
             oldNews.Title = updatedNews.Title;
             oldNews.Description = updatedNews.Description;
             oldNews.Content = updatedNews.Content;
 
             if (photo != null && photo.Length > 0)
             {
+                // Validate file
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-              var maxSize = 2* 1024 * 1024; 
-
+                var maxSize = 2 * 1024 * 1024;
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {
                     TempData["Error"] = "Loại file không được hỗ trợ.";
                     return View("Update", updatedNews);
                 }
-
                 if (photo.Length > maxSize)
                 {
-                    TempData["Error"] = "File quá lớn phải nhỏ hơn 2mb.";
+                    TempData["Error"] = "File quá lớn, phải nhỏ hơn 2MB.";
                     return View("Update", updatedNews);
                 }
 
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                oldNews.Thumbnail = Convert.ToBase64String(ms.ToArray());
+                // Tạo tên file mới
+                var fileName = Guid.NewGuid() + Path.GetExtension(photo.FileName);
+                var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                var uploadPath = Path.Combine(folderPath, fileName);
+                using (var stream = new FileStream(uploadPath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(stream);
+                }
+
+                // Xóa file cũ nếu có
+                if (!string.IsNullOrEmpty(oldNews.Thumbnail))
+                {
+                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", oldNews.Thumbnail.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
+                }
+
+                // Lưu đường dẫn mới (dùng Url.Content sẽ trả về "/img/xxxx.jpg")
+                oldNews.Thumbnail = fileName;
             }
 
             await _newsRepository.UpdateAsync(oldNews);

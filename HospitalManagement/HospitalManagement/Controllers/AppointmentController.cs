@@ -46,7 +46,7 @@ namespace HospitalManagement.Controllers
 
         [Authorize(Roles = "Patient, Sales, Doctor")]
         [HttpGet]
-        public async Task<IActionResult> MyAppointments(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter, int? page)
+        public async Task<IActionResult> MyAppointments(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter, string? Type, int? page)
         {
             int pageSize = 12;
             int pageNumber = page ?? 1;
@@ -64,9 +64,39 @@ namespace HospitalManagement.Controllers
             ViewBag.SlotFilter = SlotFilter;
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
+            ViewBag.FilterType = Type ?? "Today";
 
             // Truy vấn lọc
             var filteredList = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
+
+            // Lọc thêm theo filterType 
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var now = TimeOnly.FromDateTime(DateTime.Now);
+
+            if (string.IsNullOrEmpty(Type))
+                Type = "Today";
+            if (!string.IsNullOrEmpty(Type))
+            {
+                switch (Type)
+                {
+                    case "Today":
+                        filteredList = filteredList.Where(a => a.Date == today
+                        && (a.Status == "Pending" || a.Status == "Accepted")).
+                        ToList();
+                        break;
+
+                    case "Ongoing":
+                        filteredList = filteredList.Where(a =>  
+                          a.Date > today && (a.Status == "Pending" || a.Status == "Accepted"))
+                         .ToList();
+                        break;
+
+                    case "Completed":
+                        filteredList = filteredList.Where(a =>
+                            a.Status == "Completed" || a.Status == "Rejected").ToList();
+                        break;
+                }
+            }
 
             // Phân trang
             var pagedAppointments = filteredList
@@ -76,17 +106,6 @@ namespace HospitalManagement.Controllers
             return View(pagedAppointments);
         }
 
-        [Authorize(Roles = "Sales")]
-        [HttpGet]
-        public async Task<IActionResult> Create()
-        {
-            var model = new CreateAppointmentViewModel
-            {
-                AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
-                ServiceOptions = await GetServiceListAsync()
-            };
-            return View(model);
-        }
         private string GenerateRandomPassword(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -647,7 +666,7 @@ namespace HospitalManagement.Controllers
             return int.TryParse(claim.Value, out var id) ? id : null;
         }
 
-      
+
         [Authorize(Roles = "Patient, Sales, Admin, Doctor")]
         public IActionResult Detail(int appId)
         {

@@ -13,6 +13,8 @@ public partial class TestList
 
     public string? Result { get; set; }
 
+    public string? Note { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public virtual Appointment Appointment { get; set; } = null!;
