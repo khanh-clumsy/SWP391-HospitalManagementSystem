@@ -73,7 +73,7 @@ namespace HospitalManagement.Controllers
             return View(vm);
         }
 
-        
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status)
         {
@@ -87,7 +87,6 @@ namespace HospitalManagement.Controllers
             var allBuildings = await _roomRepo.GetAllDistinctBuildings();
             var allFloors = await _roomRepo.GetAllDistinctFloors();
 
-            // Removed incorrect reference to vm.AccountType and added appropriate ViewBag assignments
             ViewBag.Name = name;
             ViewBag.Building = building;
             ViewBag.Floor = floor;
@@ -568,7 +567,7 @@ namespace HospitalManagement.Controllers
             var patient = await _patientRepo.GetByIdAsync(id);
             if (patient == null)
             {
-                return NotFound();
+                return RedirectToAction("NotFound", "Home");
             }
             return View(patient);
         }
@@ -579,7 +578,7 @@ namespace HospitalManagement.Controllers
             var doctor = await _doctorRepo.GetByIdAsync(id);
             if (doctor == null)
             {
-                return NotFound();
+                return RedirectToAction("NotFound", "Home");
             }
             return View(doctor);
         }
@@ -589,7 +588,7 @@ namespace HospitalManagement.Controllers
             var staff = await _staffRepo.GetByIdAsync(id);
             if (staff == null)
             {
-                return NotFound();
+                return RedirectToAction("NotFound", "Home");
             }
             return View(staff);
         }

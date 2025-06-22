@@ -94,7 +94,7 @@ namespace HospitalFETemplate.Controllers
             var doctor = await _doctorRepo.GetByIdAsync(id);
             if (doctor == null)
             {
-                return NotFound();
+                return RedirectToAction("NotFound", "Home");
             }
             return View(doctor);
         }
