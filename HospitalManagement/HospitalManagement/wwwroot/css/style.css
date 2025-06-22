@@ -1,4 +1,4 @@
-/********** Template CSS **********/
+﻿/********** Template CSS **********/
 :root {
     --primary: #0463FA;
     --light: #EFF5FF;
@@ -520,38 +520,54 @@
 
 
 #loadingOverlay {
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
+    background-color: rgba(0, 0, 20, 0.5);
+    z-index: 4000;
     align-items: center;
     justify-content: center;
 }
 
-.spinner-border-lg {
-    width: 4rem;
-    height: 4rem;
-    border-width: 0.4em;
-}
 
+/* HTML: <div class="loader"></div> */
 .custom-spinner {
     width: 50px;
-    height: 50px;
-    border: 6px solid rgba(255, 255, 255, 0.2);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+    aspect-ratio: 1;
+    color: #000;
+    border: 2px solid;
+    display: grid;
+    box-sizing: border-box;
+    animation: l1 4s infinite linear;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
+    .custom-spinner::before,
+    .custom-spinner::after {
+        content: "";
+        grid-area: 1/1;
+        margin: auto;
+        width: 70.7%;
+        aspect-ratio: 1;
+        border: 2px solid;
+        box-sizing: content-box;
+        animation: inherit;
     }
 
-    to {
-        transform: rotate(360deg);
+    .custom-spinner::after {
+        width: 50%;
+        aspect-ratio: 1;
+        border: 2px solid;
+        animation-duration: 2s;
+    }
+
+@keyframes l1 {
+    100% {
+        transform: rotate(1turn)
     }
 }

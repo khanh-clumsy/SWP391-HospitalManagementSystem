@@ -6,15 +6,15 @@
 <html>
 <head>
 	<title>Verify Code</title>
-	<link rel="stylesheet" href="~/vendor/bootstrap/css/bootstrap.min.css" />
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="icon" type="image/png" href="~/img/icons/favicon.ico" />
 	<link rel="stylesheet" type="text/css" href="~/vendor/bootstrap/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="~/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="~/fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/animate/animate.css">
-	<link rel="stylesheet" type="text/css" href="~/css-hamburgers/hamburgers.min.css">
+	<link rel="stylesheet" type="text/css" href="~/vendor/css-hamburgers/hamburgers.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/animsition/css/animsition.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/select2/select2.min.css">
 	<link rel="stylesheet" type="text/css" href="~/vendor/daterangepicker/daterangepicker.css">
@@ -61,7 +61,7 @@
 						<input asp-for="Code" class="input100" />
 						<span class="focus-input100"></span>
 					</div>
-					<button type="submit" class="btn btn-primary mt-2">Verify</button>
+					<button type="submit" class="login100-form-btn">Verify</button>
 				</form>
 
 				<div class="container-login100-form-btn m-t-17">
@@ -73,8 +73,8 @@
 		</div>
 	</div>
 
-	<div id="loadingOverlay" style="display:none">
-		<div class="custom-spinner" style="display:none"></div>
+	<div id="loadingOverlay">
+		<div class="custom-spinner"></div>
 	</div>
 
 
@@ -100,21 +100,17 @@
 				// popup animation
 			}
 		}, 3000);
-
-		// anti spam
 		function submitForm() {
 			var form = $("#loginForm");
 
 			if (!form.valid()) {
-				// Không hợp lệ -> không bật loading, không submit
 				return false;
 			}
-			//Hiển thị overlay loading
-			document.getElementById("loadingOverlay").style.display = "flex";
-			document.querySelector(".custom-spinner").style.display = "flex";
+			const overlay = document.getElementById("loadingOverlay");
+			overlay.style.visibility = "visible";
+			overlay.style.opacity = "1";
+
 			return true;
-
-
 		}
 		document.addEventListener('keydown', function (e) {
 			if (e.key === "Enter") {

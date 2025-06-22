@@ -49,6 +49,7 @@ namespace HospitalManagement.Repositories
 
             if (!string.IsNullOrEmpty(name))
             {
+                name = string.Join(" ", name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
                 query = query.Where(t => t.Name.Contains(name));
             }
 

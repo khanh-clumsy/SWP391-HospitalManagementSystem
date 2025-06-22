@@ -14,12 +14,25 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
-builder.Services.AddScoped<IBookingAppointmentRepository, BookingAppointmentRepository>();
 builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
+builder.Services.AddScoped<INewsRepository, NewsRepository>();
+builder.Services.AddScoped<IPackageRepository, PackageRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+
+
+// Add services to the container
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin() // Cho phép bất kỳ origin nào
+              .AllowAnyMethod()  // Cho phép bất kỳ phương thức HTTP (GET, POST, PUT, DELETE, v.v.)
+              .AllowAnyHeader(); // Cho phép bất kỳ header nào
+    });
+});
 
 
 
@@ -91,7 +104,7 @@ builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.Add(new PreventSpamAttribute { Seconds = 2 }); // mặc định trong filters là 2s
+    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
 });
 
 
@@ -124,7 +137,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // Xử lý lỗi trang không tồn tại
-app.UseStatusCodePagesWithReExecute("/Home/NotFound");
+app.UseStatusCodePagesWithRedirects("/Home/NotFound");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -139,6 +152,9 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+<<<<<<< HEAD
 
+=======
+>>>>>>> Khánh
 
 app.Run();

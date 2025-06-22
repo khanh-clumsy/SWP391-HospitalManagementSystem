@@ -1,0 +1,37 @@
+﻿@model HospitalManagement.Models.News
+
+<div class="container mt-5">
+	<div class="row justify-content-center">
+		<div class="col-md-10">
+			<!-- Tiêu đề bài viết -->
+			<h2 class="mb-3 text-primary">@Model.Title</h2>
+
+			<!-- Thông tin tác giả và ngày đăng -->
+			<p class="text-muted">
+				Tác giả: <strong>
+					@{
+						string authorName = "Không xác định";
+						if (Model.DoctorId != null && Model.Doctor != null)
+						{
+							authorName = Model.Doctor.FullName;
+						}
+						else if (Model.StaffId != null && Model.Staff != null)
+						{
+							authorName = Model.Staff.FullName;
+						}
+					}
+					@authorName
+				</strong>
+				| Ngày đăng: @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+			</p>
+
+			<!-- Nội dung chi tiết -->
+			<h5 class="text-secondary">Nội dung chi tiết:</h5>
+			<div class="border rounded p-3">
+				@Html.Raw(Model.Content)
+			</div>
+
+			<a asp-action="News" asp-controller="News" class="btn btn-outline-primary mt-4">Quay lại danh sách</a>
+		</div>
+	</div>
+</div>

@@ -22,39 +22,34 @@
     <div class="container">
         <div class="row g-5 justify-content-center">
             <div class="col-lg-10 wow fadeInUp" data-wow-delay="0.1s">
-                <div class="bg-light rounded p-5">
+                <div class="bg-white rounded p-5">
                     <div class="row mb-4">
                         <div class="col-12">
-                            <p class="d-inline-block border rounded-pill py-1 px-4 text-primary">Appointment Information</p>
-                            <h2 class="mb-4">Appointment #@Model.AppointmentId</h2>
+                            <h2 class="d-inline-block border rounded-pill py-1 px-4 text-primary">Appointment Information</h2>
                         </div>
                     </div>
 
                     <!-- Patient & Doctor Information -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-6">
-                            <div class="bg-white rounded p-4 h-100">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary" style="width: 45px; height: 45px;">
-                                        <i class="fa fa-user text-white"></i>
-                                    </div>
-                                    <div class="ms-3">
-                                        <h5 class="mb-1">Patient Information</h5>
-                                        <p class="mb-0 text-muted">@Model.Patient?.FullName</p>
-                                    </div>
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary me-3" style="width: 45px; height: 45px;">
+                                    <i class="fa fa-user text-white"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">Patient Information</h5>
+                                    <p class="mb-0 text-muted">@Model.Patient?.FullName</p>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="bg-white rounded p-4 h-100">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary" style="width: 45px; height: 45px;">
-                                        <i class="fa fa-user-md text-white"></i>
-                                    </div>
-                                    <div class="ms-3">
-                                        <h5 class="mb-1">Doctor</h5>
-                                        <p class="mb-0 text-muted">@Model.Doctor?.FullName</p>
-                                    </div>
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary me-3" style="width: 45px; height: 45px;">
+                                    <i class="fa fa-user-md text-white"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">Doctor</h5>
+                                    <p class="mb-0 text-muted">@Model.Doctor?.FullName</p>
                                 </div>
                             </div>
                         </div>
@@ -62,140 +57,164 @@
 
                     <!-- Appointment Schedule -->
                     <div class="row g-4 mb-4">
-                        <div class="col-md-4">
-                            <div class="bg-white rounded p-4 text-center h-100">
-                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary mx-auto mb-3" style="width: 45px; height: 45px;">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary me-3" style="width: 45px; height: 45px;">
                                     <i class="fa fa-calendar text-white"></i>
                                 </div>
-                                <h6 class="mb-1">Date</h6>
-                                <p class="mb-0 text-muted">@Model.Date.ToShortDateString()</p>
+                                <div>
+                                    <h6 class="mb-1">Date</h6>
+                                    <p class="mb-0 text-muted">@Model.Date.ToShortDateString()</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="bg-white rounded p-4 text-center h-100">
-                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary mx-auto mb-3" style="width: 45px; height: 45px;">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary me-3" style="width: 45px; height: 45px;">
                                     <i class="fa fa-clock text-white"></i>
                                 </div>
-                                <h6 class="mb-1">Time</h6>
-                                <p class="mb-0 text-muted">@Model.Slot?.StartTime - @Model.Slot?.EndTime</p>
+                                <div>
+                                    <h6 class="mb-1">Time</h6>
+                                    <p class="mb-0 text-muted">@Model.Slot?.StartTime - @Model.Slot?.EndTime</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="bg-white rounded p-4 text-center h-100">
-                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary mx-auto mb-3" style="width: 45px; height: 45px;">
+                            <div class="d-flex align-items-center">
+                                <div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary me-3" style="width: 45px; height: 45px;">
                                     <i class="fa fa-info-circle text-white"></i>
                                 </div>
-                                <h6 class="mb-1">Status</h6>
-                                <span class="badge bg-@(Model.Status == "Confirmed" ? "success" : Model.Status == "Pending" ? "warning" : "secondary") text-white">@Model.Status</span>
+                                <div>
+                                    <h6 class="mb-1">Status</h6>
+                                    <span class="badge bg-@(Model.Status == "Confirmed" ? "success" : Model.Status == "Pending" ? "warning" : "secondary") text-white">@Model.Status</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Medical Information -->
+                    <!-- Test List -->
+                    @if (Model.TestLists != null)
+                    {
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">
+                                    <i class="fa fa-vial text-primary me-2"></i>
+                                    Tests Performed
+                                </h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Test Name</th>
+                                                <th>Result</th>
+                                                <th>Date Performed</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var test in Model.TestLists)
+                                            {
+                                                <tr>
+                                                    <td>@test.Test.Name</td>
+                                                    <td>@test.Result</td>
+                                                    <td>@test.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    }
 
+                    <!-- Medical Information -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <div class="bg-white rounded p-4">
-                                <h5 class="mb-3">
-                                    <i class="fa fa-stethoscope text-primary me-2"></i>
-                                    Medical Information
-                                </h5>
-                                <div class="row">
-                                    @if (!string.IsNullOrEmpty(Model.Symptoms))
-                                    {
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted">Symptoms</h6>
-                                            <p class="mb-0">@Model.Symptoms</p>
-                                        </div>
-                                    }
-                                    @if (!string.IsNullOrEmpty(Model.Diagnosis))
-                                    {
-                                        <div class="col-md-6 mb-3">
-                                            <h6 class="text-muted">Diagnosis</h6>
-                                            <p class="mb-0">@Model.Diagnosis</p>
-                                        </div>
-                                    }
-                                </div>
-                                @if (!string.IsNullOrEmpty(Model.Note))
+                            <h5 class="mb-3">
+                                <i class="fa fa-stethoscope text-primary me-2"></i>
+                                Medical Information
+                            </h5>
+                            <div class="row">
+                                @if (!string.IsNullOrEmpty(Model.Symptoms))
                                 {
-                                    <div class="mt-3">
-                                        <h6 class="text-muted">Notes</h6>
-                                        <p class="mb-0">@Model.Note</p>
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-muted">Symptoms</h6>
+                                        <p class="mb-0">@Model.Symptoms</p>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Diagnosis))
+                                {
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-muted">Diagnosis</h6>
+                                        <p class="mb-0">@Model.Diagnosis</p>
                                     </div>
                                 }
                             </div>
+                            @if (!string.IsNullOrEmpty(Model.Note))
+                            {
+                                <div class="mt-3">
+                                    <h6 class="text-muted">Notes</h6>
+                                    <p class="mb-0">@Model.Note</p>
+                                </div>
+                            }
                         </div>
                     </div>
-
 
                     <!-- Payment Information -->
                     <div class="row mb-4">
                         <div class="col-12">
-                            <div class="bg-white rounded p-4">
-                                <h5 class="mb-3">
-                                    <i class="fa fa-credit-card text-primary me-2"></i>
-                                    Payment Information
-                                </h5>
-                                <div class="row">
-                                    @* <div class="col-md-3 mb-3">
-                                        <h6 class="text-muted">Medicine Price</h6>
-                                        <p class="mb-0 fw-bold">@Model.MedicinePrice</p>
-                                    </div> *@
-                                    <div class="col-md-3 mb-3">
-                                        <h6 class="text-muted">Service Price</h6>
-                                        <p class="mb-0 fw-bold text-primary">@Model.Service</p>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <h6 class="text-muted">Total Price</h6>
-                                        <p class="mb-0 fw-bold text-primary">@Model.TotalPrice</p>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <h6 class="text-muted">Payment Method</h6>
-                                        <p class="mb-0">@Model.PaymentMethod</p>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <h6 class="text-muted">Payment Status</h6>
-                                        <span class="badge bg-@(Model.PaymentStatus == "Paid" ? "success" : "warning") text-white">@Model.PaymentStatus</span>
-                                    </div>
+                            <h5 class="mb-3">
+                                <i class="fa fa-credit-card text-primary me-2"></i>
+                                Payment Information
+                            </h5>
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <h6 class="text-muted">Service Price</h6>
+                                    <p class="mb-0 fw-bold text-primary">@Model.Service</p>
                                 </div>
-                                @if (!string.IsNullOrEmpty(Model.TransactionCode))
-                                {
-                                    <div class="mt-3">
-                                        <h6 class="text-muted">Transaction Code</h6>
-                                        <p class="mb-0 font-monospace">@Model.TransactionCode</p>
-                                    </div>
-                                }
+                                <div class="col-md-3 mb-3">
+                                    <h6 class="text-muted">Total Price</h6>
+                                    <p class="mb-0 fw-bold text-primary">@Model.TotalPrice</p>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <h6 class="text-muted">Payment Method</h6>
+                                    <p class="mb-0">@Model.PaymentMethod</p>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <h6 class="text-muted">Payment Status</h6>
+                                    <span class="badge bg-@(Model.PaymentStatus == "Paid" ? "success" : "warning") text-white">@Model.PaymentStatus</span>
+                                </div>
                             </div>
+                            @if (!string.IsNullOrEmpty(Model.TransactionCode))
+                            {
+                                <div class="mt-3">
+                                    <h6 class="text-muted">Transaction Code</h6>
+                                    <p class="mb-0 font-monospace">@Model.TransactionCode</p>
+                                </div>
+                            }
                         </div>
                     </div>
 
                     <!-- Additional Information -->
-                    <div class="row mb-4">s
+                    <div class="row mb-4">
                         <div class="col-12">
-                            <div class="bg-white rounded p-4">
-                                <h5 class="mb-3">
-                                    <i class="fa fa-info text-primary me-2"></i>
-                                    Additional Information
-                                </h5>
-                                <div class="row">
-                                    @if (Model.Service?.ServiceType != null)
-                                    {
-                                        <div class="col-md-4 mb-3">
-                                            <h6 class="text-muted">Service Type</h6>
-                                            <p class="mb-0">@Model.Service.ServiceType</p>
-                                        </div>
-                                    }
-                                    @if (Model.Staff != null)
-                                    {
-                                        <div class="col-md-4 mb-3">
-                                            <h6 class="text-muted">Staff Member</h6>
-                                            <p class="mb-0">@Model.Staff.FullName</p>
-                                        </div>
-                                    }
+                            <h5 class="mb-3">
+                                <i class="fa fa-info text-primary me-2"></i>
+                                Additional Information
+                            </h5>
+                            <div class="row">
+                                @if (Model.Service?.ServiceType != null)
+                                {
                                     <div class="col-md-4 mb-3">
-                                        <h6 class="text-muted">Created At</h6>
-                                        <p class="mb-0">@Model.RecordCreatedAt?.ToString("dd/MM/yyyy HH:mm")</p>
+                                        <h6 class="text-muted">Service Type</h6>
+                                        <p class="mb-0">@Model.Service.ServiceType</p>
                                     </div>
+                                }
+                                @if (Model.Staff != null)
+                                {
+                                    <div class="col-md-4 mb-3">
+                                        <h6 class="text-muted">Staff Member</h6>
+                                        <p class="mb-0">@Model.Staff.FullName</p>
+                                    </div>
+                                }
+                                <div class="col-md-4 mb-3">
+                                    <h6 class="text-muted">Created At</h6>
+                                    <p class="mb-0">@Model.RecordCreatedAt?.ToString("dd/MM/yyyy HH:mm")</p>
                                 </div>
                             </div>
                         </div>

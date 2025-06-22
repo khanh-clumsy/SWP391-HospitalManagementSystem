@@ -9,17 +9,18 @@
 	<title>Login</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+
 	<link rel="icon" type="image/png" href="~/img/icons/favicon.ico" />
-	<link rel="stylesheet" href="~/vendor/bootstrap/css/bootstrap.min.css" />
-	<link rel="stylesheet" href="~/fonts/font-awesome-4.7.0/css/font-awesome.min.css" />
-	<link rel="stylesheet" href="~/fonts/Linearicons-Free-v1.0.0/icon-font.min.css" />
-	<link rel="stylesheet" href="~/vendor/animate/animate.css" />
-	<link rel="stylesheet" href="~/vendor/css-hamburgers/hamburgers.min.css" />
-	<link rel="stylesheet" href="~/vendor/animsition/css/animsition.min.css" />
-	<link rel="stylesheet" href="~/vendor/select2/select2.min.css" />
-	<link rel="stylesheet" href="~/vendor/daterangepicker/daterangepicker.css" />
-	<link rel="stylesheet" href="~/css/util.css" />
-	<link rel="stylesheet" href="~/css/login.css" />
+	<link rel="stylesheet" type="text/css" href="~/vendor/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="~/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="~/fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
+	<link rel="stylesheet" type="text/css" href="~/vendor/animate/animate.css">
+	<link rel="stylesheet" type="text/css" href="~/vendor/css-hamburgers/hamburgers.min.css">
+	<link rel="stylesheet" type="text/css" href="~/vendor/animsition/css/animsition.min.css">
+	<link rel="stylesheet" type="text/css" href="~/vendor/select2/select2.min.css">
+	<link rel="stylesheet" type="text/css" href="~/vendor/daterangepicker/daterangepicker.css">
+	<link rel="stylesheet" type="text/css" href="~/css/util.css">
+	<link rel="stylesheet" type="text/css" href="~/css/login.css">
 	<style>
 		.popup-alert {
 			position: fixed;
@@ -86,7 +87,6 @@
 			<div class="wrap-login100 p-l-110 p-r-110 p-t-62 p-b-33">
 				<form id="loginForm" onsubmit="return submitForm()" asp-action="Login" asp-controller="Auth" method="post" class="login100-form validate-form flex-sb flex-w">
 
-
 					<!-- Role selection -->
 					<div class="role-selector d-flex justify-content-between mb-4">
 						@foreach (var role in new[] { "Patient", "Doctor", "Staff" })
@@ -149,12 +149,10 @@
 
 
 
-	<div id="loadingOverlay" style="display:none">
-		<div class="custom-spinner" style="display:none"></div>
+	<div id="loadingOverlay">
+		<div class="custom-spinner"></div>
 	</div>
 
-
-	<div id="dropDownSelect1"></div>
 
 	<script src="~/vendor/jquery/jquery-3.2.1.min.js"></script>
 	<script src="~/vendor/animsition/js/animsition.min.js"></script>
@@ -165,7 +163,8 @@
 	<script src="~/vendor/daterangepicker/daterangepicker.js"></script>
 	<script src="~/vendor/countdowntime/countdowntime.js"></script>
 	<script src="~/js/login.js"></script>
-
+	<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+	<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 
 	<script>
 		function loginWithGoogle() {
@@ -187,21 +186,27 @@
 		}, 3000);
 
 
-		// anti spam
 		function submitForm() {
+			// console.log("submitForm called");
+
 			var form = $("#loginForm");
+			// console.log("0000000000000000000");
 
 			if (!form.valid()) {
-				// Không hợp lệ -> không bật loading, không submit
+				// console.log("111111111111111111111111");
 				return false;
 			}
-			//Hiển thị overlay loading
-			document.getElementById("loadingOverlay").style.display = "flex";
-			document.querySelector(".custom-spinner").style.display = "flex";
+			// console.log("2222222222222222222222222222");
+
+			const overlay = document.getElementById("loadingOverlay");
+			overlay.style.visibility = "visible";
+			overlay.style.opacity = "1";
+
+			// console.log("3333333333333333333333333333");
 			return true;
-
-
 		}
+
+
 		document.addEventListener('keydown', function (e) {
 			if (e.key === "Enter") {
 				e.preventDefault();
@@ -211,6 +216,7 @@
 		});
 
 	</script>
+	
 
 </body>
 </html>
