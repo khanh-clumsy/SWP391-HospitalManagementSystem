@@ -64,7 +64,37 @@
         }
         $('.submit-btn').prop('disabled', !valid);
     }
+    // Khi chọn chuyên khoa -> load danh sách bác sĩ
+    $('#departmentDropdown').on('change', function () {
+        var deptId = $(this).val();
+        const $ddl = $('#doctorDropdown');
+        if (!deptId) {
+            $('.doctor-search-title, .doctor-search, .doctor-select-title, .doctor-dropdown').hide();
+            $ddl.empty().append('<option value="">-- Chọn bác sĩ --</option>');
+            $('#time-slots-container').hide().empty();
+            $('.service-title,.service-dropdown').hide();
+            return;
+        }
+        $.getJSON('/Appointment/GetDoctorsByDepartment', { departmentId: deptId })
+            .done(function (doctors) {
+                $ddl.empty().append('<option value="">-- Chọn bác sĩ --</option>');
+                doctors.forEach(d => $ddl.append(`<option value="${d.id}">${d.name}</option>`));
+                $('.doctor-search-title, .doctor-search, .doctor-select-title, .doctor-dropdown').show();
+            })
+            .fail(function () {
+                alert('Không tải được danh sách bác sĩ');
+            });
+    });
 
+    // Lọc tên bác sĩ
+    $('#doctorSearch').on('input', function () {
+        var term = $(this).val().toLowerCase();
+        $('#doctorDropdown option').each(function () {
+            if (!$(this).val()) return;
+            var txt = $(this).text().toLowerCase();
+            $(this).prop('hidden', term && !txt.includes(term));
+        });
+    });
     // Khi chọn bác sĩ
     $('#doctorDropdown').on('change', function () {
         loadTimeSlots();
