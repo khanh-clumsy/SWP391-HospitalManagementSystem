@@ -11,9 +11,27 @@
 	var daysInWeek = (List<DateOnly>)ViewBag.DaysInWeek;
 	var slotsPerDay = (int)ViewBag.SlotsPerDay;
 	var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+	var bookedAppointments = ViewBag.BookedAppointments as List<Appointment>;
+	var today = DateOnly.FromDateTime((DateTime)ViewBag.Today);
 }
 
 <div class="d-flex justify-content-center align-items-center mb-3 gap-2">
+	<!-- Dropdown chọn năm bên trái -->
+	<div>
+		<select id="yearDropdown" class="form-select" style="width:100px;" onchange="updateSchedule(this.value)">
+			@for (int y = 2023; y <= (int)DateTime.Now.Year + 1; y++)
+			{
+				if (y == selectedYear)
+				{
+					<option value="@y" selected>@y</option>
+				}
+				else
+				{
+					<option value="@y">@y</option>
+				}
+			}
+		</select>
+	</div>
 	<!-- Cụm nút tuần ở giữa -->
 	<div class="d-flex align-items-center gap-2">
 		<!-- Nút tuần trước -->
@@ -81,8 +99,17 @@
 							{
 								foreach (var item in grouped[key])
 								{
-
-									<a href="#">
+									string slotClass = "schedule-slot";
+									if (bookedAppointments != null)
+									{
+										var isBooked = bookedAppointments.Any(a => a.Date == day && a.SlotId == item.SlotIndex);
+										var isPast = day < today;
+										if (isBooked) slotClass += " booked";
+										else if (isPast) slotClass += " past";
+									}
+									<a href="javascript:void(0);" class="@slotClass"
+									   data-day="@item.Day.ToString("yyyy-MM-dd")"
+									   data-slot-id="@item.SlotIndex">
 										<div class="schedule-card">
 											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>

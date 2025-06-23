@@ -37,12 +37,12 @@
 
         const data = {
             date: date,
-            SelectedServiceId: type === 'service' ? serviceId : null,
-            SelectedPackageId: type === 'package' ? packageId : null
+            //SelectedServiceId: type === 'service' ? serviceId : null,
+            //SelectedPackageId: type === 'package' ? packageId : null
         };
 
         $.ajax({
-            url: '/Appointment/GetSlots',
+            url: '/Appointment/GetSlotsSimple',
             method: 'GET',
             data: data,
             success: function (slots) {

@@ -26,7 +26,7 @@ namespace HospitalManagement.ViewModels.Booking
 
         public List<Slot> Slots { get; set; } = new List<Slot>();
 
-        public int? SelectedDepartmentId{ get; set; }
+        public string? SelectedDepartmentId{ get; set; }
 
         public List<SelectListItem> DepartmentOptions { get; set; } = new List<SelectListItem>();
 
@@ -45,6 +45,7 @@ namespace HospitalManagement.ViewModels.Booking
         [StringLength(500, ErrorMessage = "Note must be under 500 characters.")]
         public string? Note { get; set; }
 
+        public List<DoctorScheduleViewModel.ScheduleItem> WeeklySchedule { get; set; } = new List<DoctorScheduleViewModel.ScheduleItem>();
         // Custom validation method to ensure appointment date is not before tomorrow
         public static ValidationResult ValidateAppointmentDate(DateTime date, ValidationContext context)
         {
