@@ -1,70 +1,92 @@
-
-let selectedRole = null;
-let selectedStaff = null;
+let selectedDep = null;
+let selectedDoctor = null;
 let selectedRoom = null;
 let selectedSlots = [];
 
-const roleSelect = document.getElementById("roleSelect");
-const staffSelect = document.getElementById("staffSelect");
+const depSelect = document.getElementById("depSelect");
+const doctorSelect = document.getElementById("doctorSelect");
 const roomSelect = document.getElementById("roomSelect");
 const card = document.getElementById("card");
 const cardContent = document.getElementById("cardContent");
 
-// Role change → update staff options
-roleSelect.addEventListener("change", () => {
-  selectedRole = roleSelect.value || null;
 
-  // Reset nhân viên
-  selectedStaff = null;
-  staffSelect.value = "";
-  staffSelect.innerHTML = '<option value="">Chọn nhân viên</option>';
+// Department
+depSelect.addEventListener("change", () => {
+  selectedDep = depSelect.value || null;
 
-  if (selectedRole) {
-    if (selectedRole === "Doctor") {
-      staffSelect.innerHTML += '<option value="Dr. A">Dr. A</option><option value="Dr. B">Dr. B</option>';
-    } else if (selectedRole === "Cashier"){
-      staffSelect.innerHTML += '<option value="Cashier A">Cashier A</option><option value="Cashier B">Cashier B</option>';
-    } else{
-      staffSelect.innerHTML += '<option value="Sale A">Sale A</option><option value="Sale B">Sale B</option>';
-    }
-    staffSelect.disabled = false;
-  } else {
-    staffSelect.disabled = true;
+  // Reset doctor
+doctorSelect.value = "";
+doctorSelect.innerHTML = '<option value=""  >Mã bác sĩ</option>';
+selectedDoctor = null; // confirm old doctor name is null in card
+
+if (selectedDep) {
+
+    const filteredDoctors = doctorList.filter(doc => doc.departmentName == selectedDep);
+    // console.log("filteredDoctors:", filteredDoctors);
+    // console.log("selectedDep:", selectedDep);
+    // doctorList.forEach(doc => {
+    //     console.log("Dep:", doc.departmentName);
+    //     console.log("Name:", doc.fullName);
+
+    // });
+    // Thêm các option vào doctorSelect
+    filteredDoctors.forEach(doc => {
+      const option = document.createElement("option");
+      option.value = doc.doctorId;
+      option.textContent = doc.doctorCode;
+    // console.log("Id:", doc.doctorId);
+
+    //   console.log("Name:", doc.doctorCode);
+
+      doctorSelect.appendChild(option);
+    });
+
+    doctorSelect.disabled = false;
   }
-  resetAllSlots(); // Reset bảng
+  else {
+    doctorSelect.disabled = true;
+  }
+
+  updateSchedule(); // Reset bảng
   updateCard();
 });
 
-
-staffSelect.addEventListener("change", () => {
-  selectedStaff = staffSelect.value || null;
-  resetAllSlots(); // Reset bảng
+// doctor 
+doctorSelect.addEventListener("change", () => {
+  selectedDoctor = doctorSelect.value 
+    ? doctorSelect.options[doctorSelect.selectedIndex].text 
+    : null;
+  updateSchedule(); // Reset bảng
   updateCard();
 });
 
+// room
 roomSelect.addEventListener("change", () => {
-  selectedRoom = roomSelect.value || null;
+  selectedRoom = roomSelect.value 
+    ? roomSelect.options[roomSelect.selectedIndex].text 
+    : null;
   updateCard();
 });
 
+// update card
 function updateCard() {
-  cardContent.innerHTML = "";
-  if (selectedRole) cardContent.innerHTML += `<div class="bi bi-person-badge me-1">      Role: ${selectedRole}</div>`;
-  if (selectedStaff) cardContent.innerHTML += `<div class="bi bi-person-circle me-1">    Staff: ${selectedStaff}</div>`;
-  if (selectedRoom) cardContent.innerHTML += `<div class="bi bi-building me-1">          Room: ${selectedRoom}</div>`;
+  cardContent.innerHTML = ""; 
+  if (selectedDep) cardContent.innerHTML += `<div> <div> <i class="fa fa-plus-circle" aria-hidden="true"></i> Khoa: ${selectedDep}</div>`;
+  if (selectedDoctor) cardContent.innerHTML += `<div> <i class="fa fa-user-md" aria-hidden="true"></i>   Bác sĩ: ${selectedDoctor}</div>`;
+  if (selectedRoom) cardContent.innerHTML += `<div> <i class="fa fa-bed" aria-hidden="true"></i> Phòng: ${selectedRoom}</div>`;
 
   card.classList.remove("complete");
 
     // Nếu đủ cả 3 → thêm class 'complete' (đổi viền xanh)
-    if (selectedRole && selectedStaff && selectedRoom) {
+    if (selectedDep && selectedDoctor && selectedRoom) {
         card.classList.add("complete");
     }
 }
 
 
-// sự kiện trước khi add
+// hỏi lại trước khi add
 document.getElementById("confirmAddBtn").addEventListener("click", () => {
-    if (selectedSlots.length > 0 && selectedRole && selectedStaff && selectedRoom) {
+    if (selectedSlots.length > 0 && selectedDep && selectedDoctor && selectedRoom) {
         document.getElementById("confirmBox").style.display = "block";
     } else {
         if(selectedSlots.length == 0) alert("Vui lòng chọn ít nhất 1 slot.");
@@ -72,93 +94,8 @@ document.getElementById("confirmAddBtn").addEventListener("click", () => {
     }
 });
 
+// no
 document.getElementById("btnNo").addEventListener("click", () => {
     document.getElementById("confirmBox").style.display = "none";
 });
 
-document.getElementById("btnYes").addEventListener("click", () => {
-    document.getElementById("confirmBox").style.display = "none";
-    
-    selectedSlots.forEach(slotId => {
-        const el = document.getElementById(slotId);
-        const alreadyAssigned = el.dataset.assigned === "true"; // gán khi add trước đó
-
-        if (alreadyAssigned) {
-            el.classList.remove("slot-inactive", "slot-active","slot-success");
-            el.classList.add("slot-fail");
-            el.innerHTML = `
-                <div><i class="fa fa-times text-danger me-1"></i> Đã có<br>${selectedStaff} trong slot</div>
-            `;        
-        } else {
-            el.classList.remove("slot-inactive", "slot-active","slot-fail");
-            el.classList.add("slot-success");
-            el.innerHTML = `
-                <div><i class="bi bi-check-circle-fill text-success me-1"></i> Đã thêm<br>${selectedStaff} vào slot</div>
-            `;
-            el.dataset.assigned = "true";
-
-        }
-    });
-
-    selectedSlots = [];
-});
-
-// chọn slot
-function toggleSlot(cardDiv) {
-    // if (cardDiv.dataset.assigned === "true") return; // không cho chọn lại
-
-    const slotWrapper = cardDiv.closest(".schedule-slot");
-    const slot = slotWrapper.dataset.slot;
-    const date = slotWrapper.dataset.date;
-    const slotId = `${date}_${slot}`;
-
-    const index = selectedSlots.indexOf(slotId);
-    const hiddenInput = slotWrapper.querySelector("input[type='hidden']");
-        // Lấy dòng nội dung thứ 2 của card
-    const contentDivs = cardDiv.querySelectorAll("div");
-    const contentDiv = contentDivs[1];
-    
-    if (index === -1) {
-        selectedSlots.push(slotId);
-        cardDiv.classList.remove("slot-inactive");
-        cardDiv.classList.add("slot-active");
-        hiddenInput.value = "true";
-        contentDiv.innerHTML = '<i class="bi bi-check-circle-fill text-warning me-1"></i> Đã chọn';
-
-    } else {
-        selectedSlots.splice(index, 1);
-        cardDiv.classList.remove("slot-active");
-        cardDiv.classList.add("slot-inactive");
-        hiddenInput.value = "false";
-        contentDiv.innerHTML = '<i class="fas fa-bars"></i> Chưa chọn';
-
-    }
-}
-
-// đổi người
-function resetAllSlots() {
-    selectedSlots = [];
-
-    document.querySelectorAll(".schedule-slot").forEach(slot => {
-        const card = slot.querySelector(".schedule-card");
-        const hiddenInput = slot.querySelector("input[type='hidden']");
-
-        const start = card.dataset.start;
-        const end = card.dataset.end;
-
-        // Xoá hết các class trạng thái trước
-        card.classList.remove("slot-active", "slot-success", "slot-fail", "slot-inactive");
-
-        // Thêm lại class mặc định
-        card.classList.add("slot-inactive");
-
-
-        card.innerHTML = `
-            <div><i class="bi bi-clock me-1"></i> ${start} - ${end}</div>
-            <div><i class="fas fa-bars"></i> Chưa chọn</div>
-        `;
-
-        card.dataset.assigned = "false";
-        hiddenInput.value = "false";
-    });
-}

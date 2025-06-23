@@ -1,4 +1,5 @@
 @model List<Slot>
+@using Newtonsoft.Json;
 @{
 	int selectedYear = (int)ViewBag.SelectedYear;
 	DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
@@ -11,13 +12,16 @@
 
 	var daysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
 	var slotsPerDay = Model.Count;
+
+	var successList = ViewBag.SuccessList as List<string> ?? new List<string>();
+    var failList = ViewBag.FailList as List<string> ?? new List<string>();
 }
 
-    <div class="d-flex justify-content-center align-items-center mb-3 gap-2">
+		<div class="d-flex justify-content-center align-items-center mb-3 gap-2">
 			<!-- Cụm nút tuần ở giữa -->
 			<div class="d-flex align-items-center gap-2">
 				<!-- Nút tuần trước -->
-				<button class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
+				<button  type="button" class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
 					<i class="bi bi-chevron-left"></i>
 				</button>
 
@@ -45,53 +49,77 @@
 				</select>
 
 				<!-- Nút tuần sau -->
-				<button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
+				<button type="button" class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
 					<i class="bi bi-chevron-right"></i>
 				</button>
+
+				<button type="button" onclick="updateSchedule()" class="btn btn-primary mt-3">Làm mới bảng</button>
+
 			</div>
 
 			<!-- (Có thể để trống hoặc thêm gì đó bên phải nếu muốn căn giữa tốt hơn) -->
 			<div style="width:100px;"></div>
-    </div>
+		</div>
 
 
-    <!-- Bảng lịch -->
-    <div>
-        <table class="table table-bordered text-center">
-            <thead class="table-light">
-                <tr>
-                    <th>Slot</th>
-                    @foreach (var day in daysInWeek)
-                    {
-                        <th>@day.ToString("ddd dd/MM")</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @for (int slot = 1; slot <= slotsPerDay; slot++)
-                {
-                    <tr>
-                        <td><strong>Slot @slot</strong></td>
-                        @foreach (var day in daysInWeek)
-                        {
-                            <td>
-                                <div class="schedule-slot" data-slot="@slot" data-date="@day.ToString("yyyy-MM-dd")">
-                                    <input type="hidden" name="SlotStates[@day.ToString("yyyy-MM-dd")_@slot]" value="false" />
-                                    <div class="schedule-card slot-inactive"
-                                        id="@($"{day:yyyy-MM-dd}_{slot}")"
-                                        data-assigned="false"
-                                        onclick="toggleSlot(this)">
-                                        <div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-                                        <div><i class="fas fa-bars"></i> Chưa chọn</div>
-                                    </div>
-                                </div>
+		<!-- Bảng lịch -->
+		<div>
+			<table class="table table-bordered text-center">
+				<thead class="table-light">
+					<tr>
+						<th>Slot</th>
+						@foreach (var day in daysInWeek)
+						{
+							<th>@day.ToString("ddd dd/MM")</th>
+						}
+					</tr>
+				</thead>
+				<tbody>
+					@for (int slot = 1; slot <= slotsPerDay; slot++)
+					{
+						<tr>
+							<td><strong>Slot @slot</strong></td>
+							@foreach (var day in daysInWeek)
+							{
+								<td>
+									@if (day > DateOnly.FromDateTime(DateTime.Now))
+									{
+										var slotKey = $"{day:yyyy-MM-dd}_{slot}";
+										if (successList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-success" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-check-circle"></i> Đã thêm bác sĩ vào slot @slot</div>
+											</div>
+										}
+										else if (failList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-fail" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-exclamation-triangle"></i> Trùng lịch hoặc phòng đang bảo trì</div>
+											</div>
+										}
+										else
+										{
+											<div class="schedule-slot" data-slot="@slot" data-date="@day.ToString("yyyy-MM-dd")">
+												<input type="hidden" name="SlotStates[@slotKey]" value="false" />
+												<div class="schedule-card slot-inactive"
+													id="@slotKey"
+													data-start="@Model[slot - 1].StartTime.ToString("HH:mm")"
+													data-end="@Model[slot - 1].EndTime.ToString("HH:mm")"
+													data-assigned="false"
+													onclick="toggleSlot(this)">
+													<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+													<div><i class="fas fa-bars"></i> Chưa chọn</div>
+												</div>
+											</div>
+										}
+									}
+								</td>
+							}
 
-
-                            </td>
-                        }
-                    </tr>
-                }
-
-            </tbody>
-        </table>
-    </div>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>

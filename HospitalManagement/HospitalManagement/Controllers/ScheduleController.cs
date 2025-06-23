@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
+using HospitalManagement.Repositories;
+using Newtonsoft.Json;
 
 namespace HospitalManagement.Controllers
 {
@@ -14,10 +16,16 @@ namespace HospitalManagement.Controllers
     {
 
         private readonly HospitalManagementContext _context;
+        private readonly IDoctorRepository _doctorRepo;
 
-        public ScheduleController(HospitalManagementContext context)
+        private readonly IRoomRepository _roomRepo;
+
+        public ScheduleController(HospitalManagementContext context, IDoctorRepository doctorRepo, IRoomRepository roomRepo)
         {
             _context = context;
+            _doctorRepo = doctorRepo;
+            _roomRepo = roomRepo;
+
         }
 
         [Authorize(Roles = "Cashier, Sales, Doctor")]
@@ -147,8 +155,21 @@ namespace HospitalManagement.Controllers
 
                     ViewBag.SelectedYear = selectedYear;
                     ViewBag.SelectedWeekStart = selectedWeekStart;
-                    // TempData["success"] = $"Size: {schedules.Capacity}";
-                    //return Redirect("Home/NotFound");
+                    ViewBag.ListDep = new List<string> { doctor.DepartmentName };
+                    ViewBag.ListRoom = await _roomRepo.GetAllActiveRoom();
+                    var doctorList = await _doctorRepo.GetAllDoctorsWithDepartment(doctor.DepartmentName);
+                    ViewBag.ListDoctor = doctorList
+                                        .Where(d => d.IsActive)
+                                        .ToList()
+                                        .Select(d => new ViewModels.CardViewModel
+                                        {
+                                            doctorId = d.DoctorId,
+                                            fullName = d.FullName,
+                                            departmentName = d.DepartmentName,
+                                            doctorCode = d.GenerateDoctorCode()
+                                        }).ToList();
+                    // TempData["success"] = $"Size: {ViewBag.ListDoctor.Count}";
+                    // return Redirect("Home/NotFound");
                     return View(slots);
                 }
                 else
@@ -182,9 +203,22 @@ namespace HospitalManagement.Controllers
 
                 ViewBag.SelectedYear = selectedYear;
                 ViewBag.SelectedWeekStart = selectedWeekStart;
-                // TempData["success"] = $"Size: {schedules.Capacity}";
+                ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment();
+                ViewBag.ListRoom = await _roomRepo.GetAllActiveRoom();
+                var doctorList = _context.Doctors.ToList();
+                ViewBag.ListDoctor = doctorList
+                                    .Where(d => d.IsActive)
+                                    .ToList()
+                                    .Select(d => new ViewModels.CardViewModel
+                                    {
+                                        doctorId = d.DoctorId,
+                                        fullName = d.FullName,
+                                        departmentName = d.DepartmentName,
+                                        doctorCode = d.GenerateDoctorCode()
+                                    }).ToList();
+                // TempData["success"] = $"Size: {ViewBag.ListDoctor.Count}";
                 //return Redirect("Home/NotFound");
-                
+
                 return View(slots);
             }
             else
@@ -219,5 +253,71 @@ namespace HospitalManagement.Controllers
             // TempData["success"] = $"{weekStart}";
             return PartialView("_ScheduleTablePartial2", slots);
         }
+        
+        [Authorize(Roles = "Admin, Doctor")]
+        [HttpPost]
+        public async Task<IActionResult> AddDoctorIntoSlot(Dictionary<string, string> SlotStates, string doctorId, string roomId, string departmentName, int year, DateOnly weekStart)
+        {
+            var selectedSlots = SlotStates
+                .Where(ss => ss.Value == "true")
+                .Select(ss =>
+                {
+                    var parts = ss.Key.Split('_');
+                    var date = DateOnly.Parse(parts[0]);
+                    var slot = int.Parse(parts[1]);
+                    return new { Date = date, Slot = slot };
+                })
+                .ToList();
+
+            int parsedDoctorId = int.Parse(doctorId);
+            int parsedRoomId = int.Parse(roomId);
+
+            var successKeys = new List<string>();
+            var failKeys = new List<string>();
+
+            foreach (var item in selectedSlots)
+            {
+                bool exists = _context.Schedules.Any(s =>
+                    s.DoctorId == parsedDoctorId &&
+                    s.SlotId == item.Slot &&
+                    s.Day == item.Date
+                );
+                var room = await _roomRepo.GetRoomById(parsedRoomId);
+
+                string key = $"{item.Date:yyyy-MM-dd}_{item.Slot}";
+                if (exists || room.Status!="Active")
+                {
+                    failKeys.Add(key);
+                }
+                else
+                {
+                    _context.Schedules.Add(new Models.Schedule
+                    {
+                        DoctorId = parsedDoctorId,
+                        SlotId = item.Slot,
+                        Day = item.Date,
+                        RoomId = parsedRoomId
+                    });
+                    _context.SaveChanges();
+                    successKeys.Add(key);
+                }
+            }
+
+            // Chuẩn bị dữ liệu cho partial view
+            weekStart = GetStartOfWeek(weekStart);
+            var daysInWeek = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
+            var slots = _context.Slots.ToList();
+
+            ViewBag.DaysInWeek = daysInWeek;
+            ViewBag.SlotsPerDay = 6;
+            ViewBag.SelectedYear = year;
+            ViewBag.SelectedWeekStart = weekStart;
+            ViewBag.SuccessList = successKeys;
+            ViewBag.FailList = failKeys;
+
+            return PartialView("_ScheduleTablePartial2", slots);
+        }
+
+
     }
 }
