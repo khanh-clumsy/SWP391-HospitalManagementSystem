@@ -3,7 +3,7 @@
 function updateSchedule(newyear = 0) {
     let year = newyear !== 0 ? newyear : document.getElementById("yearDropdown").value;
     let weekStart = newyear !== 0
-    ? getFirstMondayOfYear(newyear)
+    ? (new Date(newyear, 0, 1)).toLocaleDateString().split('T')[0]
     : document.getElementById("weekDropdown").value;
     
     $.ajax({
@@ -29,16 +29,4 @@ function changeWeek(offset) {
         weekDropdown.selectedIndex = newIndex;
         updateSchedule(0);
     }
-}
-
-function getFirstMondayOfYear(year) {
-    const jan1 = new Date(year, 0, 1); // tháng 0 = tháng 1
-    const day = jan1.getDay(); // 0=CN, 1=T2,...,6=T7
-
-    // Tính số ngày để tiến tới thứ Hai
-    const diff = (day === 0) ? 1 : (8 - day);
-    const firstMonday = new Date(year, 0, 1 + diff - 1);
-
-    // Trả về chuỗi yyyy-MM-dd
-    return firstMonday.toISOString().split('T')[0];
 }

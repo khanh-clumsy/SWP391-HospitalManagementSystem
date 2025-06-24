@@ -3,8 +3,8 @@
 	int selectedYear = (int)ViewBag.SelectedYear;
 	DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
 	DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
-	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-(int)new DateTime(selectedYear, 1, 1).DayOfWeek + 1);
-	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-(int)new DateTime(selectedYear, 12, 25).DayOfWeek + 1);
+	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-((int)new DateTime(selectedYear, 1, 1).DayOfWeek + 6) % 7);
+	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-((int)new DateTime(selectedYear, 12, 25).DayOfWeek + 6) % 7);
 
 	DateOnly prevWeek = selectedWeekStart.AddDays(-7);
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
@@ -98,3 +98,17 @@
 		</tbody>
 	</table>
 </div>
+		@if (TempData["error"] != null)
+		{
+			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
+				 role="alert" style="z-index: 1055; border-radius: 8px;">
+				<div>@TempData["error"]</div>
+			</div>
+		}
+		else if (TempData["success"] != null)
+		{
+			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
+				 role="alert" style="z-index: 1055; border-radius: 8px;">
+				<div>@TempData["success"]</div>
+			</div>
+		}

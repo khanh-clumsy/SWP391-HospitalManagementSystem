@@ -40,7 +40,25 @@ namespace HospitalManagement.Repositories
             return list.Count;
         }
 
-
+        public async Task<List<Room>> GetAllRoom()
+        {
+            return await _context.Rooms
+                .Select(r => r)
+                .OrderBy(r => r.RoomName)
+                .ToListAsync();
+        }
+        public async Task<Room> GetRoomById(int id)
+        {
+            return await _context.Rooms.FirstOrDefaultAsync(r => r.RoomId == id);
+        }
+        public async Task<List<Room>> GetAllActiveRoom()
+        {
+            return await _context.Rooms
+                .Where(r => r.Status == "Active")
+                .Select(r => r)
+                .OrderBy(r => r.RoomName)
+                .ToListAsync();
+        }
         public async Task<List<string>> GetAllDistinctBuildings()
         {
             return await _context.Rooms
