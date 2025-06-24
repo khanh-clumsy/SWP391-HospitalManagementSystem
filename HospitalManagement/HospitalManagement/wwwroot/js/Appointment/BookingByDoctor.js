@@ -1,5 +1,4 @@
-﻿
-function getFirstMondayOfYear(year) {
+﻿function getFirstMondayOfYear(year) {
     const jan1 = new Date(year, 0, 1);
     const day = jan1.getDay();
     const diff = (day === 0) ? 1 : (8 - day);

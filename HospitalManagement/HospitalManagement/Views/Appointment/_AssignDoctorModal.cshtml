@@ -1,0 +1,50 @@
+﻿@model HospitalManagement.ViewModels.AssignDoctorViewModel
+
+<div class="modal-header">
+    <h5 class="modal-title">Chỉ định bác sĩ</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form method="post" action="/Appointment/AssignDoctorSlot">
+    <input type="hidden" name="AppointmentId" value="@Model.AppointmentId" />
+    <input type="hidden" name="SlotId" value="@Model.SlotId" />
+    <div class="modal-body">
+        <div class="mb-4">
+            <h6><i class="fas fa-calendar-alt me-2 text-primary"></i>Ngày khám: <strong>@Model.AppointmentDate.ToString("dd/MM/yyyy")</strong></h6>
+            <h6><i class="fas fa-clock me-2 text-primary"></i>Khung giờ: <strong>@Model.SlotTimeText</strong></h6>
+        </div>
+
+        <div class="section-title mb-3 doctor-section">
+            <h5><i class="fas fa-stethoscope me-2 text-primary"></i>Chọn Bác Sĩ</h5>
+            <input type="text" id="doctorSearch" class="form-control mb-2" placeholder="🔍 Tìm bác sĩ theo tên, khoa...">
+            <div class="doctor-carousel">
+                <button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="doctor-scroll-container">
+                    <div class="doctor-list d-flex gap-3" id="doctorList">
+                        @foreach (var doc in Model.Doctors)
+                        {
+                            <div class="card text-center shadow-sm doctor-card" data-doctor-id="@doc.DoctorId" style="min-width: 180px; cursor: pointer;">
+                                <div class="card-body">
+                                    <img src="@(string.IsNullOrEmpty(doc.ProfileImage) ? Url.Content("~/img/logo.jpg") : Url.Content("~/img/" + doc.ProfileImage))"
+                                         class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px; object-fit: cover;" />
+                                    <h6 class="card-title mb-0">@doc.FullName</h6>
+                                    <p class="text-muted small mb-0">@doc.DepartmentName</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <button type="button" class="carousel-nav next" onclick="nextDoctor()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <input type="hidden" id="SelectedDoctorId" name="SelectedDoctorId" value="@Model.SelectedDoctorId" />
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Xác nhận</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huỷ</button>
+    </div>
+</form>
