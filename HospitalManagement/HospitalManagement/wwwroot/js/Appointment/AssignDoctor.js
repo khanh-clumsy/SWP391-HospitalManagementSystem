@@ -1,37 +1,45 @@
 ﻿function prevDoctor() {
     const container = document.querySelector('.doctor-scroll-container');
-    if (container) {
-        container.scrollBy({ left: -200, behavior: 'smooth' });
-        setTimeout(updateDoctorScrollVisibility, 300);
-        console.log('Scrolled left');
-    } else {
-        console.error('Scroll container not found');
-    }
+    if (!container || !canScroll(container)) return;
+
+    container.scrollBy({ left: -200, behavior: 'smooth' });
+    setTimeout(updateDoctorScrollVisibility, 350);
 }
 
 function nextDoctor() {
     const container = document.querySelector('.doctor-scroll-container');
-    if (container) {
-        container.scrollBy({ left: 200, behavior: 'smooth' });
-        setTimeout(updateDoctorScrollVisibility, 300);
-        console.log('Scrolled right');
-    } else {
-        console.error('Scroll container not found');
-    }
+    if (!container || !canScroll(container)) return;
+
+    container.scrollBy({ left: 200, behavior: 'smooth' });
+    setTimeout(updateDoctorScrollVisibility, 350);
 }
+
+function canScroll(container) {
+    return container.scrollWidth > container.clientWidth + 1;
+}
+
 function updateDoctorScrollVisibility() {
     const container = document.querySelector('.doctor-scroll-container');
-    if (!container) return;
-
     const prevButton = document.querySelector('.carousel-nav.prev');
     const nextButton = document.querySelector('.carousel-nav.next');
 
-    // Log scroll info for debugging
-    console.log('Scroll width:', container.scrollWidth, 'Client width:', container.clientWidth, 'Scroll left:', container.scrollLeft);
+    if (!container || !prevButton || !nextButton) return;
 
-    // Show/hide buttons based on scroll position
-    prevButton.style.display = container.scrollLeft <= 0 ? 'none' : 'block';
-    nextButton.style.display = container.scrollLeft + container.clientWidth >= container.scrollWidth - 1 ? 'none' : 'block';
+    const scrollLeft = container.scrollLeft;
+    const maxScrollLeft = container.scrollWidth - container.clientWidth;
+    console.log("scrollWidth:", container.scrollWidth);
+    console.log("clientWidth:", container.clientWidth);
+    console.log("canScroll:", canScroll(container));
+    // ❌ Nếu không thể scroll (danh sách không đủ rộng) → ẩn hết nút
+    if (!canScroll(container)) {
+        prevButton.style.display = 'none';
+        nextButton.style.display = 'none';
+        return;
+    }
+
+    // ✅ Có thể scroll → xác định trạng thái từng nút
+    prevButton.style.display = scrollLeft <= 1 ? 'none' : 'block';
+    nextButton.style.display = scrollLeft >= maxScrollLeft - 1 ? 'none' : 'block';
 }
 
 

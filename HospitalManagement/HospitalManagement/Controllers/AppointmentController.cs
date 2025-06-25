@@ -381,7 +381,7 @@ namespace HospitalManagement.Controllers
             var statusList = includePending
                    ? new[] { "Confirmed", "Pending" }
                    : new[] { "Confirmed" };
-            
+
             var bookedAppointments = await _context.Appointments
                             .Where(a => a.DoctorId == doctorId &&
                                         a.Date >= selectedWeekStart && a.Date <= selectedWeekEnd &&
@@ -643,41 +643,111 @@ namespace HospitalManagement.Controllers
                 .ToListAsync();
             return View(appointments);
         }
+
+        [Authorize(Roles = "Sales")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignDoctor(AssignDoctorViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Dữ liệu không hợp lệ.";
+                return RedirectToAction("ApproveAppointment");
+            }
+            var appointment = await _context.Appointments
+                            .Include(a => a.Slot)
+                            .FirstOrDefaultAsync(a => a.AppointmentId == model.AppointmentId);
+
+            if (appointment == null)
+            {
+                TempData["error"] = "Không tìm thấy cuộc hẹn.";
+                return RedirectToAction("ApproveAppointment");
+            }
+
+            var doctor = await _context.Doctors
+                .Include(d => d.Schedules)
+                .FirstOrDefaultAsync(d => d.DoctorId == model.SelectedDoctorId);
+
+            if (doctor == null)
+            {
+                TempData["error"] = "Không tìm thấy bác sĩ.";
+                return RedirectToAction("ApproveAppointment");
+            }
+
+            bool hasSchedule = doctor.Schedules.Any(s =>
+                            s.Day == appointment.Date &&
+                            s.SlotId == model.SlotId);
+
+            if (!hasSchedule)
+            {
+                TempData["error"] = "Bác sĩ không có lịch làm việc trong khung giờ này.";
+                return RedirectToAction("ApproveAppointment");
+            }
+
+            //Check xem bác sĩ đã bị trùng lịch hẹn hay chưa?
+            bool hasConflict = await _context.Appointments.AnyAsync(a =>
+                a.DoctorId == doctor.DoctorId &&
+                a.Date == appointment.Date &&
+                a.SlotId == model.SlotId &&
+                a.AppointmentId != model.AppointmentId && 
+                a.Status != "Rejected" 
+            );
+
+            if (hasConflict)
+            {
+                TempData["error"] = "Bác sĩ đã có cuộc hẹn khác trong khung giờ này.";
+                return RedirectToAction("ApproveAppointment");
+            }
+
+            appointment.DoctorId = model.SelectedDoctorId;
+            _context.Update(appointment);
+            await _context.SaveChangesAsync();
+            TempData["success"] = "Chỉ định bác sĩ thành công.";
+            return RedirectToAction("ApproveAppointment");
+
+        }
         public IActionResult LoadAssignDoctorModal(int appointmentId, DateTime date)
         {
             var appointment = _context.Appointments
                 .Include(a => a.Slot)
                 .FirstOrDefault(a => a.AppointmentId == appointmentId);
 
-            if (appointment == null)
-            {
-                return RedirectToAction("ApproveAppointment");
-            }
-
-            var slot = appointment.Slot;
-
-            if (slot == null)
+            if (appointment == null || appointment.Slot == null)
             {
                 TempData["error"] = "Không hợp lệ!";
                 return RedirectToAction("ApproveAppointment");
             }
 
+            var slotId = appointment.Slot.SlotId;
+            var dateOnly = DateOnly.FromDateTime(date);
+
+            // Lọc các bác sĩ:
+            // - Có lịch trực trong khung giờ đó
+            // - KHÔNG có lịch hẹn trùng giờ
             var doctors = _context.Doctors
                 .Include(d => d.Schedules)
-                .Where(d => d.Schedules.Any(s => s.Day == DateOnly.FromDateTime(date) && s.SlotId == slot.SlotId))
+                .Where(d =>
+                    d.Schedules.Any(s => s.Day == dateOnly && s.SlotId == slotId) &&
+                    !_context.Appointments.Any(a =>
+                        a.DoctorId == d.DoctorId &&
+                        a.Date == dateOnly &&
+                        a.SlotId == slotId &&
+                        a.Status != "Rejected")
+                )
                 .ToList();
 
             var viewModel = new AssignDoctorViewModel
             {
                 AppointmentId = appointmentId,
-                AppointmentDate = DateOnly.FromDateTime(date),
-                SlotId = slot.SlotId,
-                SlotTimeText = $"{slot.StartTime:hh\\:mm} - {slot.EndTime:hh\\:mm}",
+                AppointmentDate = dateOnly,
+                SlotId = slotId,
+                SlotTimeText = $"{appointment.Slot.StartTime:hh\\:mm} - {appointment.Slot.EndTime:hh\\:mm}",
                 Doctors = doctors
             };
 
             return PartialView("_AssignDoctorModal", viewModel);
         }
+
 
 
         [HttpGet]
@@ -938,7 +1008,7 @@ namespace HospitalManagement.Controllers
 
             if (User.IsInRole("Admin") || User.IsInRole("Sales"))
             {
-                return View(appointment); 
+                return View(appointment);
             }
 
             // now, roleKey only Patient/Doctor/Staff
