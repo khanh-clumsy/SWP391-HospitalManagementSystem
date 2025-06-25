@@ -50,7 +50,7 @@
                 </div>
 
                 <form asp-action="AddPatientAccount" method="post" class="login100-form validate-form flex-sb flex-w" enctype="multipart/form-data">
-                    <span class="login100-form-title p-b-20">Add patient account</span>
+                    <span class="login100-form-title p-b-20">Thêm tài khoản bệnh nhân</span>
 
                     @Html.ValidationSummary(true, "", new { @class = "text-danger w-100 text-center mb-2" })
 
@@ -69,7 +69,7 @@
 
                     <div class="p-t-13 p-b-9 w-100">
                         <span class="txt1">
-                            Full name
+                            Họ và tên
                         </span>
                         <span asp-validation-for="FullName" class="text-danger small"></span>
 
@@ -81,7 +81,7 @@
 
                     <div class="p-t-13 p-b-9 w-100">
                         <span class="txt1">
-                            Phone number
+                            Số điện thoại
                         </span>
                         <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
 
@@ -93,29 +93,29 @@
 
                     <div class="p-t-13 p-b-9 w-100">
                         <span class="txt1">
-                            Gender
+                            Giới tính
                         </span>
                         <span asp-validation-for="Gender" class="text-danger small"></span>
                     </div>
                     <div class="wrap-input100 validate-input">
                         <select asp-for="Gender" class="input100 form-select">
-                            <option value="">Gender</option>
-                            <option value="M">Male</option>
-                            <option value="F">Female</option>
-                            <option value="O">Other</option>
+                            <option value="">Giới tính</option>
+                            <option value="M">Nam</option>
+                            <option value="F">Nữ</option>
+                            <option value="O">Khác</option>
                         </select>
                         <span class="focus-input100"></span>
                     </div>
 
                     <!-- Submit button -->
                     <div class="container-login100-form-btn m-t-17 w-100">
-                        <button type="submit" class="login100-form-btn">Add Patient</button>
+                        <button type="submit" class="login100-form-btn">Thêm tài khoản</button>
                     </div>
                 </form>
 
                 <div class="container-login100-form-btn m-t-17">
                     <a asp-controller="User" asp-action="ManageAccount" class="login100-form-btn" asp-route-type="Patient">
-                        Back to Account List
+                        Trở về danh sách tài khoản
                     </a>
                 </div>
             </div>

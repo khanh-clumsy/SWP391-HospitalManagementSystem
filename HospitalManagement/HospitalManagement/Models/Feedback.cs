@@ -9,9 +9,7 @@ public partial class Feedback
 
     public int PatientId { get; set; }
 
-    public int? ServiceId { get; set; }
-
-    public int? PackageId { get; set; }
+    public int ServiceId { get; set; }
 
     public int Rating { get; set; }
 
@@ -19,9 +17,7 @@ public partial class Feedback
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual Package? Package { get; set; }
-
     public virtual Patient Patient { get; set; } = null!;
 
-    public virtual Service? Service { get; set; }
+    public virtual Service Service { get; set; } = null!;
 }

@@ -24,7 +24,9 @@ namespace HospitalManagement.Controllers
         private readonly IRoomRepository _roomRepo;
         private readonly PasswordHasher<Patient> _passwordHasher;
         private readonly EmailService _emailService;
-        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, IRoomRepository roomRepo, EmailService emailService)
+        private readonly IScheduleRepository _scheduleRepo;
+        private readonly ISlotRepository _slotRepo;
+        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, IRoomRepository roomRepo, EmailService emailService, IScheduleRepository scheduleRepository, ISlotRepository slotRepository)
         {
             _context = context;
             _doctorRepo = doctorRepo;
@@ -33,6 +35,8 @@ namespace HospitalManagement.Controllers
             _roomRepo = roomRepo;
             _passwordHasher = new PasswordHasher<Patient>();
             _emailService = emailService;
+            _scheduleRepo = scheduleRepository;
+            _slotRepo = slotRepository;
         }
 
 
@@ -75,34 +79,63 @@ namespace HospitalManagement.Controllers
 
 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status)
+        public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status, string? roomType)
         {
             name = UserController.NormalizeName(name);
             int pageSize = 10;
             int pageNumber = page ?? 1;
 
-            List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, pageNumber, pageSize);
-            var totalRooms = await _roomRepo.CountAsync(name, building, floor, status);
+            List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, roomType, pageNumber, pageSize);
+            var totalRooms = await _roomRepo.CountAsync(name, building, floor, status, roomType);
             var pagedRooms = new StaticPagedList<RoomWithDoctorDtoViewModel>(rooms, pageNumber, pageSize, totalRooms);
             var allBuildings = await _roomRepo.GetAllDistinctBuildings();
             var allFloors = await _roomRepo.GetAllDistinctFloors();
+            var allRoomTypes = await _roomRepo.GetAllDistinctRoomTypes();
 
             ViewBag.Name = name;
             ViewBag.Building = building;
             ViewBag.Floor = floor;
             ViewBag.Status = status;
+            ViewBag.RoomType = roomType;
             ViewBag.AllBuildings = allBuildings;
             ViewBag.AllFloors = allFloors;
+            ViewBag.AllRoomTypes = allRoomTypes;
 
             return View(pagedRooms);
         }
 
-        //[HttpGet]
-        //[Authorize(Roles = "Admin")]
-        //public IActionResult RoomDetail()
-        //{
-        //    return View();
-        //}
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> RoomDetail(int id, DateOnly? weekStart)
+        {
+            ViewBag.Units = GetAllRoomTypes();
+            ViewBag.Slots = await _slotRepo.GetAllSlotsAsync();
+            var room = await _context.Rooms.FindAsync(id);
+            if (room == null) return RedirectToAction("NotFound", "Home");
+
+            DateOnly selectedWeekStart = weekStart ?? GetCurrentWeekStart();
+
+            // Xác định năm theo tuần
+            int selectedYear = GetYearOfWeek(selectedWeekStart);
+
+            var schedule = await _scheduleRepo.GetScheduleByRoomAndWeekAsync(id, selectedWeekStart);
+
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.SelectedWeekStart = selectedWeekStart;
+
+            var model = new RoomDetailViewModel
+            {
+                RoomId = room.RoomId,
+                RoomName = room.RoomName,
+                RoomType = room.RoomType,
+                Status = room.Status,
+                Schedule = schedule
+            };
+
+            return View(model);
+        }
+
+
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -194,6 +227,99 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("ManageAccount", new { type = "Staff" });
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateRoom(RoomDetailViewModel room, DateOnly weekStart)
+        {
+            // Kiểm tra null hoặc trống
+            if (string.IsNullOrWhiteSpace(room.RoomName) ||
+                string.IsNullOrWhiteSpace(room.RoomType) ||
+                string.IsNullOrWhiteSpace(room.Status))
+            {
+                return await ReturnRoomDetailWithError(room, "Vui lòng không để trống các trường bắt buộc.", weekStart);
+            }
+
+            // Kiểm tra định dạng RoomName
+            if (!System.Text.RegularExpressions.Regex.IsMatch(room.RoomName, @"^[A-Z][0-9]{3,4}$"))
+            {
+                return await ReturnRoomDetailWithError(room, "Tên phòng phải có dạng A101 hoặc A1001.", weekStart);
+            }
+
+            // Kiểm tra trùng tên phòng
+            var existingRoom = await _context.Rooms
+                .FirstOrDefaultAsync(r => r.RoomName == room.RoomName && r.RoomId != room.RoomId);
+
+            if (existingRoom != null)
+            {
+                return await ReturnRoomDetailWithError(room, "Tên phòng đã tồn tại.", weekStart);
+            }
+
+            // Tìm phòng hiện tại để cập nhật
+            var roomInDb = await _context.Rooms
+                .Include(r => r.Schedules)
+                .ThenInclude(s => s.Slot)
+                .FirstOrDefaultAsync(r => r.RoomId == room.RoomId);
+
+            if (roomInDb == null)
+            {
+                TempData["error"] = "Phòng không tồn tại.";
+                return RedirectToAction("ManageRoom");
+            }
+
+            // Nếu muốn chuyển sang "Bảo trì", kiểm tra có lịch trong tương lai không
+            if (room.Status == "Bảo trì")
+            {
+                var now = DateTime.Now;
+                bool hasFutureSchedule = roomInDb.Schedules.Any(s =>
+                    s.Day.ToDateTime(s.Slot.EndTime) >= now);
+
+
+                if (hasFutureSchedule)
+                {
+                    return await ReturnRoomDetailWithError(room, "Không thể chuyển phòng sang trạng thái 'Bảo trì' vì phòng vẫn còn lịch sử dụng trong tương lai.", weekStart);
+                }
+            }
+
+            // Cập nhật thông tin
+            roomInDb.RoomName = room.RoomName.Trim();
+            roomInDb.RoomType = room.RoomType.Trim();
+            roomInDb.Status = room.Status.Trim();
+
+            await _context.SaveChangesAsync();
+
+            TempData["success"] = "Cập nhật phòng thành công!";
+            return RedirectToAction("RoomDetail", new { id = room.RoomId, weekStart });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ConfirmRoomChange(string selectedSchedules, int newRoomId)
+        {
+            var ids = selectedSchedules.Split(',').Select(int.Parse).ToList();
+
+            await _scheduleRepo.ChangeRoomForSchedulesAsync(ids, newRoomId);
+            TempData["success"] = "Đổi phòng thành công.";
+
+            return RedirectToAction("ManageRoom");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAvailableRooms([FromBody] List<int> selectedScheduleIds)
+        {
+            if (selectedScheduleIds == null || selectedScheduleIds.Count == 0)
+                return BadRequest("Không có lịch nào được chọn.");
+
+            var result = await _roomRepo.GetAvailableRoomsForSchedulesAsync(selectedScheduleIds);
+            ViewBag.SelectedSchedules = selectedScheduleIds;
+
+            return PartialView("_AvailableRoomsPartial", result);
+        }
+
+
+
+
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult AddDoctorAccount()
@@ -219,6 +345,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult AddRoom()
         {
+            ViewBag.Units = GetAllRoomTypes();
             return View();
         }
 
@@ -226,16 +353,25 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Admin")]
         public IActionResult AddRoom(Room room)
         {
+            ViewBag.Units = GetAllRoomTypes();
             // Kiểm tra thủ công định dạng RoomName bằng controller
-            if (string.IsNullOrWhiteSpace(room.RoomName))
+            if (string.IsNullOrWhiteSpace(room.RoomName) ||
+                string.IsNullOrWhiteSpace(room.RoomType) ||
+                string.IsNullOrWhiteSpace(room.Status))
             {
-                TempData["error"] = "Tên phòng không được để trống.";
+                TempData["error"] = "Vui lòng không để trống các trường bắt buộc.";
                 return View(room);
             }
 
             if (!System.Text.RegularExpressions.Regex.IsMatch(room.RoomName, @"^[A-Z][0-9]{3,4}$"))
             {
                 TempData["error"] = "Tên phòng phải có dạng A101 hoặc A1001.";
+                return View(room);
+            }
+
+            if (string.IsNullOrWhiteSpace(room.RoomType))
+            {
+                TempData["error"] = "Loại phòng không được để trống.";
                 return View(room);
             }
 
@@ -646,6 +782,7 @@ namespace HospitalManagement.Controllers
                 new ("Thần kinh", "Thần kinh"),
                 new ("Phụ sản", "Phụ sản"),
                 new ("Nhi", "Nhi"),
+                new ("Nha khoa", "Nha khoa"),
                 new ("Ngoại tiêu hóa", "Ngoại tiêu hóa"),
                 new ("Mắt", "Mắt"),
                 new ("Y học hạt nhân", "Y học hạt nhân"),
@@ -654,5 +791,65 @@ namespace HospitalManagement.Controllers
                 new ("Vật lý trị liệu", "Vật lý trị liệu"),
             };
         }
+        public List<SelectListItem> GetAllRoomTypes()
+        {
+
+            return new List<SelectListItem>
+            {
+                new ("Phòng khám", "Phòng khám"),
+                new ("Phòng chụp X Quang", "Phòng chụp X Quang"),
+                new ("Phòng xét nghiệm máu", "Phòng xét nghiệm máu"),
+                new ("Phòng nội soi", "Phòng nội soi"),
+                new ("Phòng xét nghiệm men gan", "Phòng xét nghiệm men gan"),
+                new ("Phòng đo mắt", "Phòng đo mắt"),
+                new ("Phòng xét nghiệm nước tiểu", "Phòng xét nghiệm nước tiểu"),
+                new ("Phòng khám răng", "Phòng khám răng"),
+                new ("Khác", "Khác"),
+            };
+        }
+
+        private DateOnly GetCurrentWeekStart()
+        {
+            var today = DateTime.Today;
+            int offset = (int)today.DayOfWeek == 0 ? 6 : (int)today.DayOfWeek - 1;
+            var monday = today.AddDays(-offset);
+            return DateOnly.FromDateTime(monday);
+        }
+
+        private int GetYearOfWeek(DateOnly weekStart)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                var day = weekStart.AddDays(i);
+                if (day.Day == 1 && day.Month == 1)
+                    return day.Year;
+            }
+
+            // Fallback: lấy ngày giữa tuần
+            return weekStart.AddDays(3).Year;
+        }
+
+        private async Task<IActionResult> ReturnRoomDetailWithError(RoomDetailViewModel room, string error, DateOnly selectedWeekStart)
+        {
+            room.Schedule = await _scheduleRepo.GetScheduleByRoomAndWeekAsync(room.RoomId, selectedWeekStart);
+            ViewBag.Slots = await _slotRepo.GetAllSlotsAsync();
+            ViewBag.Units = GetAllRoomTypes();
+            ViewBag.SelectedYear = GetYearOfWeek(selectedWeekStart);
+            ViewBag.SelectedWeekStart = selectedWeekStart;
+            TempData["error"] = error;
+
+            // Lấy lại đúng thông tin phòng từ DB
+            var roomInDb = await _context.Rooms.FindAsync(room.RoomId);
+            if (roomInDb != null)
+            {
+                room.RoomName = roomInDb.RoomName;
+                room.RoomType = roomInDb.RoomType;
+                room.Status = roomInDb.Status;
+            }
+            ModelState.Clear();
+            return RedirectToAction("RoomDetail", new { id = room.RoomId, weekStart = selectedWeekStart });
+        }
+
+
     }
 }

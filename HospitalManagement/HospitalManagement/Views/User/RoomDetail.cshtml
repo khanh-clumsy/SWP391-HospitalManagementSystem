@@ -1,729 +1,340 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using HospitalManagement.ViewModels
+@model RoomDetailViewModel
+
 @{
     Layout = null;
+    ViewData["Title"] = "Chi tiết phòng và lịch sử dụng";
+    int selectedYear = (int)ViewBag.SelectedYear;
+    DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
+    DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+    DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-((int)new DateTime(selectedYear, 1, 1).DayOfWeek + 6) % 7);
+    DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-((int)new DateTime(selectedYear, 12, 25).DayOfWeek + 6) % 7);
+
+    DateOnly prevWeek = selectedWeekStart.AddDays(-7);
+    DateOnly nextWeek = selectedWeekStart.AddDays(7);
+
+    var daysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
+    var grouped = Model.Schedule.GroupBy(s => (s.SlotId, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+
+    var slots = ViewBag.Slots as List<Slot>; // được truyền từ controller
 }
-<!DOCTYPE html>
-<html lang="en">
+
 <head>
     <meta charset="utf-8">
-    <title>Room Detail - Klinik</title>
+    <title>Klinik - Clinic Website Template</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
-    <!-- Favicon -->
-    <link href="/img/favicon.ico" rel="icon">
-
-    <!-- Google Web Fonts -->
+    <link href="img/favicon.ico" rel="icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
     <style>
-        :root {
-            --primary-color: #06A3DA;
-            --secondary-color: #f8f9fa;
-            --dark-color: #2c3e50;
-            --success-color: #28a745;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --info-color: #17a2b8;
+        .popup-alert {
+            position: fixed;
+            text-align: center;
+            top: 5px;
+            right: 5px;
         }
 
-        body {
-            font-family: 'Open Sans', sans-serif;
-            background-color: #f8f9fa;
+        .schedule-card {
+            border: 1px solid #007bff;
+            border-top: 4px solid #007bff;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f8faff;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
         }
 
-        .main-header {
-            background: linear-gradient(135deg, var(--primary-color), #0891b2);
-            color: white;
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            .schedule-card i {
+                color: #007bff;
+            }
+
+        .slot-inactive {
+            border: 1px solid #007bff;
+            border-top: 4px solid #007bff;
+            background-color: #f8faff;
+            color: black;
         }
 
-        .room-info-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border-left: 5px solid var(--primary-color);
-        }
-
-        .room-status {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .status-active {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .status-inactive {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-maintenance {
+        .slot-active {
+            border: 1px solid #fed03a;
+            border-top: 4px solid #fed03a;
             background-color: #fff3cd;
-            color: #856404;
+            color: black;
         }
 
-        .schedule-container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
+        .slot-disabled {
+            background-color: #eee;
+            cursor: not-allowed;
         }
 
-        .schedule-header {
-            background: linear-gradient(135deg, var(--primary-color), #0891b2);
-            color: white;
-            padding: 1.5rem;
-        }
-
-        .filter-section {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .schedule-table {
-            overflow-x: auto;
-        }
-
-        .table-schedule {
-            margin: 0;
-            font-size: 0.9rem;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-            .table-schedule th {
-                background: linear-gradient(135deg, var(--primary-color), #0891b2);
-                color: white;
-                font-weight: 600;
-                text-align: center;
-                padding: 1rem 0.5rem;
-                border: none;
-                position: sticky;
-                top: 0;
-                z-index: 10;
-            }
-
-            .table-schedule td {
-                border: 1px solid #e9ecef;
-                vertical-align: middle;
-                padding: 0.8rem 0.5rem;
-                text-align: center;
-                min-width: 180px;
-            }
-
-        .slot-label {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: var(--dark-color);
-            border-right: 2px solid var(--primary-color) !important;
-            min-width: 80px;
-            text-align: left;
-            padding-left: 1rem;
-        }
-
-        .appointment-block {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            border: 2px solid #2196f3;
-            border-radius: 8px;
-            padding: 0.5rem;
-            margin: 0.2rem;
-            font-size: 0.8rem;
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-            .appointment-block:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-            }
-
-        .appointment-code {
-            font-weight: 700;
-            color: #1976d2;
-        }
-
-        .appointment-location {
-            color: #666;
-            font-size: 0.75rem;
-        }
-
-        .appointment-time {
-            background: rgba(76, 175, 80, 0.1);
-            color: #2e7d32;
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .appointment-status {
-            padding: 0.2rem 0.4rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 600;
-        }
-
-        .status-not-yet {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-
-        .status-completed {
-            background: #e8f5e8;
-            color: #2e7d32;
-        }
-
-        .status-cancelled {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .btn-action {
-            background: var(--primary-color);
-            border: none;
-            padding: 0.3rem 0.6rem;
-            border-radius: 4px;
-            color: white;
-            font-size: 0.7rem;
-            margin: 0.1rem;
-            transition: all 0.3s ease;
-        }
-
-            .btn-action:hover {
-                background: #0891b2;
-                transform: translateY(-1px);
-            }
-
-        .empty-slot {
-            color: #6c757d;
-            font-style: italic;
-        }
-
-        .weekend {
-            background-color: #f8f9fa;
-        }
-
-        .today {
-            background-color: #fff3e0;
-            border-left: 4px solid var(--warning-color);
-        }
-
-        .past-date {
-            opacity: 0.7;
-        }
-
-        .filter-controls {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .form-select, .form-control {
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-            .form-select:focus, .form-control:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 0.2rem rgba(6, 163, 218, 0.25);
-            }
-
-        .btn-primary {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-            border-radius: 8px;
-            padding: 0.6rem 1.5rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-            .btn-primary:hover {
-                background: #0891b2;
-                border-color: #0891b2;
-                transform: translateY(-2px);
-            }
-
-        .legend {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.85rem;
-        }
-
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-        }
-
-       
-
-        .table-schedule td, .table-schedule th {
-            padding: 0.5rem 0.3rem;
-            min-width: 140px;
-        }
-
-        .filter-controls {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        }
     </style>
 </head>
-
 <body>
-    <!-- Header -->
-    <div class="main-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="mb-0">
-                        <i class="fas fa-hospital-symbol me-3"></i>
-                        Room Detail Management
-                    </h1>
-                    <p class="mb-0 mt-2 opacity-75">Manage room information and view schedules</p>
-                </div>
-                <div class="col-md-4 text-end">
-                    <button class="btn btn-light btn-lg" onclick="window.history.back()">
-                        <i class="fas fa-arrow-left me-2"></i>Back
-                    </button>
-                </div>
+    <div>
+        @if (TempData["error"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["error"]</div>
             </div>
+        }
+        @if (TempData["success"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["success"]</div>
+            </div>
+        }
+    </div>
+    <div class="container mt-4 mb-3">
+        <div class="row mb-4">
+            <div class="col-12">
+                <a asp-action="ManageRoom" asp-controller="User" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Trở về danh sách phòng
+                </a>
+            </div>
+        </div>
+        <h1 class="mb-4">Chi tiết phòng: @Model.RoomName</h1>
+
+        <!-- Form chỉnh sửa thông tin phòng -->
+        <form asp-action="UpdateRoom" method="post" class="mb-5">
+            <input type="hidden" asp-for="RoomId" />
+            <div class="mb-3">
+                <label asp-for="RoomName" class="form-label">Tên phòng</label>
+                <input asp-for="RoomName" class="form-control" />
+                <span asp-validation-for="RoomName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="RoomType" class="form-label">Loại phòng</label>
+                <span asp-validation-for="RoomType" class="text-danger"></span>
+                <select asp-for="RoomType" class="input100 form-select" asp-items="ViewBag.Units">
+                </select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label">Trạng thái</label>
+                <select asp-for="Status" class="input100 form-select">
+                    <option value="Hoạt động">Hoạt động</option>
+                    <option value="Bảo trì">Bảo trì</option>
+                </select>
+            </div>
+            <input type="hidden" name="weekStart" value="@ViewBag.SelectedWeekStart" />
+            <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+        </form>
+
+        <!-- Bộ chọn tuần -->
+        <div class="d-flex justify-content-center align-items-center mb-3">
+            <div class="d-flex gap-2 align-items-center">
+                <select id="yearDropdown" class="form-select d-inline-block" style="width:100px;" onchange="onYearChange(this)">
+                    @for (int y = 2023; y <= DateTime.Now.Year + 1; y++)
+                    {
+                        <option value="@y" selected="@(y == selectedYear)">@y</option>
+                    }
+                </select>
+                <button class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <select id="weekDropdown" class="form-select" style="width:250px;" onchange="onWeekChange(this)">
+                    @{
+                        var start = firstWeekStart;
+                        while (start <= lastWeekStart)
+                        {
+                            var label = $"{start:dd/MM} - {start.AddDays(6):dd/MM}";
+                            <option value="@start.ToString("yyyy-MM-dd")" selected="@(start == selectedWeekStart)">
+                                @label
+                            </option>
+                            ;
+                            start = start.AddDays(7);
+                        }
+                    }
+                </select>
+
+                <button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            <div style="width:100px;"></div>
+            <button class="btn btn-warning mt-3" onclick="openRoomChangePopup()">Đổi phòng</button>
+        </div>
+
+        <!-- Bảng lịch -->
+        <table class="table table-bordered text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>Slot</th>
+                    @foreach (var day in daysInWeek)
+                    {
+                        <th>@day.ToString("ddd dd/MM")</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var slot in slots)
+                {
+                    <tr>
+                        <td><strong>Slot @slot.SlotId</strong><br />@slot.StartTime - @slot.EndTime</td>
+                        @foreach (var day in daysInWeek)
+                        {
+                            var key = (slot.SlotId, day);
+                            <td>
+                                @if (grouped.ContainsKey(key))
+                                {
+                                    @foreach (var item in grouped[key])
+                                    {
+                                        var scheduleEnd = item.Day.ToDateTime(item.EndTime);
+                                        var isPast = scheduleEnd < DateTime.Now;
+
+                                        <div class="schedule-card @(isPast ? "slot-disabled" : "slot-inactive")"
+                                             onclick="@(isPast ? "null" : "toggleSchedule(this)")"
+                                             style="@(isPast ? "opacity: 0.5;" : "")">
+                                            <input type="hidden" name="selectedSchedules[@item.ScheduleId]" value="false" />
+                                            <div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+                                            <div>
+                                                <i class="bi bi-person me-1"></i>
+                                                <a asp-action="DoctorDetail" asp-controller="User" asp-route-id="@item.DoctorId">@item.DoctorName</a>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="text-end mt-3">
+            <button type="submit" class="btn btn-warning">
+                Xác nhận đổi phòng
+            </button>
         </div>
     </div>
 
-    <div class="container">
-        <!-- Room Information Card -->
-        <div class="room-info-card">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h2 class="text-primary mb-3">
-                        <i class="fas fa-door-open me-2"></i>
-                        <span id="roomName">BE-204</span>
-                    </h2>
-                    <div class="mb-3">
-                        <strong>Status: </strong>
-                        <span id="roomStatus" class="room-status status-active">Active</span>
-                    </div>
-                    <div class="mb-3">
-                        <strong>Capacity: </strong>
-                        <span id="roomCapacity">25 students</span>
-                    </div>
-                    <div class="mb-3">
-                        <strong>Equipment: </strong>
-                        <span id="roomEquipment">Projector, Whiteboard, Air Conditioning</span>
-                    </div>
-                </div>
-                <div class="col-md-4 text-end">
-                    <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#editRoomModal">
-                        <i class="fas fa-edit me-2"></i>Edit Room
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Schedule Section -->
-        <div class="schedule-container">
-            <div class="schedule-header">
-                <h3 class="mb-0">
-                    <i class="fas fa-calendar-alt me-2"></i>
-                    Room Schedule
-                </h3>
-            </div>
-
-            <!-- Filter Section -->
-            <div class="filter-section">
-                <div class="filter-controls">
-                    <div>
-                        <label for="yearSelect" class="form-label mb-1">Year:</label>
-                        <select id="yearSelect" class="form-select" onchange="updateSchedule()">
-                            <option value="2024">2024</option>
-                            <option value="2025" selected>2025</option>
-                            <option value="2026">2026</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="weekSelect" class="form-label mb-1">Week:</label>
-                        <select id="weekSelect" class="form-select" onchange="updateSchedule()">
-                            <option value="16/06 To 22/06" selected>16/06 To 22/06</option>
-                            <option value="23/06 To 29/06">23/06 To 29/06</option>
-                            <option value="30/06 To 06/07">30/06 To 06/07</option>
-                        </select>
-                    </div>
-                    <div>
-                        <button class="btn btn-primary" onclick="updateSchedule()">
-                            <i class="fas fa-sync-alt me-2"></i>Refresh
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Legend -->
-                <div class="legend">
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb);"></div>
-                        <span>Scheduled</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color status-not-yet"></div>
-                        <span>Not Started</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color status-completed"></div>
-                        <span>Completed</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color status-cancelled"></div>
-                        <span>Cancelled</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Schedule Table -->
-            <div class="schedule-table">
-                <table class="table table-schedule">
-                    <thead>
-                        <tr>
-                            <th style="min-width: 100px;">Time Slot</th>
-                            <th>MON<br><small>16/06</small></th>
-                            <th>TUE<br><small>17/06</small></th>
-                            <th>WED<br><small>18/06</small></th>
-                            <th>THU<br><small>19/06</small></th>
-                            <th>FRI<br><small>20/06</small></th>
-                            <th class="weekend">SAT<br><small>21/06</small></th>
-                            <th class="weekend">SUN<br><small>22/06</small></th>
-                        </tr>
-                    </thead>
-                    <tbody id="scheduleTableBody">
-                        <tr>
-                            <td class="slot-label">Slot 1<br><small>08:00-09:30</small></td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                        </tr>
-                        <tr>
-                            <td class="slot-label">Slot 2<br><small>09:45-11:15</small></td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                        </tr>
-                        <tr>
-                            <td class="slot-label">Slot 3<br><small>12:50-14:20</small></td>
-                            <td class="empty-slot">-</td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">SWP391</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(12:50-15:10)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">SWT301</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(12:50-15:10)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">PRN212</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(12:50-15:10)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                        <button class="btn-action" style="background: #17a2b8;">EduNext</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">SWR302</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(12:50-15:10)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="weekend empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                        </tr>
-                        <tr>
-                            <td class="slot-label">Slot 4<br><small>14:35-16:05</small></td>
-                            <td class="empty-slot">-</td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">PRN212</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(15:20-17:40)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                        <button class="btn-action" style="background: #17a2b8;">EduNext</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">SWR302</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(15:20-17:40)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">SWP391</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(15:20-17:40)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="appointment-block">
-                                    <div class="appointment-code">SWT301</div>
-                                    <div class="appointment-location">at BE-204</div>
-                                    <div class="appointment-time">(15:20-17:40)</div>
-                                    <div class="appointment-status status-not-yet">(Not yet)</div>
-                                    <div class="mt-2">
-                                        <button class="btn-action">View Materials</button>
-                                        <button class="btn-action">Meet URL</button>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="weekend empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                        </tr>
-                        <tr>
-                            <td class="slot-label">Slot 5<br><small>16:20-17:50</small></td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                            <td class="weekend empty-slot">-</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Room Modal -->
-    <div class="modal fade" id="editRoomModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+    <div class="modal fade" id="roomChangeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header" style="background: var(--primary-color); color: white;">
-                    <h5 class="modal-title">
-                        <i class="fas fa-edit me-2"></i>Edit Room Information
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title">Chọn phòng trống</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="editRoomForm">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="editRoomName" class="form-label">Room Name</label>
-                                    <input type="text" class="form-control" id="editRoomName" value="BE-204">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="editRoomStatus" class="form-label">Status</label>
-                                    <select class="form-select" id="editRoomStatus">
-                                        <option value="active" selected>Active</option>
-                                        <option value="inactive">Inactive</option>
-                                        <option value="maintenance">Under Maintenance</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="editRoomCapacity" class="form-label">Capacity</label>
-                                    <input type="number" class="form-control" id="editRoomCapacity" value="25">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="editRoomType" class="form-label">Room Type</label>
-                                    <select class="form-select" id="editRoomType">
-                                        <option value="classroom" selected>Classroom</option>
-                                        <option value="laboratory">Laboratory</option>
-                                        <option value="meeting">Meeting Room</option>
-                                        <option value="auditorium">Auditorium</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editRoomEquipment" class="form-label">Equipment</label>
-                            <textarea class="form-control" id="editRoomEquipment" rows="3">Projector, Whiteboard, Air Conditioning</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="editRoomNotes" class="form-label">Additional Notes</label>
-                            <textarea class="form-control" id="editRoomNotes" rows="2" placeholder="Any additional information about the room..."></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="saveRoomChanges()">
-                        <i class="fas fa-save me-2"></i>Save Changes
-                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Sample data for different weeks
-        const scheduleData = {
-            '2025': {
-                '16/06 To 22/06': [
-                    // Current data as shown above
-                ],
-                '23/06 To 29/06': [
-                    // Different week data
-                ],
-                '30/06 To 06/07': [
-                    // Another week data
-                ]
+        function onYearChange(select) {
+            const year = parseInt(select.value);
+
+            // Tìm ngày 1/1 của năm đó
+            const jan1 = new Date(year, 0, 1);
+            const dayOfWeek = jan1.getDay(); // Chủ nhật = 0 ... Thứ bảy = 6
+
+            // Tính offset để lùi về thứ 2 gần nhất (có thể là tháng 12 năm trước)
+            const offset = (dayOfWeek + 6) % 7; // nếu 1/1 là T2 thì offset = 0
+
+            const weekStartDate = new Date(jan1);
+            weekStartDate.setDate(jan1.getDate() - offset);
+
+            const formattedWeekStart = weekStartDate.toISOString().split("T")[0];
+            const roomId = "@Model.RoomId";
+            const url = `/User/RoomDetail?id=${roomId}&weekStart=${formattedWeekStart}`;
+            window.location.href = url;
+        }
+
+        function onWeekChange(select) {
+            const week = select.value;
+            const roomId = "@Model.RoomId"; // Thêm dòng này
+            const url = `/User/RoomDetail?id=${roomId}&weekStart=${week}`;
+            window.location.href = url;
+        }
+
+        function changeWeek(delta) {
+            const weekSelect = document.getElementById("weekDropdown");
+            const options = weekSelect.options;
+            const currentIndex = weekSelect.selectedIndex;
+            const newIndex = currentIndex + delta;
+
+            if (newIndex >= 0 && newIndex < options.length) {
+                const newWeek = options[newIndex].value;
+                const roomId = "@Model.RoomId"; // Thêm dòng này
+                const url = `/User/RoomDetail?id=${roomId}&weekStart=${newWeek}`;
+                window.location.href = url;
             }
-        };
-
-        function updateSchedule() {
-            const year = document.getElementById('yearSelect').value;
-            const week = document.getElementById('weekSelect').value;
-
-            // Here you would typically make an AJAX call to fetch new data
-            console.log(`Updating schedule for ${year}, week: ${week}`);
-
-            // For demo purposes, we'll just show a loading effect
-            const tbody = document.getElementById('scheduleTableBody');
-            tbody.style.opacity = '0.5';
-
-            setTimeout(() => {
-                tbody.style.opacity = '1';
-                // You would update the table content here with real data
-            }, 500);
         }
 
-        function saveRoomChanges() {
-            const roomName = document.getElementById('editRoomName').value;
-            const roomStatus = document.getElementById('editRoomStatus').value;
-            const roomCapacity = document.getElementById('editRoomCapacity').value;
-            const roomEquipment = document.getElementById('editRoomEquipment').value;
+        function toggleSchedule(el) {
+            const hiddenInput = el.parentElement.querySelector("input[type=hidden]");
+            const current = hiddenInput.value === "true";
 
-            // Update the display
-            document.getElementById('roomName').textContent = roomName;
-            document.getElementById('roomCapacity').textContent = roomCapacity + ' students';
-            document.getElementById('roomEquipment').textContent = roomEquipment;
-
-            // Update status
-            const statusElement = document.getElementById('roomStatus');
-            statusElement.textContent = roomStatus.charAt(0).toUpperCase() + roomStatus.slice(1);
-            statusElement.className = `room-status status-${roomStatus}`;
-
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('editRoomModal'));
-            modal.hide();
-
-            // Show success message
-            alert('Room information updated successfully!');
+            if (current) {
+                //Chuyển về false
+                hiddenInput.value = "false";
+                el.classList.remove("slot-active");
+                el.classList.add("slot-inactive");
+            } else {
+                //Chuyển sang true
+                hiddenInput.value = "true";
+                el.classList.remove("slot-inactive");
+                el.classList.add("slot-active");
+            }
         }
 
-        // Initialize tooltips and other interactive elements
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add click handlers for appointment blocks
-            document.querySelectorAll('.appointment-block').forEach(block => {
-                block.addEventListener('click', function(e) {
-                    if (!e.target.classList.contains('btn-action')) {
-                        // Show appointment details
-                        const code = this.querySelector('.appointment-code').textContent;
-                        alert(`Appointment Details for ${code}`);
-                    }
-                });
-            });
+        function openRoomChangePopup() {
+            const selected = Array.from(document.querySelectorAll('input[name^="selectedSchedules"]'))
+                .filter(input => input.value === "true")
+                .map(input => input.getAttribute("name").match(/\d+/)[0]); // Lấy ScheduleId từ tên
 
-            // Highlight today's column (if applicable)
-            const today = new Date().toLocaleDateString('en-GB').slice(0, 5);
-            document.querySelectorAll('th').forEach(th => {
-                if (th.innerHTML.includes(today)) {
-                    const index = Array.from(th.parentNode.children).indexOf(th);
-                    document.querySelectorAll(`td:nth-child(${index + 1})`).forEach(td => {
-                        td.classList.add('today');
-                    });
+            if (selected.length === 0) {
+                alert("Vui lòng chọn ít nhất một lịch để đổi phòng.");
+                return;
+            }
+
+            // Gửi AJAX lên server lấy danh sách phòng trống
+            $.ajax({
+                url: '/User/GetAvailableRooms',
+                type: 'POST',
+                data: JSON.stringify(selected),
+                contentType: 'application/json',
+                success: function (partialHtml) {
+                    $('#roomChangeModal .modal-body').html(partialHtml);
+                    $('#roomChangeModal').modal('show');
+                },
+                error: function () {
+                    alert("Đã có lỗi xảy ra khi tải danh sách phòng.");
                 }
             });
-        });
+        }
+
+        // Auto-hide popup alerts after 3 seconds
+        window.setTimeout(function () {
+            const alertBox = document.getElementById('popup-alert');
+            if (alertBox) {
+                alertBox.classList.remove('show');
+                alertBox.classList.add('hide');
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 3000);
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/lib/easing/easing.min.js"></script>
+    <script src="/lib/waypoints/waypoints.min.js"></script>
+    <script src="/lib/counterup/counterup.min.js"></script>
+    <script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="~/js/main.js"></script>
+
 </body>
-</html>

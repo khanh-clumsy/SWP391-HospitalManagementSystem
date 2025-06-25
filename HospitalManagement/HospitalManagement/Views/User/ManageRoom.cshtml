@@ -70,6 +70,17 @@
                                 value="@(ViewBag.Name ?? "")" />
                     </div>
 
+                    <!-- Filter by room type -->
+                    <div class="col-md-2">
+                        <select name="roomType" class="form-select">
+                            <option value="">Chọn loại phòng</option>
+                            @foreach (var type in ViewBag.AllRoomTypes)
+                            {
+                                <option value="@type" selected="@(ViewBag.Type == type ? "selected" : null)">@type</option>
+                            }
+                        </select>
+                     </div>
+
                     <!-- Filter by Building -->
                     <div class="col-md-2">
                         <select name="building" class="form-select">
@@ -80,6 +91,7 @@
                             }
                         </select>
                     </div>
+
                     <!-- Filter by floors -->
                     <div class="col-md-2">
                         <select name="floor" class="form-select">
@@ -98,6 +110,8 @@
                             <option value="Bảo trì" selected="@(ViewBag.Status == "Bảo trì" ? "selected" : null)">Bảo trì</option>
                         </select>
                     </div>
+
+                    
                     
                     <!-- Search Button -->
                     <div class="col-md-2 d-grid">
@@ -112,6 +126,7 @@
                     <tr>
                         <th>STT</th>
                         <th>Tên phòng</th>
+                        <th>Loại phòng</th>
                         <th>Bác sĩ đang phụ trách</th>
                         <th>Trạng thái</th>
                         <th>Hành động</th>
@@ -125,6 +140,7 @@
                         <tr>
                             <td>@((Model.PageNumber - 1) * Model.PageSize + i + 1)</td>
                             <td>@room.RoomName</td>
+                            <td>@room.RoomType</td>
                             <td>
                                 @if (room.DoctorID != null)
                                 {
@@ -169,6 +185,7 @@
 											name = ViewBag.Name,
 											building = ViewBag.Building,
 											status = ViewBag.Status,
+                                            roomType = ViewBag.RoomType,
                                             floor = ViewBag.Floor}) : "#")" tabindex="-1">Trước</a>
                             </li>
 
@@ -181,6 +198,7 @@
 											name = ViewBag.Name,
 											building = ViewBag.Building,
 											status = ViewBag.Status,
+                                            roomType = ViewBag.RoomType,
                                             floor = ViewBag.Floor})">1</a>
                                 </li>
                                 @if (startPage > 2)
@@ -198,6 +216,7 @@
 											name = ViewBag.Name,
 											building = ViewBag.Building,
 											status = ViewBag.Status,
+                                            roomType = ViewBag.RoomType,
                                             floor = ViewBag.Floor})">@i</a>
                                         </li>
                                     }
@@ -215,6 +234,7 @@
 											name = ViewBag.Name,
 											building = ViewBag.Building,
 											status = ViewBag.Status,
+                                            roomType = ViewBag.RoomType,
                                             floor = ViewBag.Floor})">@Model.PageCount</a>
                                         </li>
                                     }
@@ -226,6 +246,7 @@
 											name = ViewBag.Name,
 											building = ViewBag.Building,
 											status = ViewBag.Status,
+                                            roomType = ViewBag.RoomType,
                                             floor = ViewBag.Floor}) : "#")">Sau</a>
                             </li>
 
