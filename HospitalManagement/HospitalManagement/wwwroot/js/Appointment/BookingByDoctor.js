@@ -160,7 +160,10 @@ $(document).ready(function () {
 
         $('.submit-btn').prop('disabled', !valid);
     }
-
+    const selectedDepartment = $('#departmentDropdown').val()?.trim();
+    if (selectedDepartment) {
+        $('#departmentDropdown').trigger('change');
+    }
 
     // Khi chọn chuyên khoa -> load danh sách bác sĩ
     $('#departmentDropdown').on('change', function () {
@@ -210,6 +213,13 @@ $(document).ready(function () {
                 });
                 $('.doctor-section').show();
                 updateDoctorScrollVisibility();
+                const selectedDoctorId = $('#SelectedDoctorId').val();
+                if (selectedDoctorId) {
+                    const card = $(`.doctor-card[data-doctor-id="${selectedDoctorId}"]`);
+                    if (card.length > 0) {
+                        card.trigger('click');
+                    }
+                }
             },
             error: function (xhr, status, error) {
                 console.error("Lỗi khi tải bác sĩ:", status, error);
@@ -330,7 +340,17 @@ $(document).ready(function () {
         $('#doctorForm').submit();
     });
 
+    if ($('#departmentDropdown').val()?.trim()) {
+        $('#departmentDropdown').trigger('change');
+    }
+    if ($('#SelectedDoctorId').val()?.trim()) {
+        const doctorId = $('#SelectedDoctorId').val();
+        $('#SelectedDoctorId').val(doctorId);
+        $(`.doctor-card[data-doctor-id="${doctorId}"]`).trigger('click');
+    }
     // Khởi tạo
     updateSubmitButton();
+
+    
 });
     

@@ -8,34 +8,22 @@
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 </head>
-<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
-	<div class="container py-5">
-		<h1 class="display-3 text-white mb-3 animated slideInDown">Appointment</h1>
-		<nav aria-label="breadcrumb animated slideInDown">
-			<ol class="breadcrumb text-uppercase mb-0">
-				<li class="breadcrumb-item"><a class="text-white" href="#">Home</a></li>
-				<li class="breadcrumb-item"><a class="text-white" href="#">Pages</a></li>
-				<li class="breadcrumb-item text-primary active" aria-current="page">Appointment</li>
-			</ol>
-		</nav>
-	</div>
-</div>
 
 <div class="container-xxl py-5">
 	<div class="container">
 		<div class="mb-4">
-			<h2 class="text-primary">Appointment List</h2>
+			<h2 class="text-primary">Danh sách lịch hẹn</h2>
 		</div>
 
 		<!-- Filter Form -->
 		<form method="get" asp-action="Index" class="d-flex flex-wrap gap-3 align-items-center mb-4">
 			<div class="input-group" style="width: 250px;">
-				<input type="text" name="searchName" class="form-control" placeholder="Search by patient name" />
+				<input type="text" name="searchName" class="form-control" placeholder="Tìm theo tên bệnh nhân" />
 				<span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
 			</div>
 
 			<select name="timeFilter" class="form-select" style="width: 150px;">
-				<option value="">Time</option>
+				<option value="">Khung giờ</option>
 				@for (var time = startTime; time <= endTime; time += slotDuration)
 				{
 					var display = DateTime.Today.Add(time).ToString("HH:mm");
@@ -46,25 +34,26 @@
 			<input type="date" id="dateFilter" name="dateFilter" class="form-control" style="width: 180px;" />
 
 			<select name="statusFilter" class="form-select" style="width: 150px;">
-				<option value="">All Status</option>
-				<option value="Confirmed">Accepted</option>
-				<option value="Pending">Pending</option>
-				<option value="Cancelled">Rejected</option>
+				<option value="" selected="@(ViewBag.StatusFilter == null ? "selected" : null)">Tất cả trạng thái</option>
+				<option value="Pending" selected="@(ViewBag.StatusFilter == "Pending" ? "selected" : null)">Chờ xử lý</option>
+				<option value="Confirmed" selected="@(ViewBag.StatusFilter == "Confirmed" ? "selected" : null)">Đã xác nhận</option>
+				<option value="Ongoing" selected="@(ViewBag.StatusFilter == "Ongoing" ? "selected" : null)">Đang diễn ra</option>
+				<option value="Completed" selected="@(ViewBag.StatusFilter == "Completed" ? "selected" : null)">Hoàn thành</option>
+				<option value="Cancelled" selected="@(ViewBag.StatusFilter == "Cancelled" ? "selected" : null)">Đã hủy</option>
 			</select>
 
-			<button type="submit" class="btn btn-primary">Filter</button>
+			<button type="submit" class="btn btn-primary">Lọc</button>
 		</form>
-
 
 		<!-- Appointment Table -->
 		<div class="table-responsive">
 			<table class="table table-bordered text-center">
 				<thead class="table-light">
 					<tr>
-						<th>ID</th>
+						<th>Mã lịch hẹn</th>
 						<th>Tên</th>
 						<th>Email</th>
-						<th>số điện thoại</th>
+						<th>Số điện thoại</th>
 						<th>Mô tả</th>
 						<th>Tên bác sĩ</th>
 						<th>Khoa</th>
@@ -94,17 +83,38 @@
 								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
 								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>
 								<td>
+									@if (item.ServiceId != null)
+									{
+										@:Gói khám cơ bản: @item.Service?.ServiceType
+									}
+									else if (item.PackageId != null)
+									{
+										@:Gói khám nâng cao: @item.Package?.PackageName
+									}
+								</td>
+								<td>
 									@if (item.Status == "Pending")
 									{
-										<span class="badge bg-warning text-dark">Pending</span>
+										<span class="badge bg-warning text-dark">Chờ xác nhận</span>
 									}
-									else if (item.Status == "Accepted")
+									else if (item.Status == "Ongoing")
 									{
-										<span class="badge bg-success">Accepted</span>
+										<span class="badge bg-info text-white">Đang diễn ra</span>
 									}
 									else if (item.Status == "Rejected")
 									{
-										<span class="badge bg-danger">Rejected</span>
+										<span class="badge bg-danger">Từ chối</span>
+									}
+									else if (item.Status == "Confirmed")
+									{
+										<span class="badge bg-success">Đã xác nhận</span>
+									}
+									else if (item.Status == "Completed")
+									{	
+										var isPaid = item.PaymentStatus;
+										<span class="badge @(isPaid == "Paid" ? "bg-primary" : "bg-secondary")">
+											@(isPaid == "Paid" ? "Hoàn thành - Đã thanh toán" : "Hoàn thành - Chưa thanh toán")
+										</span>
 									}
 									else
 									{
@@ -117,7 +127,7 @@
 										   asp-controller="Appointment"
 										   asp-route-appId="@item.AppointmentId"
 										   class="btn btn-sm btn-info">
-											<i class="fas fa-eye"></i> Detail
+											<i class="fas fa-eye"></i> Chi tiết
 										</a>
 									</div>
 								</td>
@@ -127,7 +137,7 @@
 					else
 					{
 						<tr>
-							<td colspan="14" class="text-center text-muted">No appointments.</td>
+							<td colspan="14" class="text-center text-muted">Không có lịch hẹn.</td>
 						</tr>
 					}
 				</tbody>
@@ -140,6 +150,4 @@
 		@* 	}); *@
 		@* </script> *@
 	</div>
-
 </div>
-

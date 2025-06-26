@@ -54,19 +54,26 @@
                     return;
                 }
                 let html = '';
+                const selectedSlotId = $('#SelectedSlotId').val();
+
                 slots.forEach(slot => {
-                    const slotClass = slot.isBooked ? 'time-slot booked' : 'time-slot available';
+                    let slotClass = slot.isBooked ? 'time-slot booked' : 'time-slot available';
                     const statusText = slot.isBooked ? 'Đã đặt' : 'Có thể đặt';
                     const dotClass = slot.isBooked ? 'booked' : 'available';
-                    html += `
-                    <div class="${slotClass}" data-slot-id="${slot.slotId}">
-                      <div class="fw-semibold">${slot.slotTime}</div>
-                      <div class="slot-status">
-                        <span class="status-dot ${dotClass}"></span>
-                        <span>${statusText}</span>
-                      </div>
-                    </div>`;
+
+                    if (!slot.isBooked && selectedSlotId && slot.slotId == selectedSlotId) {
+                        slotClass += ' selected';
+                    }
+
+                    html += `<div class="${slotClass}" data-slot-id="${slot.slotId}">
+                                <div class="fw-semibold">${slot.slotTime}</div>
+                                <div class="slot-status">
+                                    <span class="status-dot ${dotClass}"></span>
+                                    <span>${statusText}</span>
+                                </div>
+                            </div>`;
                 });
+
                 $('#time-slots-container').html(html);
                 $('#time-slots-container').show();
 

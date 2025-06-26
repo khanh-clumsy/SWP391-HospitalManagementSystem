@@ -118,33 +118,32 @@ namespace HospitalManagement.Controllers
                 slot = await _context.Slots.FirstOrDefaultAsync(d => d.SlotId == model.SelectedSlotId);
             }
 
+            //Kiểm tra xem người dùng đã chọn 1 trong 2 loại gói dịch vụ hay chưa
             var service = await _context.Services.FirstOrDefaultAsync(d => d.ServiceId == model.SelectedServiceId);
             var package = await _context.Packages.FirstOrDefaultAsync(d => d.PackageId == model.SelectedPackageId);
             if (service == null && package == null)
             {
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
-                TempData["error"] = "Invalid package or service selection!";
+                TempData["error"] = "Chọn dịch vụ khám cơ bản hoặc gói khám chưa hợp lệ!";
                 return View(model);
             }
 
-            //bool exists = false;
-            //if (doctor != null && slot != null)
-            //{
-            //    exists = _context.Appointments.Any(a =>
-            //            a.DoctorId == model.SelectedDoctorId &&
-            //            a.PatientId == patientId &&
-            //            a.Date == model.AppointmentDate &&
-            //            a.SlotId == model.SelectedSlotId);
-            //}
+            // Kiểm tra trùng appointment cùng ngày, cùng giờ (slot), và trạng thái là "Pending"
+            bool exists = await _context.Appointments.AnyAsync(a =>
+                a.PatientId == patientId &&
+                a.Date == model.AppointmentDate &&
+                a.SlotId == model.SelectedSlotId &&
+                a.Status != "Rejected"
+            );
 
-            //if (exists)
-            //{
-            //    ModelState.Clear();
-            //    model.ServiceOptions = await GetServiceListAsync();
-            //    TempData["error"] = $"Đã có appointment rồi!";
-            //    return View(model);
-            //}
+            if (exists)
+            {
+                model.ServiceOptions = await GetServiceListAsync();
+                model.PackageOptions = await GetPackageListAsync();
+                TempData["error"] = $"Bạn đã có cuộc hẹn đang chờ duyệt trong cùng khung giờ này!";
+                return View(model);
+            }
 
             var appointment = new Appointment
             {
@@ -177,7 +176,6 @@ namespace HospitalManagement.Controllers
 
             try
             {
-
                 var emailBody = EmailBuilder.BuildPendingAppointmentEmail(savedAppointment);
 
                 await _emailService.SendEmailAsync(
@@ -196,7 +194,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("MyAppointments");
         }
         [HttpGet]
-        public async Task<IActionResult> BookingByDoctor(int? doctorId, int? year, string? weekStart)
+        public async Task<IActionResult> BookingByDoctor(int? doctorId, string? departmentName)
         {
             var patientIdClaim = User.FindFirst("PatientID")?.Value;
             if (patientIdClaim == null)
@@ -218,18 +216,9 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
                 return RedirectToAction("UpdateProfile", "Patient");
             }
-            int selectedYear = year ?? DateTime.Today.Year;
+            int selectedYear = DateTime.Today.Year;
             DateOnly selectedWeekStart;
-            if (!string.IsNullOrEmpty(weekStart) &&
-                DateOnly.TryParseExact(weekStart, "yyyy-MM-dd", out var parsed))
-            {
-                selectedWeekStart = parsed;
-            }
-            else
-            {
-                selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
-            }
-
+            selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
             DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
 
             // 3. Lấy lịch làm việc của bác sĩ (nếu đã chọn bác sĩ)
@@ -254,6 +243,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SlotsPerDay = 6;
             var model = new BookingByDoctorViewModel
             {
+                SelectedDepartmentId = departmentName,
                 Name = user.FullName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
@@ -442,6 +432,7 @@ namespace HospitalManagement.Controllers
 
             return View(pagedAppointments);
         }
+
         private string GenerateRandomPassword(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -689,8 +680,8 @@ namespace HospitalManagement.Controllers
                 a.DoctorId == doctor.DoctorId &&
                 a.Date == appointment.Date &&
                 a.SlotId == model.SlotId &&
-                a.AppointmentId != model.AppointmentId && 
-                a.Status != "Rejected" 
+                a.AppointmentId != model.AppointmentId &&
+                a.Status != "Rejected"
             );
 
             if (hasConflict)
@@ -704,8 +695,44 @@ namespace HospitalManagement.Controllers
             await _context.SaveChangesAsync();
             TempData["success"] = "Chỉ định bác sĩ thành công.";
             return RedirectToAction("ApproveAppointment");
-
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Review(int id, string action)
+        {
+            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.AppointmentId == id);
+            if (appointment == null)
+            {
+                TempData["error"] = "Cuộc hẹn không tồn tại!";
+                return RedirectToAction("ApproveAppointment");
+            }
+
+            if (appointment.DoctorId == null && action.Equals("Accept"))
+            {
+                TempData["error"] = "Cuộc hẹn chưa được chỉ định bác sĩ! Vui lòng chỉ định bác sĩ!";
+                return RedirectToAction("ApproveAppointment");
+            }
+
+            switch (action)
+            {
+                case "Accept":
+                    appointment.Status = "Confirmed";
+                    TempData["success"] = "Cuộc hẹn đã được duyệt.";
+                    break;
+
+                case "Reject":
+                    appointment.Status = "Rejected";
+                    TempData["success"] = "Cuộc hẹn đã bị từ chối.";
+                    break;
+
+                default:
+                    TempData["error"] = "Thao tác không hợp lệ.";
+                    return RedirectToAction("ApproveAppointment");
+            }
+            _context.SaveChanges();
+            return RedirectToAction("ApproveAppointment");
+        }
+
         public IActionResult LoadAssignDoctorModal(int appointmentId, DateTime date)
         {
             var appointment = _context.Appointments

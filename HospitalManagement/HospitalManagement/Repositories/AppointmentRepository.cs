@@ -53,6 +53,10 @@ namespace HospitalManagement.Repositories
             {
                 query = query.Where(a => a.Status == Status);
             }
+            else if (RoleKey == "DoctorID")
+            {
+                query = query.Where(a => a.Status != "Pending");
+            }
             return await query.ToListAsync();
         }
         public async Task<List<Appointment>> FilterForAdmin(string? Name, string? slotId, string? Date, string? Status)
