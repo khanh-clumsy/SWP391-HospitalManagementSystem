@@ -14,15 +14,17 @@
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
 
 	var daysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
-	var slotsPerDay = Model.Count;
+	var slotsPerDay = ViewBag.SlotsPerDay;
 
 	var listDep = ViewBag.ListDep;
 	var listRoom = ViewBag.ListRoom;
 	var listDoc = ViewBag.ListDoctor;
-
+	
 
 	var successList = ViewBag.SuccessList as List<string> ?? new List<string>();
     var failList = ViewBag.FailList as List<string> ?? new List<string>();
+	var workingList = ViewBag.WorkingList as List<string> ?? new List<string>();
+
 }
 
 
@@ -94,6 +96,12 @@
 		background-color: #ffaa90;
 		color: black;
 	}
+	.slot-working {
+		background-color: #d4edda;
+		border-color: #28a745;
+		color: #155724;
+	}
+
 </style>
 
 <div class="container mt-4 mb-3">
@@ -101,16 +109,14 @@
 	<div class="justify-content-center">
 		<h1 class="mb-3">Điều chỉnh lịch làm việc</h1>
 	</div>
-
+		
 	<!-- Dropdown chọn bác sĩ -->
 	<div class="d-flex align-items-start gap-3 mb-4">
-		@* <p>selectedDep: @selectedDep</p>
-		<p>selectedDocId: @selectedDoctorId</p>
-		<p>selectedRoomId: @selectedRoomId</p> *@
+
 
 		<!-- Khối select -->
 		<div class="d-flex gap-2 flex-wrap">
-			<select id="depSelect" name="departmentName" class="form-select form-select-sm" style="width:200px;">
+			<select id="depSelect" name="departmentName" onchange="changeDepartment()" class="form-select form-select-sm" style="width:200px;">
 				<option value=""> Chuyên khoa </option>
 				@{
 					foreach(var item in listDep){
@@ -120,11 +126,11 @@
 					}
 				}
 			</select>
-			<select id="doctorSelect" name="doctorId" disabled class="form-select form-select-sm" style="width:200px;">
+			<select id="doctorSelect" name="doctorId" onchange="changeDoctor()" disabled class="form-select form-select-sm" style="width:200px;">
 				<option value=""  >Mã bác sĩ</option>
 			</select>
 
-			<select id="roomSelect" name="roomId" class="form-select form-select-sm" style="width:200px;">
+			<select id="roomSelect" name="roomId" onchange="changeRoom()" class="form-select form-select-sm" style="width:200px;">
 				<option value="" >Phòng khám</option>
 				@{
 					foreach(var item in listRoom){
@@ -145,15 +151,15 @@
 		</div>
 
 		<div>
-			<button type="button" id="confirmAddBtn" class="btn btn-primary mt-3">Thêm vào các slot đã chọn</button>
+			<button type="button" id="confirmAddBtn" onclick="showConfirmBox()" class="btn btn-primary mt-3">Thêm vào các slot đã chọn</button>
 
 			<!-- Hộp xác nhận hiện ra bên dưới -->
-			<div id="confirmBox" class="mt-3" style="width:250px; display:none;">
+			<div id="confirmBox"  class="mt-3" style="width:250px; display:none;">
 				<div class="alert alert-warning p-3">
 					Bạn có muốn thêm vào những slot này không?
 					<div class="mt-2 d-flex gap-2">
 						<button type="submit" id="btnYes" onclick="submitAddDoctorToSlots()" class="btn btn-success btn-sm">Có</button>
-						<button type="button" id="btnNo" class="btn btn-secondary btn-sm">Không</button>
+						<button type="button" id="btnNo" onclick="hideConfirmBox()" class="btn btn-secondary btn-sm">Không</button>
 					</div>
 				</div>
 			</div>
@@ -179,6 +185,9 @@
 			</select>
 		</div>
 	</div>
+	
+	<button type="button" id="showScheduleBtn" onclick="showDoctorSchedule()" class="btn btn-primary mt-3">Hiện lịch làm việc</button>
+
 	<!-- Bộ chọn tuần, nút điều hướng, bảng -->
 	<div id="scheduleTable" >
 		<div class="d-flex justify-content-center align-items-center mb-3 gap-2">
@@ -217,7 +226,8 @@
 					<i class="bi bi-chevron-right"></i>
 				</button>
 
-				<button type="button" onclick="updateSchedule()" class="btn btn-primary mt-3">Làm mới bảng</button>
+
+				<button type="button" onclick="resetSelectedSlots()" class="btn btn-primary mt-3">Làm mới lựa chọn</button>
 
 			</div>
 
@@ -249,18 +259,25 @@
 									@if (day > DateOnly.FromDateTime(DateTime.Now))
 									{
 										var slotKey = $"{day:yyyy-MM-dd}_{slot}";
-										if (successList.Contains(slotKey))
+										if (workingList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-working" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-check-circle"></i> Đã có lịch</div>
+											</div>
+										}
+										else if (successList.Contains(slotKey))
 										{
 											<div class="schedule-card slot-success" id="@slotKey">
 												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-check-circle"></i> Đã thêm bác sĩ vào slot @slot</div>
+												<div><i class="fas fa-check-circle"></i> Đã thêm bác sĩ vào slot</div>
 											</div>
 										}
 										else if (failList.Contains(slotKey))
 										{
 											<div class="schedule-card slot-fail" id="@slotKey">
 												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-exclamation-triangle"></i> Trùng lịch hoặc phòng đang bảo trì</div>
+												<div><i class="fas fa-exclamation-triangle"></i> Thêm thất bại</div>
 											</div>
 										}
 										else
@@ -279,6 +296,16 @@
 											</div>
 										}
 									}
+									else{
+										var slotKey = $"{day:yyyy-MM-dd}_{slot}";
+										if (workingList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-working" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-check-circle"></i> Đã có lịch</div>
+											</div>
+										}
+									}
 								</td>
 							}
 
@@ -290,11 +317,13 @@
 	</div>
 </div>
 
- @section Scripts { 
+@section Scripts { 
     <script>
-    const doctorList = @Html.Raw(Json.Serialize(ViewBag.ListDoctor));
-	</script>
+        const doctorList = @Html.Raw(Json.Serialize(ViewBag.ListDoctor)); // all active doctor (CardViewModel)
+        const successList = @Html.Raw(Json.Serialize(successList));
+        const failList = @Html.Raw(Json.Serialize(failList));
+        const workingList = @Html.Raw(Json.Serialize(workingList));
+    </script>
 
- 	<script src="~/js/ManageSchedule.js" asp-append-version="true"></script> 
-    <script src="~/js/CardFactory.js" asp-append-version="true"></script> 
+    <script src="~/js/ManageSchedule.js" asp-append-version="true"></script> 
 }
