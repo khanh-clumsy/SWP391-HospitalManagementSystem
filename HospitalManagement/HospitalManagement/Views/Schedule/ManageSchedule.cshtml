@@ -270,14 +270,14 @@
 										{
 											<div class="schedule-card slot-success" id="@slotKey">
 												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-check-circle"></i> Đã thêm bác sĩ vào slot</div>
+												<div><i class="fas fa-check-circle"></i> Thêm ca làm thành công</div>
 											</div>
 										}
 										else if (failList.Contains(slotKey))
 										{
 											<div class="schedule-card slot-fail" id="@slotKey">
 												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-exclamation-triangle"></i> Thêm thất bại</div>
+												<div><i class="fas fa-exclamation-triangle"></i> Trùng lịch hoặc phòng không hợp lệ</div>
 											</div>
 										}
 										else

@@ -4,7 +4,6 @@ let selectedDoctor = null;
 let selectedRoom = null;
 let selectedSlots = [];
 
-// ========== DOM ==========
 const depSelect = document.getElementById("depSelect");
 const doctorSelect = document.getElementById("doctorSelect");
 const roomSelect = document.getElementById("roomSelect");
