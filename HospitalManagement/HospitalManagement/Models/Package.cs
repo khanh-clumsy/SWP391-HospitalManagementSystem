@@ -31,6 +31,8 @@ public partial class Package
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
+    public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
     public virtual PackageCategory PackageCategory { get; set; } = null!;
 
     public virtual ICollection<PackageTest> PackageTests { get; set; } = new List<PackageTest>();

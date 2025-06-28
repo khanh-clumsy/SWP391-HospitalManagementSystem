@@ -226,7 +226,7 @@ namespace HospitalManagement.Repositories
                         s.RoomId == room.RoomId &&
                         s.Day == schedule.Day &&
                         s.SlotId == schedule.SlotId &&
-                        !selectedScheduleIds.Contains(s.ScheduleId) // Tránh tự trùng với chính lịch đã chọn
+                        !selectedScheduleIds.Contains(s.ScheduleId) 
                     );
 
                     if (hasConflict)

@@ -10,5 +10,6 @@ namespace HospitalManagement.Repositories
         Task<List<Doctor>> GetAllDoctorsWithSpecialFirstAsync(int pageNumber, int pageSize);
         Task<int> CountAllActiveDoctorsAsync();
         Task<List<string>> GetDistinctDepartment();
+        Task<List<Doctor>> GetDoctorsBySchedule(List<int> ids);
     }
 }

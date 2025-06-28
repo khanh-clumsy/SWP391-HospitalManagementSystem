@@ -113,5 +113,17 @@ namespace HospitalManagement.Repositories
         {
             return await _context.Doctors.Where(d=>d.IsActive == true).CountAsync();
         }
+
+        public async Task<List<Doctor>> GetDoctorsBySchedule(List<int> ids)
+        {
+            var doctors = await _context.Schedules
+                .Where(s => ids.Contains(s.ScheduleId))
+                .Include(s => s.Doctor).Select(s => s.Doctor)
+                .Distinct()
+                .ToListAsync();
+
+            return doctors;
+        }
+
     }
 }

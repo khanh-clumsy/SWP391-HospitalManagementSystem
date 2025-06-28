@@ -19,8 +19,6 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
-                .Include(a => a.Package)
-                .Include(a => a.Service)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.StaffId == UserID) ||
@@ -30,7 +28,6 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(Name))
             {
                 Name = string.Join(" ", Name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-
                 query = RoleKey switch
                 {
                     "PatientID" => query.Where(a => a.Doctor.FullName.Contains(Name)),

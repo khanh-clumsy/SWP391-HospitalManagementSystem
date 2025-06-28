@@ -159,10 +159,9 @@
                 <button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
                     <i class="bi bi-chevron-right"></i>
                 </button>
+                <div style="width:100px;"></div>
+                <button class="btn btn-warning mt-3" onclick="openRoomChangePopup()">Đổi phòng</button>
             </div>
-
-            <div style="width:100px;"></div>
-            <button class="btn btn-warning mt-3" onclick="openRoomChangePopup()">Đổi phòng</button>
         </div>
 
         <!-- Bảng lịch -->
@@ -210,11 +209,6 @@
                 }
             </tbody>
         </table>
-        <div class="text-end mt-3">
-            <button type="submit" class="btn btn-warning">
-                Xác nhận đổi phòng
-            </button>
-        </div>
     </div>
 
     <div class="modal fade" id="roomChangeModal" tabindex="-1" aria-hidden="true">

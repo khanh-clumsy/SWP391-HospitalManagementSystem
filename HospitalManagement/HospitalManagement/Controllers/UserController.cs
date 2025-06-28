@@ -296,7 +296,31 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> ConfirmRoomChange(string selectedSchedules, int newRoomId)
         {
             var ids = selectedSchedules.Split(',').Select(int.Parse).ToList();
+            var doctors = await _doctorRepo.GetDoctorsBySchedule(ids);
+            if (doctors != null)
+            {
+                foreach (var doctor in doctors)
+                {
+                    try
+                    {
+                        var emailBody = $@"
+                        <h3>Cập nhật lịch làm việc</h3>
+                        <p><strong>Kiểm tra chi tiết tại trang lịch làm việc</strong></p>
+                        ";
 
+                        await _emailService.SendEmailAsync(
+                            toEmail: doctor.Email,
+                            subject: "Thông báo thay đổi phòng làm việc",
+                            body: emailBody
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["error"] = $"Failed to send email";
+                        return View(selectedSchedules, newRoomId);
+                    }
+                }
+            }
             await _scheduleRepo.ChangeRoomForSchedulesAsync(ids, newRoomId);
             TempData["success"] = "Đổi phòng thành công.";
 
@@ -356,8 +380,7 @@ namespace HospitalManagement.Controllers
             ViewBag.Units = GetAllRoomTypes();
             // Kiểm tra thủ công định dạng RoomName bằng controller
             if (string.IsNullOrWhiteSpace(room.RoomName) ||
-                string.IsNullOrWhiteSpace(room.RoomType) ||
-                string.IsNullOrWhiteSpace(room.Status))
+                string.IsNullOrWhiteSpace(room.RoomType) )
             {
                 TempData["error"] = "Vui lòng không để trống các trường bắt buộc.";
                 return View(room);
@@ -729,15 +752,51 @@ namespace HospitalManagement.Controllers
             return View(staff);
         }
 
-        //[HttpGet]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    // Đăng xuất người dùng khỏi Identity (cookie authentication)
-        //    await HttpContext.SignOutAsync();
+        [HttpGet]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> OngoingPatientScreen()
+        {
+            return View();
+        }
+        [HttpGet]
+        [Authorize(Roles = "Doctor")]
+        public async Task<IActionResult> GetTodayPatients()
+        {
+            // 1. Lấy DoctorId từ claims
+            int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
 
-        //    TempData["success"] = "Logout successful!";
-        //    return RedirectToAction("Index", "Home");
-        //}
+            // 2. Lấy thông tin bác sĩ
+            var doctor = await _doctorRepo.GetByIdAsync(doctorId); // nên Include Department
+            if (doctor == null)
+                return RedirectToAction("NotFound", "Home");
+
+            List<Patient> patients;
+
+            if (doctor.DepartmentName == "Xét nghiệm" || doctor.DepartmentName == "Chẩn đoán hình ảnh")
+            {
+                // 3. Nếu là bác sĩ xét nghiệm, lấy phòng hiện tại
+                var roomId = await _scheduleRepo.GetCurrentWorkingRoomId(doctorId);
+                if (roomId == null)
+                    return Json(new List<object>()); // không có lịch trực hiện tại
+
+                patients = await _patientRepo.GetOngoingLabPatientsByRoom(roomId.Value);
+            }
+            else
+            {
+                // 4. Bác sĩ khám thường
+                patients = await _patientRepo.GetOngoingPatients(doctorId);
+            }
+
+            // 5. Trả JSON danh sách bệnh nhân đơn giản
+            var result = patients.Select(p => new
+            {
+                id = p.PatientId,
+                patientName = p.FullName
+            }).ToList();
+
+            return Json(result);
+        }
+
         public static string NormalizeName(string? input)
         {
             if (string.IsNullOrEmpty(input))
@@ -771,6 +830,7 @@ namespace HospitalManagement.Controllers
             // Trộn chuỗi để các ký tự không cố định vị trí
             return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
         }
+        
         public List<SelectListItem> GetAllDepartmentName()
         {
 
@@ -782,6 +842,8 @@ namespace HospitalManagement.Controllers
                 new ("Thần kinh", "Thần kinh"),
                 new ("Phụ sản", "Phụ sản"),
                 new ("Nhi", "Nhi"),
+                new ("Xét nghiệm", "Xét nghiệm"),
+                new ("Chẩn đoán hình ảnh", "Chẩn đoán hình ảnh"),
                 new ("Nha khoa", "Nha khoa"),
                 new ("Ngoại tiêu hóa", "Ngoại tiêu hóa"),
                 new ("Mắt", "Mắt"),
@@ -797,13 +859,10 @@ namespace HospitalManagement.Controllers
             return new List<SelectListItem>
             {
                 new ("Phòng khám", "Phòng khám"),
-                new ("Phòng chụp X Quang", "Phòng chụp X Quang"),
                 new ("Phòng xét nghiệm máu", "Phòng xét nghiệm máu"),
                 new ("Phòng nội soi", "Phòng nội soi"),
-                new ("Phòng xét nghiệm men gan", "Phòng xét nghiệm men gan"),
-                new ("Phòng đo mắt", "Phòng đo mắt"),
-                new ("Phòng xét nghiệm nước tiểu", "Phòng xét nghiệm nước tiểu"),
-                new ("Phòng khám răng", "Phòng khám răng"),
+                new ("Phòng chẩn đoán hình ảnh", "Phòng chẩn đoán hình ảnh"),
+                new ("Phòng siêu âm", "Phòng siêu âm"),
                 new ("Khác", "Khác"),
             };
         }
