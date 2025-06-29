@@ -146,18 +146,9 @@
                             <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Thông tin cá nhân</a>
                             <div class="dropdown-menu rounded-0 rounded-bottom m-0">
                                 <a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">Xem thông tin cá nhân</a>
-								@if (User.HasClaim(c => c.Type == "DepartmentName") &&
-															User.FindFirst("DepartmentName")?.Value != "Xét nghiệm" && User.FindFirst("DepartmentName")?.Value != "Chẩn đoán hình ảnh")
-								{
-									<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn của tôi</a>
-								}
-								else
-								{
-									<a class ="dropdown-item" asp-controller="User" asp-action="OngoingPatientScreen">Xem bệnh nhân sắp tới</a>
-								}
+								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn của tôi</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
-
 								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
 													User.FindFirst("IsDepartmentHead")?.Value == "True")
 								{
@@ -171,6 +162,28 @@
                         </div>
                         <a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Bác sĩ</a>
                     }
+					else if (User.IsInRole("TestDoctor"))
+					{
+						<!-- Doctor -->
+						<div class="nav-item dropdown">
+							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Thông tin cá nhân</a>
+							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
+								<a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">Xem thông tin cá nhân</a>
+								<a class="dropdown-item" asp-controller="User" asp-action="OngoingPatientScreen">Xem bệnh nhân sắp tới</a>
+								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
+								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
+								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
+															User.FindFirst("IsDepartmentHead")?.Value == "True")
+								{
+									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Quản lý lịch làm việc</a>
+								}
+								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Cập nhật thông tin</a>
+								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Đổi mật khẩu</a>
+								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Đăng xuất</a>
+							</div>
+						</div>
+						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Bác sĩ</a>
+					}
                     else if (User.IsInRole("Admin"))
                     {
                         <!-- Admin -->

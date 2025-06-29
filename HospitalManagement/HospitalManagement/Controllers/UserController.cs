@@ -753,13 +753,13 @@ namespace HospitalManagement.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> OngoingPatientScreen()
         {
             return View();
         }
         [HttpGet]
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> GetTodayPatients()
         {
             // 1. Lấy DoctorId từ claims

@@ -38,6 +38,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<Patient>> GetOngoingPatients(int? doctorId)
         {
             return await _context.Appointments
+                .OrderBy(a => a.SlotId)
                 .Where(a => a.Status == "Ongoing" && a.DoctorId == doctorId)
                 .Include(a => a.Patient)
                 .Select(a => a.Patient)
