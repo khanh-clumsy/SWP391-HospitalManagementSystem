@@ -28,7 +28,7 @@ namespace HospitalManagement.Controllers
 
         }
 
-        [Authorize(Roles = "Cashier, Sales, Doctor")]
+        [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> ViewSchedule(int? year, string? weekStart)
         {
             var user = HttpContext.User;
@@ -37,8 +37,6 @@ namespace HospitalManagement.Controllers
 
             var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Email == email);
             if (doctor == null) return NotFound();
-
-
 
             // Nếu không truyền gì, dùng tuần hiện tại
             int selectedYear = year ?? DateTime.Today.Year;
@@ -70,6 +68,8 @@ namespace HospitalManagement.Controllers
 
             ViewBag.SelectedYear = selectedYear;
             ViewBag.SelectedWeekStart = selectedWeekStart;
+            var slots = _context.Slots.ToList();
+            ViewBag.SlotsPerDay = slots.Count();
             // TempData["success"] = $"Size: {schedules.Capacity}";
             //return Redirect("Home/NotFound");
             return View(schedules);
@@ -81,7 +81,7 @@ namespace HospitalManagement.Controllers
             return date.AddDays(-diff);
         }
 
-        [Authorize(Roles = "Cashier, Sales, Doctor")]
+        [Authorize(Roles = "Doctor")]
         [HttpGet]
         public IActionResult GetScheduleTable(int year, DateOnly weekStart)
         {
@@ -111,7 +111,8 @@ namespace HospitalManagement.Controllers
                 .ToList();
 
             ViewBag.DaysInWeek = daysInWeek;
-            ViewBag.SlotsPerDay = 6;
+            var slots = _context.Slots.ToList();
+            ViewBag.SlotsPerDay = slots.Count();
             ViewBag.SelectedYear = year;
             ViewBag.SelectedWeekStart = weekStart;
 
@@ -152,7 +153,7 @@ namespace HospitalManagement.Controllers
                     DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
 
                     var slots = _context.Slots.ToList();
-
+                    ViewBag.SlotsPerDay = slots.Count();
                     ViewBag.SelectedYear = selectedYear;
                     ViewBag.SelectedWeekStart = selectedWeekStart;
                     ViewBag.ListDep = new List<string> { doctor.DepartmentName };
@@ -160,7 +161,6 @@ namespace HospitalManagement.Controllers
                     var doctorList = await _doctorRepo.GetAllDoctorsWithDepartment(doctor.DepartmentName);
                     ViewBag.ListDoctor = doctorList
                                         .Where(d => d.IsActive)
-                                        .ToList()
                                         .Select(d => new ViewModels.CardViewModel
                                         {
                                             doctorId = d.DoctorId,
@@ -200,7 +200,7 @@ namespace HospitalManagement.Controllers
                 DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
 
                 var slots = _context.Slots.ToList();
-
+                ViewBag.SlotsPerDay = slots.Count();
                 ViewBag.SelectedYear = selectedYear;
                 ViewBag.SelectedWeekStart = selectedWeekStart;
                 ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment();
@@ -246,18 +246,23 @@ namespace HospitalManagement.Controllers
 
 
             ViewBag.DaysInWeek = daysInWeek;
-            ViewBag.SlotsPerDay = 6;
+            ViewBag.SlotsPerDay = slots.Count();
             ViewBag.SelectedYear = year;
             ViewBag.SelectedWeekStart = weekStart;
 
             // TempData["success"] = $"{weekStart}";
             return PartialView("_ScheduleTablePartial2", slots);
         }
-        
+
         [Authorize(Roles = "Admin, Doctor")]
         [HttpPost]
-        public async Task<IActionResult> AddDoctorIntoSlot(Dictionary<string, string> SlotStates, string doctorId, string roomId, string departmentName, int year, DateOnly weekStart)
+        public async Task<IActionResult> AddDoctorIntoSlot(Dictionary<string, string> SlotStates, string doctorId, string roomId, string departmentName,
+                                                            int year, DateOnly weekStart,
+                                                            List<string> existingSuccessList,
+                                                            List<string> existingFailList,
+                                                            List<string> existingWorkingList)
         {
+
             var selectedSlots = SlotStates
                 .Where(ss => ss.Value == "true")
                 .Select(ss =>
@@ -272,9 +277,6 @@ namespace HospitalManagement.Controllers
             int parsedDoctorId = int.Parse(doctorId);
             int parsedRoomId = int.Parse(roomId);
 
-            var successKeys = new List<string>();
-            var failKeys = new List<string>();
-
             foreach (var item in selectedSlots)
             {
                 bool exists = _context.Schedules.Any(s =>
@@ -285,9 +287,9 @@ namespace HospitalManagement.Controllers
                 var room = await _roomRepo.GetRoomById(parsedRoomId);
 
                 string key = $"{item.Date:yyyy-MM-dd}_{item.Slot}";
-                if (exists || room.Status!="Active")
+                if (exists || room.Status != "Active")
                 {
-                    failKeys.Add(key);
+                    existingFailList.Add(key);
                 }
                 else
                 {
@@ -299,7 +301,7 @@ namespace HospitalManagement.Controllers
                         RoomId = parsedRoomId
                     });
                     _context.SaveChanges();
-                    successKeys.Add(key);
+                    existingSuccessList.Add(key);
                 }
             }
 
@@ -308,12 +310,53 @@ namespace HospitalManagement.Controllers
             var daysInWeek = Enumerable.Range(0, 7).Select(i => weekStart.AddDays(i)).ToList();
             var slots = _context.Slots.ToList();
 
-            ViewBag.DaysInWeek = daysInWeek;
-            ViewBag.SlotsPerDay = 6;
             ViewBag.SelectedYear = year;
             ViewBag.SelectedWeekStart = weekStart;
-            ViewBag.SuccessList = successKeys;
-            ViewBag.FailList = failKeys;
+            ViewBag.SlotsPerDay = slots.Count();
+            ViewBag.SuccessList = existingSuccessList;
+            ViewBag.FailList = existingFailList;
+            ViewBag.WorkingList = existingWorkingList;
+        
+            return PartialView("_ScheduleTablePartial2", slots);
+        }
+
+        [Authorize(Roles = "Admin, Doctor")]
+        [HttpPost]
+        public IActionResult GetDoctorScheduleInWeek(string doctorId , string year, string weekStart)
+        {
+            var slots = _context.Slots.ToList();
+            ViewBag.SlotsPerDay = slots.Count();
+            int parsedYear = int.Parse(year);
+
+
+            if (!DateOnly.TryParse(weekStart, out var startDate) || string.IsNullOrEmpty(doctorId))
+            {
+
+                DateOnly selectedWeekStart; 
+                selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
+
+                ViewBag.SelectedYear = parsedYear;
+                ViewBag.SelectedWeekStart = selectedWeekStart;
+
+                return PartialView("_ScheduleTablePartial2", slots);
+            }
+            int parsedDoctorId = int.Parse(doctorId);
+
+            var endDate = startDate.AddDays(6);
+
+            var workingList = _context.Schedules
+                .Where(s => s.DoctorId == parsedDoctorId && s.Day >= startDate && s.Day <= endDate)
+                .Select(s => $"{s.Day:yyyy-MM-dd}_{s.SlotId}")
+                .ToList();
+
+
+             
+            ViewBag.SelectedYear = parsedYear;
+            ViewBag.SelectedWeekStart = startDate;
+
+            ViewBag.WorkingList = workingList;
+
+            // TempData["success"] = "Đã tải lịch làm việc.";
 
             return PartialView("_ScheduleTablePartial2", slots);
         }

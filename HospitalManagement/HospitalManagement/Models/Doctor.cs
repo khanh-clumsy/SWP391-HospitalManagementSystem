@@ -38,21 +38,35 @@ public partial class Doctor
 
     public string GenerateDoctorCode()
     {
-        var parts = this.FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length == 0) return "Unknown" + this.DoctorId;
-
-        var last = parts[^1];
-        var initials = string.Join("", parts.Take(parts.Length - 1).Select(p => p[0]));
-
-        return $"{RemoveDiacritics(last)}{initials.ToUpper()}{this.DoctorId}";
+        string ans = "";
+        string s = this.FullName;
+        var part = s.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for(int i = 0;i<part.Length;i++)
+        {
+            string x = part[i];
+            if (i < part.Length - 1) ans += char.ToUpper(x[0]);
+            else ans = x + ans;
+        }
+        ans += this.DoctorId.ToString();
+        return ans;
     }
+    // public string GenerateDoctorCode()
+    // {
+    //     var parts = this.FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    //     if (parts.Length == 0) return "Unknown" + this.DoctorId;
 
-    private string RemoveDiacritics(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return text;
+    //     var last = parts[^1];
+    //     var initials = string.Join("", parts.Take(parts.Length - 1).Select(p => p[0]));
 
-        var normalized = text.Normalize(NormalizationForm.FormD);
-        var chars = normalized.Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark);
-        return new string(chars.ToArray()).Normalize(NormalizationForm.FormC);
-    }
+    //     return $"{RemoveDiacritics(last)}{initials.ToUpper()}{this.DoctorId}";
+    // }
+
+    // private string RemoveDiacritics(string text)
+    // {
+    //     if (string.IsNullOrWhiteSpace(text)) return text;
+
+    //     var normalized = text.Normalize(NormalizationForm.FormD);
+    //     var chars = normalized.Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark);
+    //     return new string(chars.ToArray()).Normalize(NormalizationForm.FormC);
+    // }
 }
