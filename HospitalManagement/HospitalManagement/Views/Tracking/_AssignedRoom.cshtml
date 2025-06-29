@@ -1,0 +1,43 @@
+﻿@model List<HospitalManagement.Models.Tracking>
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-@ViewBag.Status alert-dismissible fade show text-center" style="z-index:1055;">
+        @ViewBag.Message
+    </div>
+}
+@if (!Model.Any())
+{
+    <p class="text-muted">Chưa có phòng được chỉ định.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var tracking in Model)
+        {
+            var testStatus = tracking.TestList?.TestStatus ?? "Chưa rõ";
+            if(tracking.Room.RoomType =="Phòng khám")
+            { <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@tracking.Room.RoomName - @tracking.Room.RoomType</strong>
+                </div>  
+                </li>
+            }else{
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                        <strong>@tracking.Room.RoomName - @tracking.Room.RoomType - @tracking.TestList?.Test?.Name</strong>
+                    <br />
+                    <span class="badge bg-secondary">Trạng thái: @testStatus</span>
+                </div>
+
+                @if (testStatus == "Completed")
+                {
+                    <a href="@Url.Action("TestDetail", "Tracking", new { id = tracking.TestListId })"
+                       class="btn btn-sm btn-outline-primary">
+                        Xem kết quả
+                    </a>
+                }
+            </li>
+            }
+        }
+    </ul>
+}

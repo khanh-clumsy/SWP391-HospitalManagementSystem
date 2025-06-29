@@ -4,6 +4,7 @@ using HospitalManagement.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
+using System.Security.Claims;
 using X.PagedList;
 
 namespace HospitalFETemplate.Controllers
@@ -20,10 +21,12 @@ namespace HospitalFETemplate.Controllers
         public IActionResult Index()
         {
             return View();
+
         }
         public IActionResult About()
         {
             return View();
+            
         }
 
         public IActionResult Service()
