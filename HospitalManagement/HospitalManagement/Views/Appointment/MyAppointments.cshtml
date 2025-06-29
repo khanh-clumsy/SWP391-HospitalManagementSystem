@@ -58,6 +58,7 @@
 				<option value="Ongoing" selected="@(ViewBag.StatusFilter == "Ongoing" ? "selected" : null)">Đang diễn ra</option>
 				<option value="Completed" selected="@(ViewBag.StatusFilter == "Completed" ? "selected" : null)">Hoàn thành</option>
 				<option value="Cancelled" selected="@(ViewBag.StatusFilter == "Cancelled" ? "selected" : null)">Đã hủy</option>
+				<option value="Failed" selected="@(ViewBag.StatusFilter == "Cancelled" ? "selected" : null)">Thất bại (hủy bởi hệ thống)</option>
 			</select>
 
 
@@ -125,6 +126,10 @@
 										<span class="badge bg-info text-white">Đang diễn ra</span>
 									}
 									else if (item.Status == "Rejected")
+									{
+										<span class="badge bg-danger">Từ chối</span>
+									}
+									else if (item.Status == "Failed")
 									{
 										<span class="badge bg-danger">Từ chối</span>
 									}

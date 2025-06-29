@@ -152,8 +152,14 @@ namespace HospitalManagement.Controllers
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.Role, "Doctor"),
                         new Claim("DoctorID", user.DoctorId.ToString()),
-                        new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString())
+                        new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString()),
                     };
+                var allowedDepartments = new[] { "Khoa Xét Nghiệm", "Khoa Vi Sinh", "Khoa Sinh Hóa" };
+                if (allowedDepartments.Contains(user.DepartmentName))
+                {
+                    claims.Add(new Claim("FunctionalRole", "TestingDoctor"));
+                }
+
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
