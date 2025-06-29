@@ -1,4 +1,4 @@
-﻿    using HospitalManagement.Data;
+﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +39,7 @@ namespace HospitalManagement.Controllers
             return View(new ViewModels.ResetPasswordModel());
         }
 
- 
+
 
         private readonly HospitalManagementContext _context;
         private readonly PasswordHasher<Patient> _patientHasher;
@@ -101,7 +101,7 @@ namespace HospitalManagement.Controllers
             }
 
             //Patient
-            if (LogInfo.Role == "Patient")
+            else if (LogInfo.Role == "Patient")
             {
                 var user = _context.Patients.SingleOrDefault(u => u.Email == LogInfo.Email);
 
@@ -133,7 +133,7 @@ namespace HospitalManagement.Controllers
                 TempData["success"] = "Login successful!";
                 return RedirectToAction("Index", "Home");
             }
-            else if(LogInfo.Role=="Doctor")// Doctor
+            else if (LogInfo.Role == "Doctor")// Doctor
             {
                 var user = _context.Doctors.SingleOrDefault(u => u.Email == LogInfo.Email);
                 if (user == null || _doctorHasher.VerifyHashedPassword(user, user.PasswordHash, LogInfo.Password) != PasswordVerificationResult.Success)
@@ -147,13 +147,18 @@ namespace HospitalManagement.Controllers
 
                     return View(LogInfo);
                 }
+                string roleName = "Doctor";
+                if (user.DepartmentName == "Xét nghiệm" || user.DepartmentName == "Chẩn đoán hình ảnh")
+                {
+                    roleName = "TestDoctor";
+                }
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, "Doctor"),
-                        new Claim("DoctorID", user.DoctorId.ToString())
+                        new Claim(ClaimTypes.Role, roleName),
+                        new Claim("DoctorID", user.DoctorId.ToString()),
+                        new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString()),
                     };
-
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
@@ -192,7 +197,7 @@ namespace HospitalManagement.Controllers
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                TempData["success"] = user.RoleName+" Login successful!";
+                TempData["success"] = user.RoleName + " Login successful!";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -447,12 +452,19 @@ namespace HospitalManagement.Controllers
 
                     return RedirectToAction("Login");
                 }
+                string roleName = "Doctor";
+                if (user.DepartmentName == "Xét nghiệm" || user.DepartmentName == "Chẩn đoán hình ảnh")
+                {
+                    roleName = "TestDoctor";
+                }
                 // Tạo Claim và Identity cho Doctor
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.Role, "Doctor"),
-                        new Claim("DoctorID", user.DoctorId.ToString())
+                        new Claim("DoctorID", user.DoctorId.ToString()),
+                        new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString()),
+                       
                     };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -494,7 +506,7 @@ namespace HospitalManagement.Controllers
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                TempData["success"] = user.RoleName+" Login successful!";
+                TempData["success"] = user.RoleName + " Login successful!";
                 return RedirectToAction("Index", "Home");
             }
         }
@@ -504,7 +516,7 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> ForgotPassword(ResetPasswordModel model)
         {
-            if(model.Role=="Patient")
+            if (model.Role == "Patient")
             {
                 var user = await _context.Patients.FirstOrDefaultAsync(x => x.Email == model.Email);
                 if (user == null)
@@ -533,7 +545,7 @@ namespace HospitalManagement.Controllers
                 TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
                 return RedirectToAction("Login");
             }
-            else if(model.Role == "Doctor")
+            else if (model.Role == "Doctor")
             {
                 var user = await _context.Doctors.FirstOrDefaultAsync(x => x.Email == model.Email);
                 if (user == null)
@@ -562,7 +574,7 @@ namespace HospitalManagement.Controllers
                 TempData["success"] = "Đã gửi liên kết đặt lại mật khẩu qua email.";
                 return RedirectToAction("Login");
             }
-            else if(model.Role == "Staff")// Staff
+            else if (model.Role == "Staff")// Staff
             {
                 var user = await _context.Staff.FirstOrDefaultAsync(x => x.Email == model.Email);
                 if (user == null)
@@ -610,7 +622,7 @@ namespace HospitalManagement.Controllers
             }
 
             HttpContext.Session.SetString("Token", token); // truyen token vao session de DoResetPassword get
-            return View(new ResetPasswordModel(){ Role = role }); // to HTML form
+            return View(new ResetPasswordModel() { Role = role }); // to HTML form
         }
 
 
@@ -693,7 +705,7 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            TempData["error"] = "Unknow Role Access"+model.Role+"!";
+            TempData["error"] = "Unknow Role Access" + model.Role + "!";
             return RedirectToAction("Index", "Home");
         }
 

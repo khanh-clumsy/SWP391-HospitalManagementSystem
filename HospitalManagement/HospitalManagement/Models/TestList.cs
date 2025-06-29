@@ -13,11 +13,13 @@ public partial class TestList
 
     public string? Result { get; set; }
 
-    public string? Note { get; set; }
-
     public DateTime? CreatedAt { get; set; }
+
+    public string TestStatus { get; set; } = null!;
 
     public virtual Appointment Appointment { get; set; } = null!;
 
     public virtual Test Test { get; set; } = null!;
+
+    public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
 }

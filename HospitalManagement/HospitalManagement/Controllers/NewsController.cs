@@ -112,7 +112,6 @@ namespace HospitalManagement.Controllers
                 {
                     await photo.CopyToAsync(stream);
                 }
-
                 model.Thumbnail = fileName;
             }
 
@@ -178,7 +177,6 @@ namespace HospitalManagement.Controllers
                 {
                     await photo.CopyToAsync(stream);
                 }
-
                 // Xóa file cũ nếu có
                 if (!string.IsNullOrEmpty(oldNews.Thumbnail))
                 {

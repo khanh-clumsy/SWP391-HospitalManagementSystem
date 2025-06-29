@@ -1,0 +1,77 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<Appointment>
+
+@{
+    ViewBag.Title = "Danh sách cuộc hẹn đang diễn ra";
+}
+
+<div class="container-xxl py-5">
+    <div class="container">
+        <div class="mb-4">
+            <h2 class="text-primary">Danh sách cuộc hẹn đang diễn ra</h2>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên bệnh nhân</th>
+                        <th>Ngày</th>
+                        <th>Thời gian</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                               
+                                <td>@item.Patient.FullName</td>
+                                <td>@item.Date</td>
+                                <td>@($"{item.Slot?.StartTime:hh\\:mm} - {item.Slot?.EndTime:hh\\:mm}")</td>
+                                <td>@item.Status</td>
+                                <td>
+                                    <a asp-controller="Tracking"
+                                       asp-action="MedicalExam"
+                                       asp-route-id="@item.AppointmentId"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="fas fa-stethoscope"></i> Khám bệnh
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5"class="text-muted">Không có cuộc hẹn nào đang diễn ra.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (Model != null && Model.PageCount > 1)
+        {
+            <div class="d-flex justify-content-center mt-4">
+                @Html.PagedListPager(Model, page => Url.Action("OngoingAppointments", new { page }),
+                         new PagedListRenderOptions
+            {
+                DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+                DisplayLinkToLastPage = PagedListDisplayMode.Always,
+                DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+                DisplayLinkToNextPage = PagedListDisplayMode.Always,
+                DisplayLinkToIndividualPages = true,
+                MaximumPageNumbersToDisplay = 5,
+                UlElementClasses = new[] { "pagination" },
+                LiElementClasses = new[] { "page-item" },
+                PageClasses = new[] { "page-link" }
+            })
+            </div>
+        }
+    </div>
+</div>

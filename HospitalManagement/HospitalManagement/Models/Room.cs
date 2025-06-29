@@ -11,7 +11,7 @@ public partial class Room
 
     public string? Status { get; set; }
 
-    public virtual ICollection<RoomTest> RoomTests { get; set; } = new List<RoomTest>();
+    public string? RoomType { get; set; }
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 

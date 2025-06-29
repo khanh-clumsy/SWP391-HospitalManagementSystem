@@ -73,7 +73,7 @@ namespace HospitalManagement.Controllers
             return View(vm);
         }
 
-        
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status)
         {
@@ -605,6 +605,9 @@ namespace HospitalManagement.Controllers
                 new ("Thần kinh", "Thần kinh"),
                 new ("Phụ sản", "Phụ sản"),
                 new ("Nhi", "Nhi"),
+                new ("Xét nghiệm", "Xét nghiệm"),
+                new ("Chẩn đoán hình ảnh", "Chẩn đoán hình ảnh"),
+                new ("Nha khoa", "Nha khoa"),
                 new ("Ngoại tiêu hóa", "Ngoại tiêu hóa"),
                 new ("Mắt", "Mắt"),
                 new ("Y học hạt nhân", "Y học hạt nhân"),

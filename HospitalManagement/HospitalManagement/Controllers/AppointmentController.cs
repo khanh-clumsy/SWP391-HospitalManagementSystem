@@ -81,13 +81,13 @@ namespace HospitalManagement.Controllers
                 {
                     case "Today":
                         filteredList = filteredList.Where(a => a.Date == today
-                        && (a.Status == "Pending" || a.Status == "Accepted")).
+                        && (a.Status == "Pending" || a.Status == "Confirmed")).
                         ToList();
                         break;
 
                     case "Ongoing":
                         filteredList = filteredList.Where(a =>  
-                          a.Date > today && (a.Status == "Pending" || a.Status == "Accepted"))
+                          a.Date > today && (a.Status == "Pending" || a.Status == "Confirmed"))
                          .ToList();
                         break;
 
@@ -728,8 +728,6 @@ namespace HospitalManagement.Controllers
             input = input.Trim();
             var words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             return string.Join(" ", words);
-
-
         }
     }
 }
