@@ -1,0 +1,27 @@
+﻿@model List<Room>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Tên phòng</th>
+            <th>Loại phòng</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var room in Model)
+        {
+            <tr>
+                <td>@room.RoomName</td>
+                <td>@room.RoomType</td>
+                <td>
+                    <form method="post" asp-action="ConfirmRoomChange">
+                        <input type="hidden" name="selectedSchedules" value="@string.Join(",", ViewBag.SelectedSchedules)" />
+                        <input type="hidden" name="newRoomId" value="@room.RoomId" />
+                        <button type="submit" class="btn btn-primary">Chọn phòng này</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

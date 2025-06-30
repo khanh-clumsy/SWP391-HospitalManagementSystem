@@ -11,6 +11,8 @@ public partial class Test
 
     public decimal Price { get; set; }
 
+    public string? RoomType { get; set; }
+
     public string? Description { get; set; }
 
     public virtual ICollection<PackageTest> PackageTests { get; set; } = new List<PackageTest>();

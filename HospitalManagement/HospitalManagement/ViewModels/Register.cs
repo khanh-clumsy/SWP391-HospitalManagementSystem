@@ -3,8 +3,8 @@ namespace HospitalManagement.ViewModels
 {
     public class Register
     {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email không được để trống")]
+        [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         public string Email { get; set; }
 
         [Required]
@@ -15,31 +15,35 @@ namespace HospitalManagement.ViewModels
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; } = null!;
-        [Required]
+
+
+        [Required(ErrorMessage = "Tên không được để trống")]
         public string FullName { get; set; }
 
+        [Required(ErrorMessage = "Số điện thoại không được để trống")]
         [Phone]
         public string PhoneNumber { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Giới tính không được để trống")]
         public string Gender { get; set; } = null!;
 
         public string? ProfileImage { get; set; }
 
-
+        [Required(ErrorMessage = "Vị trí không được để trống")]
         public string RoleName { get; set; } = "Patient"; // mặc định
 
 
         // for doctor 
-        [Required]
+        [Required(ErrorMessage = "Tên khoa không được để trống")]
         public string? DepartmentName { get; set; }
 
         public bool? IsDepartmentHead { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Năm kinh nghiệm không được để trống")]
         [Range(0, 99)]
         public int? ExperienceYear { get; set; }
 
+        [Required(ErrorMessage = "Bằng cấp không được để trống")]
         public string? Degree { get; set; }
 
         public bool? IsSpecial { get; set; }

@@ -28,6 +28,7 @@ namespace HospitalManagement.Controllers
 
         }
 
+
         [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> ViewSchedule(int? year, string? weekStart)
         {

@@ -1,0 +1,124 @@
+﻿@model HospitalManagement.ViewModels.ReplacementInfoViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Chọn thông tin thay đổi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/png" href="~/img/icons/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="~/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="~/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="~/fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
+    <link rel="stylesheet" type="text/css" href="~/vendor/animate/animate.css">
+    <link rel="stylesheet" type="text/css" href="~/css-hamburgers/hamburgers.min.css">
+    <link rel="stylesheet" type="text/css" href="~/vendor/animsition/css/animsition.min.css">
+    <link rel="stylesheet" type="text/css" href="~/vendor/select2/select2.min.css">
+    <link rel="stylesheet" type="text/css" href="~/vendor/daterangepicker/daterangepicker.css">
+    <link rel="stylesheet" type="text/css" href="~/css/util.css">
+    <link rel="stylesheet" type="text/css" href="~/css/login.css">
+    <style>
+        .popup-alert {
+            position: fixed;
+            text-align: center;
+            top: 5px;
+            right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="limiter">
+        <div class="container-login100" style="background-image: url('@Url.Content("~/img/bg.jpg")');">
+            <div class="wrap-login100 p-l-110 p-r-110 p-t-62 p-b-33">
+                <div>
+                    @if (TempData["error"] != null)
+                    {
+                        <div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center" role="alert">
+                            <div>@TempData["error"]</div>
+                        </div>
+                    }
+                    @if (TempData["success"] != null)
+                    {
+                        <div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center" role="alert">
+                            <div>@TempData["success"]</div>
+                        </div>
+                    }
+                </div>
+
+                <form asp-action="SelectReplacementInfo" asp-controller="User" method="post" class="login100-form validate-form flex-sb flex-w" enctype="multipart/form-data">
+                    <span class="login100-form-title p-b-20">Chọn thông tin thay đổi</span>
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger w-100 text-center mb-2" })
+
+                    <!-- Chọn phòng -->
+                    <div class="p-t-13 p-b-9 w-100">
+                        <span class="txt1">Phòng mới</span>
+                        <span asp-validation-for="RoomId" class="text-danger small"></span>
+                    </div>
+                    <div class="wrap-input100 validate-input">
+                        <select asp-for="RoomId" class="input100 form-select" asp-items="ViewBag.Rooms">
+                            <option value="">-- Chọn phòng --</option>
+                        </select>
+                        <span class="focus-input100"></span>
+                    </div>
+
+
+                    <!-- Bác sĩ thay thế: chỉ hiện nếu có appointment -->
+                    @if (Model.HasAppointment)
+                    {
+                        <div class="p-t-13 p-b-9 w-100">
+                            <span class="txt1">Bác sĩ thay thế</span>
+                            <span asp-validation-for="ReplacementDoctorId" class="text-danger small"></span>
+                        </div>
+                        <div class="wrap-input100 validate-input">
+                            <select asp-for="ReplacementDoctorId" class="input100 form-select" asp-items="ViewBag.Doctors">
+                                <option value="">-- Chọn bác sĩ --</option>
+                            </select>
+                            <span class="focus-input100"></span>
+                        </div>
+                    }
+
+                    <!-- Submit button -->
+                    <div class="container-login100-form-btn m-t-17 w-100">
+                        <input type="hidden" asp-for="RequestId" />
+                        <button type="submit" class="login100-form-btn">Xác nhận</button>
+                    </div>
+                </form>
+
+                <div class="container-login100-form-btn m-t-17">
+                    <a asp-controller="User" asp-action="ScheduleRequestList" class="login100-form-btn">
+                        Trở về
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/vendor/jquery/jquery-3.2.1.min.js"></script>
+    <script src="~/vendor/animsition/js/animsition.min.js"></script>
+    <script src="~/vendor/bootstrap/js/popper.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/vendor/select2/select2.min.js"></script>
+    <script src="~/vendor/daterangepicker/moment.min.js"></script>
+    <script src="~/vendor/daterangepicker/daterangepicker.js"></script>
+    <script src="~/vendor/countdowntime/countdowntime.js"></script>
+    <script src="~/js/login.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        window.setTimeout(function () {
+            const alertBox = document.getElementById('popup-alert');
+            if (alertBox) {
+                alertBox.classList.remove('show');
+                alertBox.classList.add('hide');
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 3000);
+    </script>
+</body>
+
+</html>

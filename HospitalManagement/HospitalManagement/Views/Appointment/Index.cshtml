@@ -61,7 +61,7 @@
 			<table class="table table-bordered text-center">
 				<thead class="table-light">
 					<tr>
-						<th>Mã cuộc hẹn</th>
+						@* <th>Mã cuộc hẹn</th> *@
 						<th>ID</th>
 						<th>Tên</th>
 						<th>Email</th>
@@ -83,7 +83,7 @@
 						foreach (var item in Model)
 						{
 							<tr>
-								<td>@item.AppointmentCode</td>
+								@* <td>@item.AppointmentCode</td> *@
 								<td>@item.AppointmentId</td>
 								<td>@item.Patient.FullName</td>
 								<td>@item.Patient.Email</td>

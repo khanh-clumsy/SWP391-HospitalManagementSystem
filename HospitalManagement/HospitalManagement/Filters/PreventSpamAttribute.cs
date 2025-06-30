@@ -13,6 +13,11 @@ namespace HospitalManagement.Filters
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            // Nếu có [AllowSpam], bỏ qua kiểm tra
+            if (context.ActionDescriptor.EndpointMetadata.OfType<AllowSpamAttribute>().Any())
+            {
+                return;
+            }
             var request = context.HttpContext.Request;
 
             // Chỉ áp dụng cho POST
