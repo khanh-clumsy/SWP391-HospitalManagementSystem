@@ -38,6 +38,8 @@ public partial class HospitalManagementContext : DbContext
 
     public virtual DbSet<Schedule> Schedules { get; set; }
 
+    public virtual DbSet<ScheduleChangeRequest> ScheduleChangeRequests { get; set; }
+
     public virtual DbSet<Service> Services { get; set; }
 
     public virtual DbSet<Slot> Slots { get; set; }
@@ -345,6 +347,45 @@ public partial class HospitalManagementContext : DbContext
                 .HasForeignKey(d => d.SlotId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Schedule__SlotID__46E78A0C");
+        });
+
+        modelBuilder.Entity<ScheduleChangeRequest>(entity =>
+        {
+            entity.HasKey(e => e.RequestId).HasName("PK__Schedule__33A8519AF3DE838A");
+
+            entity.ToTable("ScheduleChangeRequest");
+
+            entity.Property(e => e.RequestId).HasColumnName("RequestID");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
+            entity.Property(e => e.FromScheduleId).HasColumnName("FromScheduleID");
+            entity.Property(e => e.Reason).HasMaxLength(1000);
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .HasDefaultValue("Pending");
+            entity.Property(e => e.ToRoomId).HasColumnName("ToRoomID");
+            entity.Property(e => e.ToSlotId).HasColumnName("ToSlotID");
+
+            entity.HasOne(d => d.Doctor).WithMany(p => p.ScheduleChangeRequests)
+                .HasForeignKey(d => d.DoctorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ScheduleC__Docto__04E4BC85");
+
+            entity.HasOne(d => d.FromSchedule).WithMany(p => p.ScheduleChangeRequests)
+                .HasForeignKey(d => d.FromScheduleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ScheduleC__FromS__05D8E0BE");
+
+            entity.HasOne(d => d.ToRoom).WithMany(p => p.ScheduleChangeRequests)
+                .HasForeignKey(d => d.ToRoomId)
+                .HasConstraintName("FK__ScheduleC__ToRoo__07C12930");
+
+            entity.HasOne(d => d.ToSlot).WithMany(p => p.ScheduleChangeRequests)
+                .HasForeignKey(d => d.ToSlotId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ScheduleC__ToSlo__06CD04F7");
         });
 
         modelBuilder.Entity<Service>(entity =>

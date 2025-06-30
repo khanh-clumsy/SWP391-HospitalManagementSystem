@@ -70,6 +70,20 @@ namespace HospitalManagement.Repositories
             return schedule?.RoomId;
         }
 
-
+        public async Task<List<ScheduleViewModel>> GetDoctorSchedulesInRangeAsync(int doctorId, DateOnly startDate, DateOnly endDate)
+        {
+            return await _context.Schedules
+                .Where(s => s.DoctorId == doctorId && s.Day >= startDate && s.Day <= endDate)
+                .Select(s => new ScheduleViewModel
+                {
+                    ScheduleId = s.ScheduleId,
+                    Day = s.Day,
+                    SlotIndex = s.SlotId,
+                    RoomName = s.Room.RoomName,
+                    StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
+                    EndTime = s.Slot.EndTime.ToString(@"hh\:mm")
+                })
+                .ToListAsync();
+        }
     }
 }

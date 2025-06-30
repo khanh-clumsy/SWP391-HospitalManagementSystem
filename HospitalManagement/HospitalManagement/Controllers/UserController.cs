@@ -26,7 +26,9 @@ namespace HospitalManagement.Controllers
         private readonly EmailService _emailService;
         private readonly IScheduleRepository _scheduleRepo;
         private readonly ISlotRepository _slotRepo;
-        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, IRoomRepository roomRepo, EmailService emailService, IScheduleRepository scheduleRepository, ISlotRepository slotRepository)
+        private readonly IScheduleChangeRepository _scheduleChangeRepo;
+        private readonly IAppointmentRepository _appointmentRepo;
+        public UserController(HospitalManagementContext context, IDoctorRepository doctorRepo, IPatientRepository patientRepo, IStaffRepository staffRepo, IRoomRepository roomRepo, EmailService emailService, IScheduleRepository scheduleRepository, ISlotRepository slotRepository, IScheduleChangeRepository scheduleChangeRepo, IAppointmentRepository appointmentRepo)
         {
             _context = context;
             _doctorRepo = doctorRepo;
@@ -37,6 +39,8 @@ namespace HospitalManagement.Controllers
             _emailService = emailService;
             _scheduleRepo = scheduleRepository;
             _slotRepo = slotRepository;
+            _scheduleChangeRepo = scheduleChangeRepo;
+            _appointmentRepo = appointmentRepo;
         }
 
 
@@ -53,8 +57,8 @@ namespace HospitalManagement.Controllers
             var totalPatients = await _patientRepo.CountAsync(name, gender);
             vm.Patients = new StaticPagedList<Patient>(patients, pageNumber, pageSize, totalPatients);
 
-            List<Doctor> doctors = await _doctorRepo.SearchAsync(name, department, null, null, null, null, pageNumber, pageSize);
-            var totalDoctors = await _doctorRepo.CountAsync(name, department, null, null, null);
+            List<Doctor> doctors = await _doctorRepo.SearchAsync(name, department, null, null, null, null, true, pageNumber, pageSize);
+            var totalDoctors = await _doctorRepo.CountAsync(name, department, null, null, null, true);
             vm.Doctors = new StaticPagedList<Doctor>(doctors, pageNumber, pageSize, totalDoctors);
 
             List<Staff> staffs = await _staffRepo.SearchAsync(name, roleName, pageNumber, pageSize);
@@ -63,7 +67,7 @@ namespace HospitalManagement.Controllers
 
             vm.AccountType = type;
             // Truyền vào các Department
-            var departments = await _doctorRepo.GetDistinctDepartment();
+            var departments = await _doctorRepo.GetDistinctDepartment(true);
             var roles = await _staffRepo.GetDistinctRole();
 
             // Truyền lại filter cho view
@@ -796,6 +800,255 @@ namespace HospitalManagement.Controllers
 
             return Json(result);
         }
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ScheduleRequestList(int? page, string type = "Pending")
+        {
+
+            int pageSize = 10;
+            int pageNumber = page ?? 1;
+            string viewType = type?.ToLower() == "completed" ? "Completed" : "Pending";
+
+            var vm = new ScheduleChangeRequestListViewModel();
+            vm.ViewType = viewType;
+
+            // Lấy danh sách request theo trạng thái (Pending hoặc Completed)
+            List<ScheduleRequestViewModel> requests = await _scheduleChangeRepo.SearchAsync(viewType, pageNumber, pageSize);
+            int total = await _scheduleChangeRepo.CountAsync(viewType);
+
+            vm.Requests = new StaticPagedList<ScheduleRequestViewModel>(requests, pageNumber, pageSize, total);
+
+            return View("ScheduleRequestList", vm);
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> HandleRequest(int requestId, string decision)
+        {
+
+            var request = await _context.ScheduleChangeRequests
+                .Include(r => r.FromSchedule)
+                .ThenInclude(s => s.Doctor)
+                .FirstOrDefaultAsync(r => r.RequestId == requestId);
+
+            if (request == null)
+            {
+                TempData["error"] = "Không tìm thấy yêu cầu.";
+                return RedirectToAction("ScheduleRequestList");
+            }
+
+            if (request.Status != "Pending")
+            {
+                TempData["error"] = "Yêu cầu này đã được xử lý.";
+                return RedirectToAction("ScheduleRequestList");
+            }
+
+            if (decision == "reject")
+            {
+                request.Status = "Rejected";
+                await _context.SaveChangesAsync();
+                try
+                {
+                    var doctor = await _context.Doctors
+                        .FirstOrDefaultAsync(d => d.DoctorId == request.DoctorId);
+
+                    if (doctor != null)
+                    {
+                        var emailBody = $@"
+                        <h3>Thông báo về yêu cầu đổi lịch</h3>
+                        <p>Xin chào bác sĩ <strong>{doctor.FullName}</strong>,</p>
+                        <p>Yêu cầu đổi lịch của bạn từ <strong>Slot {request.FromSchedule.SlotId} - ngày {request.FromSchedule.Day}</strong> 
+                        đến <strong>Slot {request.ToSlotId} - ngày {request.ToDay}</strong>  đã bị <strong>từ chối</strong>.</p>
+                        <p>Nếu có thắc mắc, vui lòng liên hệ quản trị viên.</p>
+                        ";
+
+                        await _emailService.SendEmailAsync(
+                            toEmail: doctor.Email,
+                            subject: "Yêu cầu đổi lịch bị từ chối",
+                            body: emailBody
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["error"] = $"Failed to send email";
+                    return RedirectToAction("ScheduleRequestList");
+                }
+
+                TempData["success"] = "Đã từ chối yêu cầu.";
+                return RedirectToAction("ScheduleRequestList");
+            }
+            else if (decision == "accept")
+            {
+                // Chuyển hướng sang trang chọn phòng và bác sĩ thay thế
+                return RedirectToAction("SelectReplacementInfo", new { requestId = requestId });
+            }
+
+            TempData["error"] = "Yêu cầu không hợp lệ.";
+            return RedirectToAction("ScheduleRequestList");
+        }
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SelectReplacementInfo(int requestId)
+        {
+            var request = await _context.ScheduleChangeRequests
+                    .Include(r => r.FromSchedule)
+                        .ThenInclude(s => s.Doctor)
+                    .FirstOrDefaultAsync(r => r.RequestId == requestId);
+
+
+            if (request == null)
+            {
+                TempData["error"] = "Không tìm thấy yêu cầu.";
+                return RedirectToAction("ScheduleRequestList");
+            }
+
+            // Kiểm tra xem lịch có appointment không
+            bool hasAppointment = await _appointmentRepo.HasAppointmentAsync(
+                                            request.FromSchedule.DoctorId,
+                                            request.FromSchedule.SlotId,
+                                            request.FromSchedule.Day
+                                        );
+
+
+            // Truyền danh sách phòng
+            var rooms = await _roomRepo.GetAvailableRoomsAsync(request.ToSlotId, request.ToDay);
+            ViewBag.Rooms = rooms;
+
+            // Nếu có appointment thì truyền danh sách bác sĩ cùng khoa (trừ người cũ)
+            if (hasAppointment)
+            {
+                var doctors = await _doctorRepo.GetAvailableDoctorsAsync(
+                                    request.FromSchedule.Doctor.DepartmentName,
+                                    request.FromSchedule.SlotId,
+                                    request.FromSchedule.Day,
+                                    request.FromSchedule.DoctorId
+                                    );
+
+                ViewBag.Doctors = doctors;
+            }
+
+            var vm = new ReplacementInfoViewModel
+            {
+                RequestId = request.RequestId,
+                HasAppointment = hasAppointment
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SelectReplacementInfo(ReplacementInfoViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Vui lòng nhập đầy đủ thông tin.";
+                return View(model);
+            }
+
+            var request = await _context.ScheduleChangeRequests
+                .Include(r => r.FromSchedule)
+                    .ThenInclude(s => s.Doctor)
+                .FirstOrDefaultAsync(r => r.RequestId == model.RequestId);
+
+            if (request == null || request.Status != "Pending")
+            {
+                TempData["error"] = "Yêu cầu đổi lịch không hợp lệ.";
+                return RedirectToAction("ScheduleRequestList");
+            }
+            var fromSchedule = request.FromSchedule;
+            // Nếu có bác sĩ thay thế
+
+            Doctor? replacementDoctor = null;
+            replacementDoctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.ReplacementDoctorId.Value);
+            if (model.ReplacementDoctorId.HasValue)
+            {
+                // Cập nhật Appointment liên quan
+                var appointments = await _context.Appointments
+                    .Include(a => a.Patient)
+                    .Where(a =>
+                        a.DoctorId == request.FromSchedule.Doctor.DoctorId &&
+                        a.SlotId == request.FromSchedule.SlotId &&
+                        a.Date == request.FromSchedule.Day &&
+                        (a.Status == "Pending" || a.Status == "Confirmed"))
+                    .ToListAsync();
+
+                foreach (var appt in appointments)
+                {
+                    appt.DoctorId = replacementDoctor.DoctorId;
+                    await _context.SaveChangesAsync();
+                    // Gửi mail cho bệnh nhân
+                    if (appt.Patient != null)
+                    {
+                        var patientBody = $@"
+                        <h4>Lịch khám đã được cập nhật</h4>
+                        <p><strong>Ngày:</strong> {appt.Date:dd/MM/yyyy}</p>
+                        <p><strong>Giờ:</strong> Slot {appt.SlotId}</p>
+                        <p><strong>Bác sĩ mới:</strong> {replacementDoctor.FullName}</p
+                        <p>Vui lòng xem chi tiết trong hệ thông</p>"
+                    ;
+
+                        await _emailService.SendEmailAsync(
+                            toEmail: appt.Patient.Email,
+                            subject: "📅 Cập nhật lịch khám",
+                            body: patientBody
+                        );
+                    }
+                }
+
+                // Gửi mail cho bác sĩ thay thế
+                replacementDoctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.ReplacementDoctorId.Value);
+                if (replacementDoctor != null)
+                {
+                    var replaceBody = $@"
+                    <h4>Bạn được chỉ định thay thế cho lịch hẹn</h4>
+                    <p><strong>Ngày:</strong> {fromSchedule.Day:dd/MM/yyyy}</p>
+                    <p><strong>Slot:</strong> {fromSchedule.SlotId}</p>
+                    <p>Vui lòng xem chi tiết trong hệ thống</p>"
+                    ;
+
+                    await _emailService.SendEmailAsync(
+                        toEmail: replacementDoctor.Email,
+                        subject: "🔄 Lịch trực thay thế",
+                        body: replaceBody
+                    );
+                }
+            }
+
+            // Cập nhật lịch cũ
+            fromSchedule.RoomId = model.RoomId;
+            fromSchedule.SlotId = request.ToSlotId;
+            fromSchedule.Day = request.ToDay;
+
+            
+
+            // Đánh dấu yêu cầu là đã xử lý
+            request.Status = "Accepted";
+
+            // Gửi mail cho bác sĩ yêu cầu
+            var requestingDoctor = request.FromSchedule.Doctor;
+            if (requestingDoctor != null)
+            {
+                var confirmBody = $@"
+                <h4>Yêu cầu đổi lịch đã được chấp thuận</h4>
+                <p><strong>Lịch mới:</strong> Slot {fromSchedule.SlotId} - {fromSchedule.Day:dd/MM/yyyy}</p>
+                <p><strong>Phòng mới:</strong> {fromSchedule.RoomId}</p>
+                <p>Vui lòng xem chi tiết trong hệ thống</p>"
+                ;
+
+                await _emailService.SendEmailAsync(
+                    toEmail: requestingDoctor.Email,
+                    subject: "✅ Đổi lịch thành công",
+                    body: confirmBody
+                );
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["success"] = "Xử lý yêu cầu đổi lịch thành công.";
+            return RedirectToAction("ScheduleRequestList");
+        }
+
 
         public static string NormalizeName(string? input)
         {
@@ -831,6 +1084,8 @@ namespace HospitalManagement.Controllers
             return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
         }
         
+
+
         public List<SelectListItem> GetAllDepartmentName()
         {
 

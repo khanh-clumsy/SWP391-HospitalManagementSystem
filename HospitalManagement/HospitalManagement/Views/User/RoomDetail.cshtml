@@ -233,11 +233,12 @@
             const jan1 = new Date(year, 0, 1);
             const dayOfWeek = jan1.getDay(); // Chủ nhật = 0 ... Thứ bảy = 6
 
-            // Tính offset để lùi về thứ 2 gần nhất (có thể là tháng 12 năm trước)
-            const offset = (dayOfWeek + 6) % 7; // nếu 1/1 là T2 thì offset = 0
+            // Tính offset để đến thứ Hai gần nhất sau 1/1
+            const offset = (dayOfWeek+6)%7;
 
+            // Tính ngày bắt đầu tuần đầu tiên
             const weekStartDate = new Date(jan1);
-            weekStartDate.setDate(jan1.getDate() - offset);
+            weekStartDate.setDate(jan1.getDate() - offset + 1);
 
             const formattedWeekStart = weekStartDate.toISOString().split("T")[0];
             const roomId = "@Model.RoomId";

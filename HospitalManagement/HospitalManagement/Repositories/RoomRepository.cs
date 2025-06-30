@@ -2,6 +2,7 @@
 using HospitalManagement.Data;
 using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HospitalManagement.Repositories
 {
@@ -245,5 +246,25 @@ namespace HospitalManagement.Repositories
 
             return availableRooms;
         }
+
+        public async Task<List<SelectListItem>> GetAvailableRoomsAsync(int slotId, DateOnly day)
+        {
+            var busyRoomIds = await _context.Schedules
+                .Where(s => s.SlotId == slotId && s.Day == day)
+                .Select(s => s.RoomId)
+                .ToListAsync();
+
+            var availableRooms = await _context.Rooms
+                .Where(r => !busyRoomIds.Contains(r.RoomId))
+                .Select(r => new SelectListItem
+                {
+                    Value = r.RoomId.ToString(),
+                    Text = r.RoomName
+                })
+                .ToListAsync();
+
+            return availableRooms;
+        }
+
     }
 }

@@ -1,26 +1,33 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
-using HospitalManagement.Data;
+using HospitalManagement.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using HospitalManagement.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
+using Newtonsoft.Json;
+using System.Security.Claims;
+using HospitalManagement.Repositories;
+using HospitalManagement.Filters;
 
 namespace HospitalManagement.Controllers
 {
-    [Authorize(Roles = "Doctor")]
+    [Authorize(Roles = "Doctor, TestDoctor")]
     public class DoctorController : Controller
     {
         private readonly PasswordHasher<Doctor> _passwordHasher;
         private readonly HospitalManagementContext _context;
+        private readonly ISlotRepository _slotRepo;
+        private readonly IScheduleRepository _scheduleRepo;
 
-        public DoctorController(HospitalManagementContext context)
+        public DoctorController(HospitalManagementContext context, ISlotRepository slotRepo, IScheduleRepository scheduleRepo)
         {
             _passwordHasher = new PasswordHasher<Doctor>();
             _context = context;
+            _slotRepo = slotRepo;
+            _scheduleRepo = scheduleRepo;
         }
 
         [HttpGet]
@@ -68,18 +75,146 @@ namespace HospitalManagement.Controllers
             }
             return View(user);
         }
-        public IActionResult Dashboard()
+        public async Task<IActionResult> RequestChangeSchedule(string? weekStart)
         {
-            return View();
+            ViewBag.Slots = await _slotRepo.GetAllSlotsAsync();
+            var user = HttpContext.User;
+            string email = user.FindFirstValue(ClaimTypes.Email);
+            if (email == null) Unauthorized();
+
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.Email == email);
+            if (doctor == null) return NotFound();
+
+            DateOnly selectedWeekStart;
+            if (!string.IsNullOrEmpty(weekStart) &&
+                DateOnly.TryParseExact(weekStart, "yyyy-MM-dd", out var parsed))
+            {
+                selectedWeekStart = parsed;
+            }
+            else
+            {
+                selectedWeekStart = GetCurrentWeekStart();
+            }
+
+            // Nếu không truyền gì, dùng tuần hiện tại
+            int selectedYear = GetYearOfWeek(selectedWeekStart);
+
+            
+
+            DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+
+            var schedules = _context.Schedules
+                .Where(s => s.DoctorId == doctor.DoctorId && s.Day >= selectedWeekStart && s.Day <= selectedWeekEnd)
+                .Select(s => new ScheduleViewModel
+                {
+                    ScheduleId = s.ScheduleId,
+                    Day = s.Day,
+                    SlotIndex = s.SlotId,
+                    StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
+                    EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
+                    RoomName = s.Room.RoomName
+                })
+                .ToList();
+
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.SelectedWeekStart = selectedWeekStart;
+            return View(schedules);
         }
-        public IActionResult Appointments()
+
+        [HttpPost]
+        [AllowSpam]
+        public async Task<IActionResult> GetAvailableSlotsPopup([FromBody] ViewModels.ScheduleChangeRequest model, string? weekStart)
         {
-            return View();
+            int fromScheduleId = model.FromScheduleId;
+            DateOnly selectedWeekStart = GetParsedOrCurrentWeekStart(weekStart);
+
+            var fromSchedule = await _context.Schedules
+                .Include(s => s.Doctor)
+                .FirstOrDefaultAsync(s => s.ScheduleId == fromScheduleId);
+
+            if (fromSchedule == null)
+                return NotFound("Không tìm thấy lịch làm việc.");
+
+            int doctorId = fromSchedule.DoctorId;
+
+            var allSlots = await _slotRepo.GetAllSlotsAsync();
+            ViewBag.Slots = allSlots;
+            ViewBag.WeekStart = selectedWeekStart;
+            ViewBag.FirstWeekStart = GetCurrentWeekStart();
+            ViewBag.LastWeekStart = GetCurrentWeekStart().AddDays(35);
+            ViewBag.FromScheduleId = fromScheduleId;
+
+            var lastDate = selectedWeekStart.AddDays(7 * 5 - 1);
+            var doctorSchedules = await _scheduleRepo.GetDoctorSchedulesInRangeAsync(doctorId, selectedWeekStart, lastDate);
+            return PartialView("_SchedulePopup", doctorSchedules);
         }
-        public IActionResult Schedule()
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitScheduleChangeRequest(ScheduleChangeRequestViewModel model)
         {
-            return View();
+            if (!ModelState.IsValid)
+            {
+                TempData["error"] = "Vui lòng điền đầy đủ thông tin yêu cầu đổi lịch.";
+                return RedirectToAction("RequestChangeSchedule");
+            }
+            var fromSchedule = await _context.Schedules
+                .Include(s => s.Doctor)
+                .FirstOrDefaultAsync(s => s.ScheduleId == model.FromScheduleId);
+
+            if (fromSchedule == null)
+            {
+                TempData["error"] = "Vui lòng điền đầy đủ thông tin yêu cầu đổi lịch.";
+                return RedirectToAction("RequestChangeSchedule");
+            }
+
+            int doctorId = fromSchedule.DoctorId;
+
+            // Kiểm tra xem đã tồn tại request nào của bác sĩ này với cùng FromScheduleId chưa
+            var existingRequest = await _context.ScheduleChangeRequests
+                .FirstOrDefaultAsync(r => r.DoctorId == doctorId && r.FromScheduleId == model.FromScheduleId);
+
+            if (existingRequest != null)
+            {
+                // Nếu ToSlot và ToDay giống nhau thì báo lỗi
+                if (existingRequest.ToSlotId == model.SelectedSlot && existingRequest.ToDay == model.SelectedDay)
+                {
+                    TempData["error"] = "Yêu cầu đổi lịch này đã tồn tại.";
+                    return RedirectToAction("RequestChangeSchedule");
+                }
+
+                // Nếu khác thì cập nhật lại
+                existingRequest.ToSlotId = model.SelectedSlot;
+                existingRequest.ToDay = model.SelectedDay;
+                existingRequest.Reason = model.Reason;
+                existingRequest.Status = "Pending";
+                existingRequest.CreatedAt = DateTime.Now;
+
+                _context.ScheduleChangeRequests.Update(existingRequest);
+                await _context.SaveChangesAsync();
+
+                TempData["success"] = "Yêu cầu đổi lịch đã được cập nhật.";
+                return RedirectToAction("RequestChangeSchedule");
+            }
+            // Nếu chưa có request nào thì tạo mới
+            var newRequest = new Models.ScheduleChangeRequest
+            {
+                DoctorId = doctorId,
+                FromScheduleId = model.FromScheduleId,
+                ToSlotId = model.SelectedSlot,
+                ToDay = model.SelectedDay,
+                ToRoomId = null, // để null nếu chưa chọn
+                Reason = model.Reason,
+                Status = "Pending",
+                CreatedAt = DateTime.Now
+            };
+
+            _context.ScheduleChangeRequests.Add(newRequest);
+            await _context.SaveChangesAsync();
+
+            TempData["success"] = "Yêu cầu đổi lịch đã được gửi.";
+            return RedirectToAction("RequestChangeSchedule");
         }
+
 
         [HttpGet]
         public IActionResult ChangePassword()
@@ -302,6 +437,34 @@ namespace HospitalManagement.Controllers
 
             TempData["success"] = "Logout successful!";
             return RedirectToAction("Index", "Home");
+        }
+        private DateOnly GetCurrentWeekStart()
+        {
+            var today = DateTime.Today;
+            int offset = (int)today.DayOfWeek == 0 ? 6 : (int)today.DayOfWeek - 1;
+            var monday = today.AddDays(-offset);
+            return DateOnly.FromDateTime(monday);
+        }
+        private int GetYearOfWeek(DateOnly weekStart)
+        {
+            for (int i = 0; i < 7; i++)
+            {
+                var day = weekStart.AddDays(i);
+                if (day.Day == 1 && day.Month == 1)
+                    return day.Year;
+            }
+
+            // Fallback: lấy ngày giữa tuần
+            return weekStart.AddDays(3).Year;
+        }
+        private DateOnly GetParsedOrCurrentWeekStart(string? weekStart)
+        {
+            if (!string.IsNullOrEmpty(weekStart) &&
+                DateOnly.TryParseExact(weekStart, "yyyy-MM-dd", out var parsed))
+            {
+                return parsed;
+            }
+            return GetCurrentWeekStart();
         }
     }
 }

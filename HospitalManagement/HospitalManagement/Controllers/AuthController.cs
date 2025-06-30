@@ -452,14 +452,18 @@ namespace HospitalManagement.Controllers
 
                     return RedirectToAction("Login");
                 }
+                string roleName = "Doctor";
+                if (user.DepartmentName == "Xét nghiệm" || user.DepartmentName == "Chẩn đoán hình ảnh")
+                {
+                    roleName = "TestDoctor";
+                }
                 // Tạo Claim và Identity cho Doctor
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, "Doctor"),
+                        new Claim(ClaimTypes.Role, roleName),
                         new Claim("DoctorID", user.DoctorId.ToString()),
                         new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString()),
-                        new Claim("DepartmentName", user.DepartmentName.ToString())
                     };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

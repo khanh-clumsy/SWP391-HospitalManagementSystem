@@ -132,6 +132,14 @@ namespace HospitalManagement.Repositories
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day)
+        {
+            return await _context.Appointments.Where(a => a.Status == "Pending" || a.Status == "Confirmed").AnyAsync(a =>
+                a.DoctorId == doctorId &&
+                a.SlotId == slotId &&
+                a.Date == day
+            );
+        }
 
     }
 }

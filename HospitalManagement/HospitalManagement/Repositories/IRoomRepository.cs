@@ -1,5 +1,6 @@
 ﻿using HospitalManagement.Models;
 using HospitalManagement.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 namespace HospitalManagement.Repositories
 {
     public interface IRoomRepository
@@ -11,6 +12,7 @@ namespace HospitalManagement.Repositories
         Task<List<string>> GetAllDistinctFloors();
         Task<List<string>> GetAllDistinctRoomTypes();
         Task<List<Room>> GetAvailableRoomsForSchedulesAsync(List<int> selectedScheduleIds);
+        Task<List<SelectListItem>> GetAvailableRoomsAsync(int slotId, DateOnly day);
 
     }
 }
