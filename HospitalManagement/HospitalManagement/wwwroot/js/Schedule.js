@@ -3,7 +3,7 @@
 function updateSchedule(newyear = 0) {
     let year = newyear !== 0 ? newyear : document.getElementById("yearDropdown").value;
     let weekStart = newyear !== 0
-    ? getFirstMondayOfYear(newyear)
+    ? (new Date(newyear, 0, 1)).toLocaleDateString().split('T')[0]
     : document.getElementById("weekDropdown").value;
     
     $.ajax({

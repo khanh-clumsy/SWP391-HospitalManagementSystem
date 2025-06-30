@@ -71,6 +71,13 @@ namespace HospitalManagement.Repositories
                 .Distinct().ToListAsync();
         }
 
+        public async Task<List<Doctor>> GetAllDoctorsWithDepartment(string dep)
+        {
+            return await _context.Doctors
+                .Where(d => d.DepartmentName != null && d.DepartmentName == dep)
+                .Select(d => d)
+                .ToListAsync();
+        }
         public async Task<List<Doctor>> SearchAsync(string? name, string? department, int? exp, bool? isHead, string? sort, bool? isActive,bool? containTestDoc, int page, int pageSize)
         {
             var query = _context.Doctors.AsQueryable();

@@ -6,14 +6,15 @@
 	int selectedYear = (int)ViewBag.SelectedYear;
 	DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
 	DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
-	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-(int)new DateTime(selectedYear, 1, 1).DayOfWeek + 1);
-	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-(int)new DateTime(selectedYear, 12, 25).DayOfWeek + 1);
+	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-((int)new DateTime(selectedYear, 1, 1).DayOfWeek + 6) % 7);
+	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-((int)new DateTime(selectedYear, 12, 25).DayOfWeek + 6) % 7);
+
 
 	DateOnly prevWeek = selectedWeekStart.AddDays(-7);
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
 
 	var daysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
-	var slotsPerDay = 6;
+	var slotsPerDay = (int)ViewBag.SlotsPerDay;
 	var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
 }
 
@@ -26,7 +27,7 @@
 	.schedule-card {
 		border: 1px solid #007bff;
 		border-top: 4px solid #007bff;
-		border-radius: 8px;
+		border-radius: 5px;
 		padding: 10px;
 		background-color: #f8faff;
 		margin-bottom: 5px;
