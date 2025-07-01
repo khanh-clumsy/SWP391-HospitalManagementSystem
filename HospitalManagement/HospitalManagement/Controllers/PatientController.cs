@@ -284,10 +284,13 @@ namespace HospitalManagement.Controllers
                 //// reset session
                 //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(sessionUser));
             }
+            var returnUrl = TempData["ReturnUrl"] as string;
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
 
-            TempData["success"] = "Update successful!";
-
-            return RedirectToAction("UpdateProfile");
+            return RedirectToAction("Profile", "Patient");
         }
 
         [HttpGet]

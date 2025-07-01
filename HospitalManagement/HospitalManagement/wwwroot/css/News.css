@@ -1,0 +1,194 @@
+﻿/* Main card styling */
+.news-card {
+    transition: all 0.25s ease;
+    border-left: 3px solid transparent;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+    .news-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+        border-left-color: var(--bs-primary);
+    }
+
+/* Thumbnail styling */
+.news-thumbnail {
+    height: 160px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    border-radius: 8px 0 0 8px;
+}
+
+    .news-thumbnail::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(13,110,253,0.08) 0%, rgba(25,135,84,0.08) 100%);
+        z-index: 1;
+    }
+
+.news-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.4s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.news-card:hover .news-image {
+    transform: scale(1.05);
+}
+
+/* Text and content styling */
+.description-text {
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 3em;
+}
+
+.card-title {
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 2.6em;
+}
+
+/* Button styling */
+.btn-primary {
+    transition: all 0.25s ease;
+    font-weight: 500;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 12px rgba(var(--bs-primary-rgb), 0.25);
+    }
+
+/* Badge styling */
+.badge {
+    font-size: 0.7rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Header styling */
+.display-5 {
+    font-weight: 700;
+}
+
+/* Pagination styling */
+.pagination-sm .page-link {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-5 {
+        font-size: 1.8rem;
+    }
+
+    .news-thumbnail {
+        height: 140px;
+        border-radius: 8px 8px 0 0;
+    }
+
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    .col-md-3,
+    .col-md-9 {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .col-md-3 {
+        order: 1;
+    }
+
+    .col-md-9 {
+        order: 2;
+    }
+
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+        .d-flex.justify-content-between .btn {
+            align-self: flex-start;
+        }
+
+    .description-text {
+        -webkit-line-clamp: 3;
+        max-height: 4.5em;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .news-thumbnail {
+        height: 120px;
+    }
+
+    .card-title {
+        font-size: 1rem;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 1rem !important;
+        font-size: 0.8rem;
+    }
+
+    .text-center.mb-4 h1 {
+        font-size: 1.5rem;
+    }
+
+    .gap-3 {
+        gap: 0.5rem !important;
+    }
+
+    .pagination-sm .page-link {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Utility classes */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

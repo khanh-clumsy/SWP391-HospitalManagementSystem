@@ -174,7 +174,7 @@
 								<h5>@doctor.FullName</h5>
 								<p class="text-primary">@doctor.DepartmentName (@doctor.ExperienceYear Exp Years)</p>
 								<div class="d-flex justify-content-center gap-2 mt-4">
-									<a asp-controller="Appointment" asp-action="Booking" asp-route-doctorId="@doctor.DoctorId" class="btn btn-sm btn-outline-primary">Tạo cuộc hẹn</a>
+									<a asp-controller="Appointment" asp-action="BookingByDoctor" asp-route-doctorId="@doctor.DoctorId" asp-route-departmentName="@doctor.DepartmentName" class="btn btn-sm btn-outline-primary">Tạo cuộc hẹn</a>
 									<a href="/Home/DoctorDetail/@doctor.DoctorId" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center">Chi tiết</a>
 								</div>
 							</div>

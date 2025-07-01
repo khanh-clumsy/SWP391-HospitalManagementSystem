@@ -106,7 +106,6 @@ function renderSelectedTests() {
                     </div>
                 `;
     });
-
     $container.html(html);
     updateHiddenFields();
     updateTestSelectOptions();

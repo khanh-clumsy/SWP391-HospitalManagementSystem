@@ -1,0 +1,108 @@
+﻿@model HospitalManagement.ViewModels.AssignDoctorViewModel
+<div class="modal-header bg-primary text-white">
+    <h4 class="modal-title w-100 text-center text-white">
+        <i class="fas fa-user-md me-2"></i>Chỉ định bác sĩ
+    </h4>
+    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+<form method="post" asp-controller="Appointment" asp-action="AssignDoctor">
+    <input type="hidden" name="AppointmentId" value="@Model.AppointmentId" />
+    <input type="hidden" name="SlotId" value="@Model.SlotId" />
+    <div class="modal-body">
+        <!-- Thông tin lịch hẹn -->
+        <div class="mb-4 p-3 bg-light rounded">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                        <span class="fw-medium">Ngày khám:</span>
+                        <strong class="ms-2 text-primary">@Model.AppointmentDate.ToString("dd/MM/yyyy")</strong>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-clock me-2 text-primary"></i>
+                        <span class="fw-medium">Khung giờ:</span>
+                        <strong class="ms-2 text-primary">@Model.SlotTimeText</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chọn bác sĩ -->
+        <div class="section-title mb-3 doctor-section">
+            <div class="d-flex align-items-center mb-3">
+                <i class="fas fa-stethoscope me-2 text-primary"></i>
+                <h5 class="mb-0">Chọn Bác Sĩ</h5>
+            </div>
+
+            <!-- Tìm kiếm bác sĩ -->
+            <div class="mb-3">
+                <div class="input-group">
+                    <input type="text" id="doctorSearch" class="form-control" placeholder="Tìm bác sĩ theo tên, khoa...">
+                    <span class="input-group-text bg-primary text-white">
+                        <i class="fas fa-search"></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Danh sách bác sĩ -->
+            <div class="doctor-carousel position-relative">
+                <button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div class="doctor-scroll-container">
+                    <div class="doctor-list d-flex gap-3" id="doctorList">
+                        @foreach (var doc in Model.Doctors)
+                        {
+                            <div class="card text-center shadow-sm doctor-card border-2"
+                                 data-doctor-id="@doc.DoctorId"
+                                 style="min-width: 180px; cursor: pointer; transition: all 0.3s ease;">
+                                <div class="card-body p-3">
+                                    <div class="position-relative mb-3">
+                                        <img src="@(string.IsNullOrEmpty(doc.ProfileImage) ? Url.Content("~/img/logo.jpg") : Url.Content("~/img/" + doc.ProfileImage))"
+                                             class="img-fluid rounded-circle border border-3 border-light shadow-sm"
+                                             style="width: 70px; height: 70px; object-fit: cover;" />
+                                        
+                                    </div>
+                                    <h6 class="card-title mb-1 fw-medium">@doc.FullName</h6>
+                                    <p class="text-muted small mb-2">@doc.DepartmentName</p>
+                                    <div class="d-flex justify-content-center">
+                                        <span class="badge bg-primary-subtle text-primary small">
+                                            <i class="fas fa-user-check me-1"></i>Có sẵn
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <button type="button" class="carousel-nav next" onclick="nextDoctor()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+
+            <input type="hidden" id="SelectedDoctorId" name="SelectedDoctorId" value="@Model.SelectedDoctorId" />
+
+            <!-- Hiển thị bác sĩ đã chọn -->
+            <div id="selectedDoctorInfo" class="mt-3 p-3 bg-primary-subtle rounded" style="display: none;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-check-circle text-primary me-2"></i>
+                    <span class="fw-medium">Đã chọn:</span>
+                    <span id="selectedDoctorName" class="ms-2 text-primary fw-bold"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer bg-light">
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="fas fa-check me-2"></i>Xác nhận
+        </button>
+        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+            <i class="fas fa-times me-2"></i>Huỷ
+        </button>
+    </div>
+</form>

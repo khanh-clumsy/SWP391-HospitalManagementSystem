@@ -21,7 +21,9 @@
             <div class="row g-0">
                 <div class="col-md-8">
                     <div class="package-image">
-                        <img src="@(Model.Package.Thumbnail != null ? $"data:image/png;base64,{Model.Package.Thumbnail}" : Url.Content("~/img/logo.jpg"))"
+                        <img src="@(string.IsNullOrEmpty(Model.Package.Thumbnail)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/Package/"+Model.Package.Thumbnail))"
                              alt="@Model.Package.PackageName"
                              class="w-100 h-100" />
                     </div>
@@ -51,9 +53,10 @@
                         </div>
 
                         <div class="package-actions">
-                            <button class="btn btn-primary btn-lg w-100">
+                            <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
+                               class="btn btn-primary btn-lg w-100">
                                 <i class="fas fa-calendar-plus me-2"></i>Đặt lịch ngay
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -158,9 +161,10 @@
             <a href="@Url.Action("Index", "Package")" class="btn btn-outline-secondary btn-lg me-3">
                 <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
             </a>
-            <button class="btn btn-primary btn-lg">
+            <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
+               class="btn btn-primary btn-lg">
                 <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám ngay
-            </button>
+            </a>
         </div>
     </div>
 </div>

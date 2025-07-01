@@ -15,6 +15,8 @@ public partial class Schedule
 
     public DateOnly Day { get; set; }
 
+    public string? Status { get; set; }
+
     public virtual Doctor Doctor { get; set; } = null!;
 
     public virtual Room Room { get; set; } = null!;

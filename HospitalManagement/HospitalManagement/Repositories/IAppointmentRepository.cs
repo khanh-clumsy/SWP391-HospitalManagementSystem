@@ -11,6 +11,8 @@ namespace HospitalManagement.Repositories
         Task DeleteAsync(Appointment appointment);
         Task<List<Appointment>> Filter(string RoleKey, int UserID, string? Name, string? Slot, string? Date, string? Status);
         Task<List<Appointment>> FilterForAdmin(string? Name, string? slotId, string? Date, string? Status);
-        Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day);
+
+        Task<List<Appointment>> FilterApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter);
+
     }
 }

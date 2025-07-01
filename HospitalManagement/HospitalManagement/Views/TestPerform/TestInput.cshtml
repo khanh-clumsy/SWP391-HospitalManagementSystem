@@ -1,0 +1,36 @@
+﻿@model HospitalManagement.ViewModels.TestResultInputViewModel
+
+@{
+    ViewData["Title"] = "Nhập kết quả xét nghiệm";
+}
+
+<h2>Nhập kết quả xét nghiệm</h2>
+
+<form asp-action="InputTestResult" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="TestListID" />
+
+    <div>
+        <strong>Tên xét nghiệm:</strong> @Model.TestName
+    </div>
+    <div>
+        <strong>Bệnh nhân:</strong> @Model.PatientFullName
+    </div>
+    <div>
+        <strong>Giới tính:</strong> @(Model.Gender == "M" ? "Nam" : "Nữ")
+    </div>
+    <div>
+        <strong>Ngày sinh:</strong> @Model.DOB.ToString("dd/MM/yyyy")
+    </div>
+
+    <div class="form-group">
+        <label for="Note">Ghi chú:</label>
+        <textarea class="form-control" asp-for="Note" rows="4"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="ResultFile">Upload kết quả (PDF/ảnh):</label>
+        <input class="form-control" type="file"  asp-for="ResultFile" accept=".pdf,image/*" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu kết quả</button>
+</form>

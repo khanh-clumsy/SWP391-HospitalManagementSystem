@@ -25,11 +25,7 @@ public partial class Appointment
 
     public string? PrescriptionNote { get; set; }
 
-    public string? PaymentMethod { get; set; }
-
     public string? PaymentStatus { get; set; }
-
-    public string? TransactionCode { get; set; }
 
     public decimal? TotalPrice { get; set; }
 
@@ -42,6 +38,8 @@ public partial class Appointment
     public DateTime? RecordCreatedAt { get; set; }
 
     public virtual Doctor? Doctor { get; set; }
+
+    public virtual ICollection<InvoiceDetail> InvoiceDetails { get; set; } = new List<InvoiceDetail>();
 
     public virtual Package? Package { get; set; }
 
