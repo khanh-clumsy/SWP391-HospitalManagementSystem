@@ -13,6 +13,8 @@ public partial class TestList
 
     public string? Result { get; set; }
 
+    public string? TestNote { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public string TestStatus { get; set; } = null!;

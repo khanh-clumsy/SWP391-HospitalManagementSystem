@@ -111,7 +111,8 @@
 
   <ItemGroup>
     <Folder Include="Data\" />
-    <Folder Include="wwwroot\TestResult\" />
+    <Folder Include="wwwroot\testre\" />
+    <Folder Include="wwwroot\testresults\" />
   </ItemGroup>
 
 </Project>

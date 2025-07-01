@@ -62,5 +62,21 @@ public partial class Doctor
         }
         ans += this.DoctorId.ToString();
         return ans;
+
+    }
+
+    public string GenerateDoctorCode()
+    {
+        string ans = "";
+        string s = this.FullName;
+        var part = s.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < part.Length; i++)
+        {
+            string x = part[i];
+            if (i < part.Length - 1) ans += char.ToUpper(x[0]);
+            else ans = x + ans;
+        }
+        ans += this.DoctorId.ToString();
+        return ans;
     }
 }

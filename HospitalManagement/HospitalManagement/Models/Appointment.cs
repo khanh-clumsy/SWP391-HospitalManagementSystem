@@ -43,6 +43,8 @@ public partial class Appointment
 
     public virtual Doctor? Doctor { get; set; }
 
+    public virtual ICollection<InvoiceDetail> InvoiceDetails { get; set; } = new List<InvoiceDetail>();
+
     public virtual Package? Package { get; set; }
 
     public virtual Patient Patient { get; set; } = null!;
