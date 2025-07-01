@@ -19,6 +19,7 @@ namespace HospitalManagement.Controllers
             _context = context;
         }
 
+        [Authorize(Roles = "TestDoctor")]
         [HttpGet]
         public async Task<IActionResult> InputTestResult(int id)
         {
@@ -41,6 +42,7 @@ namespace HospitalManagement.Controllers
             return View(vm);
         }
 
+        [Authorize(Roles = "TestDoctor")]
         [HttpPost]
         public async Task<IActionResult> InputTestResult(TestResultInputViewModel model)
         {
@@ -97,7 +99,6 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("TestListForDoctor"); 
         }
         [HttpGet]
-        [Authorize(Roles = "TestDoctor")]
         [Authorize(Roles = "TestDoctor")]
         public async Task<IActionResult> ViewOngoingTest()
         {
