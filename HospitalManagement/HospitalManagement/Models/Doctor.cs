@@ -44,15 +44,35 @@ public partial class Doctor
         string ans = "";
         string s = this.FullName;
         var part = s.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        for(int i = 0;i<part.Length;i++)
+        for (int i = 0; i < part.Length; i++)
         {
             string x = part[i];
-            if (i < part.Length - 1) ans += char.ToUpper(x[0]);
+            if (i < part.Length - 1)
+            {
+                // ans += char.ToUpper(x[0]);
+                var stringNotSign = RemoveDiacritics(x);
+                ans += char.ToUpper(stringNotSign[0]);
+            }
             else ans = x + ans;
         }
         ans += this.DoctorId.ToString();
         return ans;
     }
+    public static string RemoveDiacritics(string input)
+    {
+        var normalized = input.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder();
+        foreach (var c in normalized)
+        {
+            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+            {
+                sb.Append(c);
+            }
+        }
+        return sb.ToString().Normalize(NormalizationForm.FormC);
+    }
+
     // public string GenerateDoctorCode()
     // {
     //     var parts = this.FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -64,12 +84,4 @@ public partial class Doctor
     //     return $"{RemoveDiacritics(last)}{initials.ToUpper()}{this.DoctorId}";
     // }
 
-    // private string RemoveDiacritics(string text)
-    // {
-    //     if (string.IsNullOrWhiteSpace(text)) return text;
-
-    //     var normalized = text.Normalize(NormalizationForm.FormD);
-    //     var chars = normalized.Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark);
-    //     return new string(chars.ToArray()).Normalize(NormalizationForm.FormC);
-    // }
 }

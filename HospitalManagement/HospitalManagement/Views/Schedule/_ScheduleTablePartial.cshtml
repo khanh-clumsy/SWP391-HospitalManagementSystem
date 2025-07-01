@@ -10,7 +10,7 @@
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
 	var daysInWeek = (List<DateOnly>)ViewBag.DaysInWeek;
 	var slotsPerDay = (int)ViewBag.SlotsPerDay;
-	var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+	var grouped = Model.GroupBy(s => (s.SlotId, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
 }
 
 <div class="d-flex justify-content-center align-items-center mb-3 gap-2">

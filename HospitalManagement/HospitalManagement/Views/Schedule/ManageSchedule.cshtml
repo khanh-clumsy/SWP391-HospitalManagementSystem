@@ -23,7 +23,8 @@
 
 	var successList = ViewBag.SuccessList as List<string> ?? new List<string>();
     var failList = ViewBag.FailList as List<string> ?? new List<string>();
-	var workingList = ViewBag.WorkingList as List<string> ?? new List<string>();
+
+    var doctorSchedules = ViewBag.DoctorSchedules as List<DoctorScheduleViewModel.ScheduleItem> ?? new List<DoctorScheduleViewModel.ScheduleItem>();
 
 }
 
@@ -42,6 +43,8 @@
 		background-color: #f8faff;
 		margin-bottom: 5px;
 		box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+		cursor: pointer;
+
 	}
 
 		.schedule-card i {
@@ -78,12 +81,17 @@
 		background-color: #f8faff;
 		color: black;
 	}
+	.slot-inactive:hover {
+        background-color: #e9f5ff;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    }
 	.slot-active {
 		border: 1px solid #fed03a;
 		border-top: 4px solid #fed03a;
 		background-color: #fff3cd;
 		color: black;
 	}
+
 	.slot-success{
 		border: 1px solid #28a745;
 		border-top: 4px solid #28a745;
@@ -258,37 +266,35 @@
 								<td>
 									@if (day > DateOnly.FromDateTime(DateTime.Now))
 									{
+										var schedule = doctorSchedules.FirstOrDefault(s => s.Day == day && s.SlotId == slot);
 										var slotKey = $"{day:yyyy-MM-dd}_{slot}";
-										if (workingList.Contains(slotKey))
+
+										if (schedule != null)
 										{
 											<div class="schedule-card slot-working" id="@slotKey">
-												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-check-circle"></i> Đã có lịch</div>
+												<div><i class="bi bi-clock me-1"></i> @schedule.StartTime - @schedule.EndTime</div>
+												<div><i class="fa fa-door-closed me-1"></i> @schedule.RoomName</div>
 											</div>
 										}
 										else if (successList.Contains(slotKey))
 										{
 											<div class="schedule-card slot-success" id="@slotKey">
-												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-check-circle"></i> Thêm ca làm thành công</div>
+												<div><i class="bi bi-clock me-1"></i> Thêm thành công</div>
 											</div>
 										}
 										else if (failList.Contains(slotKey))
 										{
 											<div class="schedule-card slot-fail" id="@slotKey">
-												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-exclamation-triangle"></i> Trùng lịch hoặc phòng không hợp lệ</div>
+												<div><i class="bi bi-clock me-1"></i> Trùng lịch / phòng không hợp lệ</div>
 											</div>
 										}
 										else
 										{
 											<div class="schedule-slot" data-slot="@slot" data-date="@day.ToString("yyyy-MM-dd")">
 												<input type="hidden" name="SlotStates[@slotKey]" value="false" />
-												<div class="schedule-card slot-inactive"
-													id="@slotKey"
+												<div class="schedule-card slot-inactive" id="@slotKey"
 													data-start="@Model[slot - 1].StartTime.ToString("HH:mm")"
 													data-end="@Model[slot - 1].EndTime.ToString("HH:mm")"
-													data-assigned="false"
 													onclick="toggleSlot(this)">
 													<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
 													<div><i class="fas fa-bars"></i> Chưa chọn</div>
@@ -297,12 +303,14 @@
 										}
 									}
 									else{
+										var schedule = doctorSchedules.FirstOrDefault(s => s.Day == day && s.SlotId == slot);
 										var slotKey = $"{day:yyyy-MM-dd}_{slot}";
-										if (workingList.Contains(slotKey))
+
+										@if (schedule != null)
 										{
 											<div class="schedule-card slot-working" id="@slotKey">
-												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
-												<div><i class="fas fa-check-circle"></i> Đã có lịch</div>
+												<div><i class="bi bi-clock me-1"></i> @schedule.StartTime - @schedule.EndTime</div>
+												<div><i class="fa fa-door-closed me-1"></i> @schedule.RoomName</div>
 											</div>
 										}
 									}
@@ -320,9 +328,6 @@
 @section Scripts { 
     <script>
         const doctorList = @Html.Raw(Json.Serialize(ViewBag.ListDoctor)); // all active doctor (CardViewModel)
-        const successList = @Html.Raw(Json.Serialize(successList));
-        const failList = @Html.Raw(Json.Serialize(failList));
-        const workingList = @Html.Raw(Json.Serialize(workingList));
     </script>
 
     <script src="~/js/ManageSchedule.js" asp-append-version="true"></script> 
