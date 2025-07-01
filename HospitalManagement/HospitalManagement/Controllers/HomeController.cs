@@ -74,12 +74,12 @@ namespace HospitalFETemplate.Controllers
             }
             else
             {
-                doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, true, pageNumber, pageSize);
-                totalDoctors = await _doctorRepo.CountAsync(name, department, exp, isHead, true);
+                doctors = await _doctorRepo.SearchAsync(name, department, exp, isHead, sort, true, null, pageNumber, pageSize);
+                totalDoctors = await _doctorRepo.CountAsync(name, department, exp, isHead, true, null);
             }
 
             var pagedDoctors = new StaticPagedList<Doctor>(doctors, pageNumber, pageSize, totalDoctors);
-            var departments = await _doctorRepo.GetDistinctDepartment();
+            var departments = await _doctorRepo.GetDistinctDepartment(null);
 
             // Truyền lại filter cho view
             ViewBag.Name = name;
@@ -97,7 +97,7 @@ namespace HospitalFETemplate.Controllers
             var doctor = await _doctorRepo.GetByIdAsync(id);
             if (doctor == null)
             {
-                return NotFound();
+                return RedirectToAction("NotFound", "Home");
             }
             return View(doctor);
         }

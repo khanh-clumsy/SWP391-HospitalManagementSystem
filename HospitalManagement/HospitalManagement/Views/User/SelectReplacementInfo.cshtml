@@ -1,4 +1,4 @@
-﻿@model HospitalManagement.ViewModels.Register
+﻿@model HospitalManagement.ViewModels.ReplacementInfoViewModel
 @{
     Layout = null;
 }
@@ -6,7 +6,7 @@
 <html lang="en">
 
 <head>
-    <title>Add Staff Account</title>
+    <title>Chọn thông tin thay đổi</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="~/img/icons/favicon.ico" />
@@ -49,91 +49,48 @@
                     }
                 </div>
 
-                <form asp-action="AddStaffAccount" method="post" class="login100-form validate-form flex-sb flex-w" enctype="multipart/form-data">
-                    <span class="login100-form-title p-b-20">Thêm tài khoản nhân viên</span>
-
+                <form asp-action="SelectReplacementInfo" asp-controller="User" method="post" class="login100-form validate-form flex-sb flex-w" enctype="multipart/form-data">
+                    <span class="login100-form-title p-b-20">Chọn thông tin thay đổi</span>
                     @Html.ValidationSummary(true, "", new { @class = "text-danger w-100 text-center mb-2" })
 
-                    <div class="p-t-31 p-b-9 w-100">
-                        <span class="txt1">
-                            Email
-                        </span>
-                        <span asp-validation-for="Email" class="text-danger small"></span>
-
-                    </div>
-                    <div class="wrap-input100 validate-input" data-validate="Email is required">
-                        <input asp-for="Email" class="input100" />
-                        <span class="focus-input100"></span>
-                    </div>
-
-
-
+                    <!-- Chọn phòng -->
                     <div class="p-t-13 p-b-9 w-100">
-                        <span class="txt1">
-                            Họ và tên
-                        </span>
-                        <span asp-validation-for="FullName" class="text-danger small"></span>
-
+                        <span class="txt1">Phòng mới</span>
+                        <span asp-validation-for="RoomId" class="text-danger small"></span>
                     </div>
                     <div class="wrap-input100 validate-input">
-                        <input asp-for="FullName" class="input100" />
-                        <span class="focus-input100"></span>
-                    </div>
-
-                    <div class="p-t-13 p-b-9 w-100">
-                        <span class="txt1">
-                            Số điện thoại
-                        </span>
-                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-
-                    </div>
-                    <div class="wrap-input100 validate-input">
-                        <input asp-for="PhoneNumber" class="input100" type="tel" />
-                        <span class="focus-input100"></span>
-                    </div>
-
-                    <div class="p-t-13 p-b-9 w-100">
-                        <span class="txt1">
-                            Giới tính
-                        </span>
-                        <span asp-validation-for="Gender" class="text-danger small"></span>
-                    </div>
-                    <div class="wrap-input100 validate-input">
-                        <select asp-for="Gender" class="input100 form-select">
-                            <option value="">Gender</option>
-                            <option value="M">Male</option>
-                            <option value="F">Female</option>
-                            <option value="O">Other</option>
+                        <select asp-for="RoomId" class="input100 form-select" asp-items="ViewBag.Rooms">
+                            <option value="">-- Chọn phòng --</option>
                         </select>
                         <span class="focus-input100"></span>
                     </div>
 
-                    <div class="p-t-13 p-b-9 w-100">
-                        <span class="txt1">
-                            Vị trí
-                        </span>
-                        <span asp-validation-for="RoleName" class="text-danger small"></span>
-                    </div>
-                    <div class="wrap-input100 validate-input">
-                        <select asp-for="RoleName" class="input100 form-select">
-                            <option value="">Vị trí</option>
-                            <option value="Admin">Admin</option>
-                            <option value="Cashier">Cashier</option>
-                            <option value="Sales">Sales</option>
-                            <option value="Receptionist">Receptionist</option>
-                        </select>
-                        <span class="focus-input100"></span>
-                    </div>
+
+                    <!-- Bác sĩ thay thế: chỉ hiện nếu có appointment -->
+                    @if (Model.HasAppointment)
+                    {
+                        <div class="p-t-13 p-b-9 w-100">
+                            <span class="txt1">Bác sĩ thay thế</span>
+                            <span asp-validation-for="ReplacementDoctorId" class="text-danger small"></span>
+                        </div>
+                        <div class="wrap-input100 validate-input">
+                            <select asp-for="ReplacementDoctorId" class="input100 form-select" asp-items="ViewBag.Doctors">
+                                <option value="">-- Chọn bác sĩ --</option>
+                            </select>
+                            <span class="focus-input100"></span>
+                        </div>
+                    }
 
                     <!-- Submit button -->
                     <div class="container-login100-form-btn m-t-17 w-100">
-                        <button type="submit" class="login100-form-btn">Thêm tài khoản</button>
+                        <input type="hidden" asp-for="RequestId" />
+                        <button type="submit" class="login100-form-btn">Xác nhận</button>
                     </div>
                 </form>
 
                 <div class="container-login100-form-btn m-t-17">
-                    <a asp-controller="User" asp-action="ManageAccount" class="login100-form-btn" asp-route-type="Staff">
-                        Trở về danh sách tài khoản
+                    <a asp-controller="User" asp-action="ScheduleRequestList" class="login100-form-btn">
+                        Trở về
                     </a>
                 </div>
             </div>

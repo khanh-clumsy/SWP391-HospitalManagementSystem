@@ -20,8 +20,6 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
-                .Include(a => a.Package)
-                .Include(a => a.Service)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.StaffId == UserID) ||
@@ -31,7 +29,6 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(Name))
             {
                 Name = string.Join(" ", Name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-
                 query = RoleKey switch
                 {
                     "PatientID" => query.Where(a => a.Doctor.FullName.Contains(Name)),
@@ -178,6 +175,14 @@ namespace HospitalManagement.Repositories
         {
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
+        }
+        public async Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day)
+        {
+            return await _context.Appointments.Where(a => a.Status == "Pending" || a.Status == "Confirmed").AnyAsync(a =>
+                a.DoctorId == doctorId &&
+                a.SlotId == slotId &&
+                a.Date == day
+            );
         }
 
     }

@@ -2,6 +2,7 @@
 using HospitalManagement.Data;
 using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace HospitalManagement.Repositories
 {
@@ -16,7 +17,12 @@ namespace HospitalManagement.Repositories
 
 
 
-        public async Task<int> CountAsync(string? name, string? building, string? floor, string? status)
+        public async Task<int> CountAsync(
+                        string? name,
+                        string? building,
+                        string? floor,
+                        string? status,
+                        string? roomType) 
         {
             var roomsQuery = _context.Rooms.AsQueryable();
 
@@ -29,6 +35,9 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(status))
                 roomsQuery = roomsQuery.Where(r => r.Status == status);
 
+            if (!string.IsNullOrEmpty(roomType)) 
+                roomsQuery = roomsQuery.Where(r => r.RoomType == roomType);
+
             var list = await roomsQuery.ToListAsync();
 
             // Lọc theo tầng sau khi đã lấy về bộ nhớ
@@ -39,6 +48,7 @@ namespace HospitalManagement.Repositories
 
             return list.Count;
         }
+
 
         public async Task<List<Room>> GetAllRoom()
         {
@@ -68,6 +78,15 @@ namespace HospitalManagement.Repositories
                 .OrderBy(b => b)
                 .ToListAsync();
         }
+        public async Task<List<string>> GetAllDistinctRoomTypes()
+        {
+            return await _context.Rooms
+                .Where(r => !string.IsNullOrEmpty(r.RoomType))
+                .Select(r => r.RoomType)
+                .Distinct()
+                .OrderBy(rt => rt)
+                .ToListAsync();
+        }
 
         public async Task<List<string>> GetAllDistinctFloors()
         {
@@ -87,120 +106,96 @@ namespace HospitalManagement.Repositories
 
 
 
-        public async Task<RoomWithDoctorDtoViewModel> GetByIdAsync(int id)
+        public async Task<Room?> GetByIdAsync(int id)
         {
-            var now = TimeOnly.FromDateTime(DateTime.Now);
-            var today = DateOnly.FromDateTime(DateTime.Today);
-
-            var query = from room in _context.Rooms
-                        where room.RoomId == id
-
-                        join schedule in _context.Schedules
-                            on room.RoomId equals schedule.RoomId into scheduleJoin
-                        from schedule in scheduleJoin
-                            .Where(s => s.Day == today)
-                            .DefaultIfEmpty()
-
-                        join slot in _context.Slots
-                            on schedule.SlotId equals slot.SlotId into slotJoin
-                        from slot in slotJoin
-                            .Where(sl => sl.StartTime <= now && sl.EndTime >= now)
-                            .DefaultIfEmpty()
-
-                        join doctor in _context.Doctors
-                            on schedule.DoctorId equals doctor.DoctorId into doctorJoin
-                        from doctor in doctorJoin.DefaultIfEmpty()
-
-                        select new RoomWithDoctorDtoViewModel
-                        {
-                            RoomId = room.RoomId,
-                            RoomName = room.RoomName,
-                            Status = room.Status,
-                            DoctorID = doctor != null ? doctor.DoctorId : (int?)null,
-                            DoctorName = doctor != null ? doctor.FullName : null
-                        };
-
-            // Group lại nếu có nhiều lịch nhưng chỉ muốn lấy 1 bản ghi duy nhất
-            var result = await query
-                .GroupBy(r => new { r.RoomId, r.RoomName, r.Status })
-                .Select(g => g.First())
+            return await _context.Rooms
+                .Where(r => r.RoomId == id)
+                .Select(r => new Room
+                {
+                    RoomId = r.RoomId,
+                    RoomName = r.RoomName,
+                    RoomType = r.RoomType,
+                    Status = r.Status
+                })
                 .FirstOrDefaultAsync();
-
-            return result!;
         }
 
 
 
-
-
-        public async Task<List<RoomWithDoctorDtoViewModel>> SearchAsync(string? name,
-                                                                        string? building,
-                                                                        string? floor,
-                                                                        string? status,
-                                                                        int page,
-                                                                        int pageSize)
+        public async Task<List<RoomWithDoctorDtoViewModel>> SearchAsync(
+                                    string? name,
+                                    string? building,
+                                    string? floor,
+                                    string? status,
+                                    string? roomType, 
+                                    int page,
+                                    int pageSize)
         {
             var now = TimeOnly.FromDateTime(DateTime.Now);
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            var query = from room in _context.Rooms
+            var rooms = await _context.Rooms.ToListAsync();
 
-                        join schedule in _context.Schedules
-                            on room.RoomId equals schedule.RoomId into scheduleJoin
-                        from schedule in scheduleJoin
-                            .Where(s => s.Day == today)
-                            .DefaultIfEmpty()
+            var schedules = await (from s in _context.Schedules
+                                   join sl in _context.Slots on s.SlotId equals sl.SlotId
+                                   join d in _context.Doctors on s.DoctorId equals d.DoctorId
+                                   where s.Day == today
+                                   select new
+                                   {
+                                       s.RoomId,
+                                       s.DoctorId,
+                                       d.FullName,
+                                       sl.StartTime,
+                                       sl.EndTime
+                                   }).ToListAsync();
 
-                        join slot in _context.Slots
-                            on schedule.SlotId equals slot.SlotId into slotJoin
-                        from slot in slotJoin
-                            .Where(sl => sl.StartTime <= now && sl.EndTime >= now)
-                            .DefaultIfEmpty()
+            var result = rooms.Select(room =>
+            {
+                var activeSchedule = schedules.FirstOrDefault(s =>
+                    s.RoomId == room.RoomId &&
+                    s.StartTime <= now &&
+                    s.EndTime >= now
+                );
 
-                        join doctor in _context.Doctors
-                            on schedule.DoctorId equals doctor.DoctorId into doctorJoin
-                        from doctor in doctorJoin.DefaultIfEmpty()
+                return new RoomWithDoctorDtoViewModel
+                {
+                    RoomId = room.RoomId,
+                    RoomName = room.RoomName,
+                    Status = room.Status,
+                    RoomType = room.RoomType, // ✅ Lấy RoomType
+                    DoctorID = activeSchedule?.DoctorId,
+                    DoctorName = activeSchedule?.FullName ?? "Trống"
+                };
+            }).AsQueryable();
 
-                        select new RoomWithDoctorDtoViewModel
-                        {
-                            RoomId = room.RoomId,
-                            RoomName = room.RoomName,
-                            Status = room.Status,
-                            DoctorID = doctor != null ? doctor.DoctorId : (int?)null,
-                            DoctorName = doctor != null ? doctor.FullName : null
-                        };
-
+            // Các điều kiện lọc
             if (!string.IsNullOrEmpty(name))
-                query = query.Where(r => r.RoomName.Contains(name));
+                result = result.Where(r => r.RoomName.Contains(name));
 
             if (!string.IsNullOrEmpty(building))
-                query = query.Where(r => r.RoomName.StartsWith(building));
+                result = result.Where(r => r.RoomName.StartsWith(building));
 
             if (!string.IsNullOrEmpty(status))
-                query = query.Where(r => r.Status == status);
+                result = result.Where(r => r.Status == status);
 
-            // Gọi ToListAsync trước để đưa dữ liệu vào bộ nhớ
-            var rawData = await query.ToListAsync();
+            if (!string.IsNullOrEmpty(roomType)) 
+                result = result.Where(r => r.RoomType == roomType);
 
-            // Bổ sung lọc theo floor sau khi đưa vào bộ nhớ
             if (!string.IsNullOrEmpty(floor) && int.TryParse(floor, out int parsedFloor))
-            {
-                rawData = rawData
-                    .Where(r => ExtractFloor(r.RoomName) == parsedFloor)
-                    .ToList();
-            }
+                result = result.Where(r => ExtractFloor(r.RoomName) == parsedFloor);
 
-            // Group và phân trang
-            var grouped = rawData
-                .GroupBy(r => new { r.RoomId, r.RoomName, r.Status })
-                .Select(g => g.First())
+            var paged = result
                 .OrderBy(r => r.RoomName)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
-            return grouped;
+            return paged;
         }
+
+
+
+
 
 
 
@@ -214,6 +209,80 @@ namespace HospitalManagement.Repositories
                 throw new FormatException("Tên phòng không hợp lệ: " + roomName);
         }
 
+        public async Task<List<Room>> GetAvailableRoomsForSchedulesAsync(List<int> selectedScheduleIds)
+        {
+
+            // Lấy danh sách lịch đã chọn
+            var selectedSchedules = await _context.Schedules
+                .Where(s => selectedScheduleIds.Contains(s.ScheduleId))
+                .Include(s => s.Slot)
+                .ToListAsync();
+
+            // Nếu không có lịch nào, trả về danh sách rỗng
+            if (!selectedSchedules.Any())
+                return new List<Room>();
+
+            // Loại bỏ chính phòng đang cần chuyển lịch đi
+            var currentRoomId = selectedSchedules.First().RoomId;
+
+
+            // Lấy danh sách các phòng đang hoạt động
+            var activeRooms = await _context.Rooms
+                .Where(r => r.Status == "Hoạt động")
+                .ToListAsync();
+
+            // Tạo danh sách để chứa các phòng thỏa điều kiện
+            var availableRooms = new List<Room>();
+
+            foreach (var room in activeRooms)
+            {
+                bool conflict = false;
+
+                foreach (var schedule in selectedSchedules)
+                {
+                    // Kiểm tra nếu phòng này đã có lịch trùng ngày và slot thì không hợp lệ
+                    bool hasConflict = await _context.Schedules.AnyAsync(s =>
+                        s.RoomId == room.RoomId &&
+                        s.Day == schedule.Day &&
+                        s.SlotId == schedule.SlotId &&
+                        !selectedScheduleIds.Contains(s.ScheduleId) 
+                    );
+
+                    if (hasConflict)
+                    {
+                        conflict = true;
+                        break;
+                    }
+                }
+
+                if (!conflict && room.RoomId != currentRoomId)
+                {
+                    availableRooms.Add(room);
+                }
+
+            }
+
+            return availableRooms;
+        }
+
+        public async Task<List<SelectListItem>> GetAvailableRoomsAsync(int slotId, DateOnly day)
+        {
+            var busyRoomIds = await _context.Schedules
+                .Where(s => s.SlotId == slotId && s.Day == day)
+                .Select(s => s.RoomId)
+                .ToListAsync();
+
+            var availableRooms = await _context.Rooms
+                .Where(r => !busyRoomIds.Contains(r.RoomId))
+                .Select(r => new SelectListItem
+                {
+                    Value = r.RoomId.ToString(),
+                    Text = r.RoomName
+                })
+                .ToListAsync();
+
+            return availableRooms;
+        }
 
     }
 }
