@@ -461,7 +461,7 @@ namespace HospitalManagement.Controllers
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, "Doctor"),
+                        new Claim(ClaimTypes.Role, roleName),
                         new Claim("DoctorID", user.DoctorId.ToString()),
                         new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString() )
                     };
