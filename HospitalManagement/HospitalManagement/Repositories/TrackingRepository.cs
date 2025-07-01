@@ -43,7 +43,7 @@ namespace HospitalManagement.Repositories
             }
 
         }
-        public async Task<IEnumerable<Appointment>> GetOngoingAppointmentsByDoctorIdAsync(int doctorId)
+        public async Task<List<Appointment>> GetOngoingAppointmentsByDoctorIdAsync(int doctorId)
         {
             return await _context.Appointments
                 .Include(a => a.Patient)

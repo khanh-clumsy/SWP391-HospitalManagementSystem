@@ -17,9 +17,17 @@ public partial class InvoiceDetail
 
     public decimal UnitPrice { get; set; }
 
-    public int Quantity { get; set; }
+    public string? PaymentMethod { get; set; }
 
-    public decimal? TotalPrice { get; set; }
+    public string? PaymentStatus { get; set; }
+
+    public DateTime? PaymentTime { get; set; }
+
+    public string? TransactionCode { get; set; }
+
+    public string? ResponseCode { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
 
     public virtual Appointment Appointment { get; set; } = null!;
 }
