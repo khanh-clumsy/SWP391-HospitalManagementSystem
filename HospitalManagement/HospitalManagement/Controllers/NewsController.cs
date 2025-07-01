@@ -89,7 +89,7 @@ namespace HospitalManagement.Controllers
             if (photo.Length > 0)
             {
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
-                var maxSize = 2 * 1024 * 1024;
+                var maxSize = 5 * 1024 * 1024;
 
                 if (!allowedTypes.Contains(photo.ContentType.ToLower()))
                 {

@@ -163,17 +163,18 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> UploadPhoto(IFormFile photo)
         {
             // check login
-            // Lấy DoctorID từ Claims
-            var doctorIdClaim = User.FindFirst("DoctorID")?.Value;
+            // Lấy DoctorId từ Claims
+            var doctorIdClaim = User.FindFirst("DoctorId")?.Value;
             if (doctorIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            int doctorID = int.Parse(doctorIdClaim);
+            int doctorId = int.Parse(doctorIdClaim);
 
             // Lấy thông tin từ DB
-            var user = _context.Doctors.FirstOrDefault(p => p.DoctorId == doctorID);
+            var context = new HospitalManagementContext();
+            var user = context.Doctors.FirstOrDefault(p => p.DoctorId == doctorId);
             if (user == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -194,30 +195,36 @@ namespace HospitalManagement.Controllers
                     return RedirectToAction("UpdateProfile");
 
                 }
-                // convert img -> Byte ->  Base64String
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                var imageBytes = ms.ToArray();
-                user.ProfileImage = Convert.ToBase64String(imageBytes);
+                // Tạo tên file duy nhất để tránh trùng
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(photo.FileName);
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
+
+                // Lưu file vào wwwroot/uploads
+                using (var stream = new FileStream(uploadPath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(stream);
+                }
+
+                user.ProfileImage = fileName;
 
                 // add in database
-                var dbUser = _context.Doctors.FirstOrDefault(u => u.DoctorId == user.DoctorId);
+                var dbUser = context.Doctors.FirstOrDefault(u => u.DoctorId == user.DoctorId);
                 if (dbUser != null)
                 {
                     dbUser.ProfileImage = user.ProfileImage;
-                    _context.SaveChanges();
+                    context.SaveChanges();
                 }
 
                 // Cập nhật lại session
+                //HttpContext.Session.SetString("PatientSession", JsonConvert.SerializeObject(user));
                 TempData["success"] = "Update successful!";
                 return RedirectToAction("UpdateProfile");
-
             }
-
             // do nothing
-            TempData["success"] = null;
+            TempData["success"] = "Không có ảnh được tải lên";
             return RedirectToAction("UpdateProfile");
         }
+
         [HttpPost]
         public IActionResult UpdateProfile(Doctor model)
         {

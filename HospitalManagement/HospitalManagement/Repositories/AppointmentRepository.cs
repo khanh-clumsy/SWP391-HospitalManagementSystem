@@ -1,6 +1,7 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace HospitalManagement.Repositories
 {
@@ -19,6 +20,8 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
+                .Include(a => a.Package)
+                .Include(a => a.Service)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.StaffId == UserID) ||
@@ -28,6 +31,7 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(Name))
             {
                 Name = string.Join(" ", Name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+
                 query = RoleKey switch
                 {
                     "PatientID" => query.Where(a => a.Doctor.FullName.Contains(Name)),
@@ -49,6 +53,10 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(Status))
             {
                 query = query.Where(a => a.Status == Status);
+            }
+            else if (RoleKey == "DoctorID")
+            {
+                query = query.Where(a => a.Status != "Pending");
             }
             return await query.ToListAsync();
         }
@@ -80,6 +88,45 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(Status))
             {
                 query = query.Where(a => a.Status == Status);
+            }
+
+            return await query.ToListAsync();
+        }
+        public async Task<List<Appointment>> FilterApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter)
+        {
+            var query = _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .Include(a => a.Service)
+                .Include(a => a.Package)
+                .Include(a => a.Slot)
+                .OrderByDescending(a => a.Date)
+                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected")
+                .AsQueryable();
+
+            // Lọc theo status
+            if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All")
+            {
+                query = query.Where(a => a.Status == statusFilter);
+            }
+
+            // Lọc theo tên bệnh nhân
+            if (!string.IsNullOrEmpty(searchName))
+            {
+                query = query.Where(a => a.Patient.FullName.Contains(searchName));
+            }
+
+            // Lọc theo SlotId (dựa trên timeFilter truyền dưới dạng SlotId)
+            if (!string.IsNullOrEmpty(timeFilter) && int.TryParse(timeFilter, out int parsedSlotId))
+            {
+                query = query.Where(a => a.SlotId == parsedSlotId);
+            }
+
+            // Lọc theo ngày khám
+            if (!string.IsNullOrEmpty(dateFilter) && DateTime.TryParse(dateFilter, out var parsedDate))
+            {
+                var convertedDate = DateOnly.FromDateTime(parsedDate);
+                query = query.Where(a => a.Date == convertedDate);
             }
 
             return await query.ToListAsync();

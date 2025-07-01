@@ -1,0 +1,159 @@
+﻿@model HospitalManagement.ViewModels.Booking.BookingByDoctorViewModel
+@{
+	ViewData["Title"] = "Đặt Lịch Theo Bác Sĩ";
+	var minDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+	var isReadonly = !string.IsNullOrEmpty(Model.Name);
+	
+}
+@section Styles {
+	<link rel="stylesheet" href="~/css/booking.css" asp-append-version="true" />
+}
+
+<div class="container-xxl py-5">
+	<div class="container">
+		<div class="form-header text-center mb-4">
+			<h2><i class="fas fa-user-md text-primary me-2"></i>Đặt Lịch Theo Bác Sĩ</h2>
+			<p>Chọn chuyên khoa, bác sĩ, ngày, giờ và dịch vụ phù hợp.</p>
+			<div class="mt-3">
+				<a asp-action="BookingByService" asp-controller="Appointment" class="btn btn-outline-primary me-2">
+					<i class="fas fa-briefcase-medical me-1"></i>Đặt Lịch Theo Dịch Vụ
+				</a>
+				<a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+					<i class="fas fa-home me-1"></i>Về Trang Chủ
+				</a>
+			</div>
+		</div>
+
+		<form asp-action="BookingByDoctor" asp-controller="Appointment" method="post" id="doctorForm">
+			<!-- Thông Tin Bệnh Nhân -->
+			<div class="section-title mb-3">
+				<h3><i class="fas fa-user text-primary me-2"></i>Thông Tin Cá Nhân</h3>
+			</div>
+			<div class="row g-3 mb-4">
+				<div class="col-12">
+					<input asp-for="Name" class="form-control" placeholder="Họ và tên" readonly="@(isReadonly ? "readonly" : null)" />
+					<span asp-validation-for="Name" class="text-danger"></span>
+				</div>
+				<div class="col-sm-6">
+					<input asp-for="Email" class="form-control" placeholder="Email" readonly="@(isReadonly ? "readonly" : null)" />
+					<span asp-validation-for="Email" class="text-danger"></span>
+				</div>
+				<div class="col-sm-6">
+					<input asp-for="PhoneNumber" class="form-control" placeholder="Số điện thoại" readonly="@(isReadonly ? "readonly" : null)" />
+					<span asp-validation-for="PhoneNumber" class="text-danger"></span>
+				</div>
+			</div>
+
+			<!-- Chọn Chuyên Khoa -->
+			<div class="section-title mb-3">
+				<h3><i class="fas fa-building text-primary me-2"></i>Chọn Chuyên Khoa</h3>
+			</div>
+			<div class="row g-3 mb-4">
+				<div class="col-12">
+					<select asp-for="SelectedDepartmentId"
+							id="departmentDropdown"
+							asp-items="Model.DepartmentOptions"
+							class="form-select">
+						<option value="">-- Chọn chuyên khoa --</option>
+					</select>
+					<span asp-validation-for="SelectedDepartmentId" class="text-danger"></span>
+				</div>
+			</div>
+
+			<!-- Danh sách bác sĩ dạng thẻ ngang -->
+			<div class="section-title mb-3 doctor-section" style="display: none;">
+				<h3><i class="fas fa-stethoscope me-2 text-primary"></i>Chọn Bác Sĩ</h3>
+				<input type="text" id="doctorSearch" class="form-control mb-2" placeholder="🔍 Tìm bác sĩ theo tên, khoa...">
+				<div class="doctor-carousel">
+					<button type="button" class="carousel-nav prev" onclick="prevDoctor()">
+						<i class="fas fa-chevron-left"></i>
+					</button>
+					<div class="doctor-scroll-container">
+						<div class="doctor-list" id="doctorList"></div>
+					</div>
+					<button type="button" class="carousel-nav next" onclick="nextDoctor()">
+						<i class="fas fa-chevron-right"></i>
+					</button>
+				</div>
+				<input type="hidden" id="SelectedDoctorId" name="SelectedDoctorId" value="@Model.SelectedDoctorId" />
+			</div>
+
+
+			<div id="scheduleSection" style="display: none;">
+				<div id="scheduleTable"></div>
+			</div>
+			<input type="hidden" id="AppointmentDate" asp-for="AppointmentDate" />
+			<input type="hidden" id="SelectedSlotId" asp-for="SelectedSlotId" />
+
+			<!-- Chọn loại khám -->
+			<div class="section-title mb-3" style="display: none">
+				<h3 class="section-title">
+					<i class="fas fa-briefcase-medical me-2 text-primary"></i>Chọn Loại Khám
+				</h3>
+			</div>
+			<div class="row g-3 mb-4 service-choice" style="display: none">
+				<div class="col-12">
+					<div class="form-check form-check-inline">
+						<input class="form-check-input"
+							   type="radio"
+							   name="ServiceType"
+							   id="serviceRadio"
+							   value="service"
+						check />
+						<label class="form-check-label" for="serviceRadio">Khám cơ bản</label>
+					</div>
+					<div class="form-check form-check-inline">
+						<input class="form-check-input"
+							   type="radio"
+							   name="ServiceType"
+							   id="packageRadio"
+							   value="package"
+								 />
+						<label class="form-check-label" for="packageRadio">Gói khám</label>
+					</div>
+				</div>
+				<div class="col-12 service-dropdown">
+					<select asp-for="SelectedServiceId" id="serviceDropdown" asp-items="Model.ServiceOptions" class="form-select">
+						<option value="">-- Chọn dịch vụ --</option>
+					</select>
+					<span asp-validation-for="SelectedServiceId" class="text-danger"></span>
+				</div>
+				<div class="col-12 package-dropdown" style="display: none;">
+					<select asp-for="SelectedPackageId" id="packageDropdown" asp-items="Model.PackageOptions" class="form-select">
+						<option value="">-- Chọn gói khám --</option>
+					</select>
+					<span asp-validation-for="SelectedPackageId" class="text-danger"></span>
+				</div>
+			</div>
+
+			<!-- Tiêu đề & Nơi hiển thị danh sách xét nghiệm -->
+			<div class="section-title mb-3 test-title" style="display: none;">
+				<h3 class="section-title">
+					<i class="fas fa-vials me-2 text-primary"></i>Danh Sách Xét Nghiệm
+				</h3>
+			</div>
+			<div id="package-tests-container" class="mt-3" style="margin-bottom: 2%"></div>
+
+			<!-- Ghi Chú -->
+			<div class="section-title mb-3">
+				<h3><i class="fas fa-notes-medical text-primary me-2"></i>Ghi Chú (Tùy chọn)</h3>
+			</div>
+			<textarea asp-for="Note"
+					  class="form-control mb-4"
+					  rows="4"
+					  placeholder="Mô tả triệu chứng hoặc yêu cầu..."></textarea>
+			<span asp-validation-for="Note" class="text-danger"></span>
+
+			<!-- Nút Đặt Hẹn -->
+			<div class="text-center">
+				<button type="submit" class="submit-btn btn btn-primary" disabled>
+					<i class="fas fa-calendar-check me-2"></i>Đặt Lịch Hẹn
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="~/js/Appointment/BookingByDoctor.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,329 @@
+﻿@model List<Slot>
+@using Newtonsoft.Json;
+@{
+	ViewData["Title"] = "Điều chỉnh lịch làm việc";
+    Layout = "_Layout";
+
+	int selectedYear = (int)ViewBag.SelectedYear;
+	DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
+	DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-((int)new DateTime(selectedYear, 1, 1).DayOfWeek + 6) % 7);
+	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-((int)new DateTime(selectedYear, 12, 25).DayOfWeek + 6) % 7);
+
+	DateOnly prevWeek = selectedWeekStart.AddDays(-7);
+	DateOnly nextWeek = selectedWeekStart.AddDays(7);
+
+	var daysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
+	var slotsPerDay = ViewBag.SlotsPerDay;
+
+	var listDep = ViewBag.ListDep;
+	var listRoom = ViewBag.ListRoom;
+	var listDoc = ViewBag.ListDoctor;
+	
+
+	var successList = ViewBag.SuccessList as List<string> ?? new List<string>();
+    var failList = ViewBag.FailList as List<string> ?? new List<string>();
+	var workingList = ViewBag.WorkingList as List<string> ?? new List<string>();
+
+}
+
+
+<style>
+
+	table td {
+		vertical-align: top;
+	}
+
+	.schedule-card {
+		border: 1px solid #007bff;
+		border-top: 4px solid #007bff;
+		border-radius: 5px;
+		padding: 10px;
+		background-color: #f8faff;
+		margin-bottom: 5px;
+		box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+	}
+
+		.schedule-card i {
+			color: #007bff;
+		}
+
+		.schedule-card .fw-bold {
+			font-size: 1rem;
+		}
+
+	.bg-light {
+		background-color: #f8f9fa;
+	}
+    #card {
+    width: 250px;
+    padding: 10px;
+    background-color: #f8faff;
+    color: black;
+    border: 1px solid #007bff;
+    border-top: 4px solid #007bff;
+    border-radius: 5px;
+}
+
+	#card.complete {
+		border-color: #28a745 !important;
+		border-top-color: #28a745 !important;
+		background-color: #e6f9ea !important;
+	}
+
+
+	.slot-inactive {
+		border: 1px solid #007bff;
+		border-top: 4px solid #007bff;
+		background-color: #f8faff;
+		color: black;
+	}
+	.slot-active {
+		border: 1px solid #fed03a;
+		border-top: 4px solid #fed03a;
+		background-color: #fff3cd;
+		color: black;
+	}
+	.slot-success{
+		border: 1px solid #28a745;
+		border-top: 4px solid #28a745;
+		background-color: #e6f9ea;
+		color: black;
+	}
+	.slot-fail{
+		border: 1px solid #ff1b1b;
+		border-top: 4px solid #ff1b1b;
+		background-color: #ffaa90;
+		color: black;
+	}
+	.slot-working {
+		background-color: #d4edda;
+		border-color: #28a745;
+		color: #155724;
+	}
+
+</style>
+
+<div class="container mt-4 mb-3">
+
+	<div class="justify-content-center">
+		<h1 class="mb-3">Điều chỉnh lịch làm việc</h1>
+	</div>
+		
+	<!-- Dropdown chọn bác sĩ -->
+	<div class="d-flex align-items-start gap-3 mb-4">
+
+
+		<!-- Khối select -->
+		<div class="d-flex gap-2 flex-wrap">
+			<select id="depSelect" name="departmentName" onchange="changeDepartment()" class="form-select form-select-sm" style="width:200px;">
+				<option value=""> Chuyên khoa </option>
+				@{
+					foreach(var item in listDep){
+
+						<option value="@item"> @item</option>
+											
+					}
+				}
+			</select>
+			<select id="doctorSelect" name="doctorId" onchange="changeDoctor()" disabled class="form-select form-select-sm" style="width:200px;">
+				<option value=""  >Mã bác sĩ</option>
+			</select>
+
+			<select id="roomSelect" name="roomId" onchange="changeRoom()" class="form-select form-select-sm" style="width:200px;">
+				<option value="" >Phòng khám</option>
+				@{
+					foreach(var item in listRoom){
+						
+						<option value="@item.RoomId">@item.RoomName</option>
+						
+					}
+				}
+			</select>
+		</div>
+
+		<!-- Khối chứa CARD -->
+		<div class="border rounded p-2" style="min-width:270px;">
+			<div class="fw-bold mb-2 text-center">Thông tin đã chọn</div>
+			<div id="card" class="schedule-card">
+				<div id="cardContent"></div>
+			</div>
+		</div>
+
+		<div>
+			<button type="button" id="confirmAddBtn" onclick="showConfirmBox()" class="btn btn-primary mt-3">Thêm vào các slot đã chọn</button>
+
+			<!-- Hộp xác nhận hiện ra bên dưới -->
+			<div id="confirmBox"  class="mt-3" style="width:250px; display:none;">
+				<div class="alert alert-warning p-3">
+					Bạn có muốn thêm vào những slot này không?
+					<div class="mt-2 d-flex gap-2">
+						<button type="submit" id="btnYes" onclick="submitAddDoctorToSlots()" class="btn btn-success btn-sm">Có</button>
+						<button type="button" id="btnNo" onclick="hideConfirmBox()" class="btn btn-secondary btn-sm">Không</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<!-- Dropdown chọn năm bên trái -->
+	<div>
+		<div class="d-flex justify-content-between align-items-center mb-3">
+			<select id="yearDropdown" class="form-select" style="width:100px;" onchange="updateSchedule(this.value)">
+				@for (int y = 2023; y <= (int)DateTime.Now.Year + 1; y++)
+				{
+					if (y == selectedYear)
+					{
+						<option value="@y" selected>@y</option>
+					}
+					else
+					{
+						<option value="@y">@y</option>
+					}
+				}
+			</select>
+		</div>
+	</div>
+	
+	<button type="button" id="showScheduleBtn" onclick="showDoctorSchedule()" class="btn btn-primary mt-3">Hiện lịch làm việc</button>
+
+	<!-- Bộ chọn tuần, nút điều hướng, bảng -->
+	<div id="scheduleTable" >
+		<div class="d-flex justify-content-center align-items-center mb-3 gap-2">
+			<!-- Cụm nút tuần ở giữa -->
+			<div class="d-flex align-items-center gap-2">
+				<!-- Nút tuần trước -->
+				<button  type="button" class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
+					<i class="bi bi-chevron-left"></i>
+				</button>
+
+				<!-- Dropdown tuần -->
+				<select id="weekDropdown" class="form-select" onchange="updateSchedule()" style="width:250px;">
+					@{
+						var start = firstWeekStart;
+						var end = lastWeekStart;
+						while (start <= end)
+						{
+							var endOfWeek = start.AddDays(6);
+							var label = $"{start:dd/MM} - {endOfWeek:dd/MM}";
+							if (start == selectedWeekStart)
+							{
+								<option value="@start.ToString("yyyy-MM-dd")" selected> @label </option>
+							}
+							else
+							{
+								<option value="@start.ToString("yyyy-MM-dd")"> @label </option>
+							}
+
+							start = start.AddDays(7);
+						}
+					}
+				</select>
+
+				<!-- Nút tuần sau -->
+				<button type="button" class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
+					<i class="bi bi-chevron-right"></i>
+				</button>
+
+
+				<button type="button" onclick="resetSelectedSlots()" class="btn btn-primary mt-3">Làm mới lựa chọn</button>
+
+			</div>
+
+			<!-- (Có thể để trống hoặc thêm gì đó bên phải nếu muốn căn giữa tốt hơn) -->
+			<div style="width:100px;"></div>
+		</div>
+
+
+		<!-- Bảng lịch -->
+		<div>
+			<table class="table table-bordered text-center">
+				<thead class="table-light">
+					<tr>
+						<th>Slot</th>
+						@foreach (var day in daysInWeek)
+						{
+							<th>@day.ToString("ddd dd/MM")</th>
+						}
+					</tr>
+				</thead>
+				<tbody>
+					@for (int slot = 1; slot <= slotsPerDay; slot++)
+					{
+						<tr>
+							<td><strong>Slot @slot</strong></td>
+							@foreach (var day in daysInWeek)
+							{
+								<td>
+									@if (day > DateOnly.FromDateTime(DateTime.Now))
+									{
+										var slotKey = $"{day:yyyy-MM-dd}_{slot}";
+										if (workingList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-working" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-check-circle"></i> Đã có lịch</div>
+											</div>
+										}
+										else if (successList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-success" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-check-circle"></i> Thêm ca làm thành công</div>
+											</div>
+										}
+										else if (failList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-fail" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-exclamation-triangle"></i> Trùng lịch hoặc phòng không hợp lệ</div>
+											</div>
+										}
+										else
+										{
+											<div class="schedule-slot" data-slot="@slot" data-date="@day.ToString("yyyy-MM-dd")">
+												<input type="hidden" name="SlotStates[@slotKey]" value="false" />
+												<div class="schedule-card slot-inactive"
+													id="@slotKey"
+													data-start="@Model[slot - 1].StartTime.ToString("HH:mm")"
+													data-end="@Model[slot - 1].EndTime.ToString("HH:mm")"
+													data-assigned="false"
+													onclick="toggleSlot(this)">
+													<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+													<div><i class="fas fa-bars"></i> Chưa chọn</div>
+												</div>
+											</div>
+										}
+									}
+									else{
+										var slotKey = $"{day:yyyy-MM-dd}_{slot}";
+										if (workingList.Contains(slotKey))
+										{
+											<div class="schedule-card slot-working" id="@slotKey">
+												<div><i class="bi bi-clock me-1"></i> @Model[slot - 1].StartTime.ToString("HH:mm") - @Model[slot - 1].EndTime.ToString("HH:mm")</div>
+												<div><i class="fas fa-check-circle"></i> Đã có lịch</div>
+											</div>
+										}
+									}
+								</td>
+							}
+
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+@section Scripts { 
+    <script>
+        const doctorList = @Html.Raw(Json.Serialize(ViewBag.ListDoctor)); // all active doctor (CardViewModel)
+        const successList = @Html.Raw(Json.Serialize(successList));
+        const failList = @Html.Raw(Json.Serialize(failList));
+        const workingList = @Html.Raw(Json.Serialize(workingList));
+    </script>
+
+    <script src="~/js/ManageSchedule.js" asp-append-version="true"></script> 
+}

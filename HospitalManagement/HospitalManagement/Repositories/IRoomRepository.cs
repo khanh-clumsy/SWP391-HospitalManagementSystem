@@ -7,6 +7,9 @@ namespace HospitalManagement.Repositories
         Task<List<RoomWithDoctorDtoViewModel>> SearchAsync(string? name, string? building, string? floor, string? status, int page, int pageSize);
         Task<int> CountAsync(string? name, string? building, string? floor, string? status);
         Task<RoomWithDoctorDtoViewModel> GetByIdAsync(int id);
+        Task<List<Room>> GetAllRoom();
+        Task<List<Room>> GetAllActiveRoom();
+        Task<Room> GetRoomById(int id);
 
         Task<List<string>> GetAllDistinctBuildings();
         Task<List<string>> GetAllDistinctFloors();

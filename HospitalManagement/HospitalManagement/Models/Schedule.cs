@@ -19,5 +19,7 @@ public partial class Schedule
 
     public virtual Room Room { get; set; } = null!;
 
+    public virtual ICollection<ScheduleChangeRequest> ScheduleChangeRequests { get; set; } = new List<ScheduleChangeRequest>();
+
     public virtual Slot Slot { get; set; } = null!;
 }

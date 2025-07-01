@@ -1,12 +1,10 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using HospitalManagement.Models;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using HospitalManagement.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
 
-namespace HospitalManagement.ViewModels
+namespace HospitalManagement.ViewModels.Booking
 {
-    public class BookingApointmentViewModel
+    public class BookingByServiceViewModel
     {
         [Required(ErrorMessage = "Name is required.")]
         public string? Name { get; set; }
@@ -23,19 +21,19 @@ namespace HospitalManagement.ViewModels
         [DataType(DataType.Date)]
         public DateOnly AppointmentDate { get; set; }
 
-        public int? SelectedDoctorId { get; set; }
-
-        public List<Doctor> Doctors { get; set; } = new List<Doctor>();
+        [Required(ErrorMessage = "Slot is required.")]
+        public int? SelectedSlotId { get; set; }
 
         public List<Slot> Slots { get; set; } = new List<Slot>();
 
-
-        public int? SelectedSlotId { get; set; }
-
-        public int SelectedServiceId { get; set; }
+        public int? SelectedServiceId { get; set; }
 
         public List<SelectListItem> ServiceOptions { get; set; } = new List<SelectListItem>();
 
+        public int? SelectedPackageId { get; set; }
+
+        public List<SelectListItem> PackageOptions { get; set; } = new List<SelectListItem>();
+        
         [StringLength(500, ErrorMessage = "Note must be under 500 characters.")]
         public string? Note { get; set; }
 

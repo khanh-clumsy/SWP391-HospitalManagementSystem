@@ -1,0 +1,548 @@
+﻿/* ===== MEDICAL EXAMINATION SPECIFIC STYLES ===== */
+/* Sử dụng CSS variables từ layout */
+:root {
+    --exam-primary: #0463FA;
+    --exam-light: #EFF5FF;
+    --exam-dark: #1B2C51;
+    --exam-success: #27ae60;
+    --exam-danger: #e74c3c;
+    --exam-warning: #f39c12;
+    --exam-gray: #6c757d;
+    --exam-light-gray: #f8f9fa;
+    --exam-border: #dee2e6;
+}
+
+/* ===== EXAMINATION LAYOUT ===== */
+.medical-examination-wrapper {
+    min-height: calc(100vh - 200px);
+    padding: 2rem 1rem;
+    background: var(--exam-light-gray);
+}
+
+.medical-examination-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: 1px solid var(--exam-border);
+}
+
+/* ===== EXAMINATION HEADER ===== */
+.medical-page-header {
+    border-bottom: 3px solid var(--exam-primary);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    background: linear-gradient(135deg, var(--exam-light) 0%, white 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin: -2rem -2rem 2rem -2rem;
+}
+
+.medical-page-title {
+    color: var(--exam-dark);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+    .medical-page-title .fas {
+        color: var(--exam-primary);
+        margin-right: 0.75rem;
+        font-size: 1.8rem;
+    }
+
+/* ===== PATIENT INFO CARD ===== */
+.medical-patient-info {
+    background: linear-gradient(135deg, var(--exam-light) 0%, white 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 5px solid var(--exam-primary);
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(4, 99, 250, 0.1);
+}
+
+    .medical-patient-info p {
+        margin: 0.5rem 0;
+        font-size: 1rem;
+        color: var(--exam-dark);
+    }
+
+    .medical-patient-info strong {
+        color: var(--exam-primary);
+        display: inline-block;
+        min-width: 120px;
+        font-weight: 600;
+    }
+
+/* ===== FORM SECTIONS ===== */
+.medical-form-card {
+    background: white;
+    border: 2px solid var(--exam-border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+    .medical-form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: linear-gradient(90deg, var(--exam-primary) 0%, var(--exam-success) 100%);
+    }
+
+    .medical-form-card:hover {
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+.medical-section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--exam-light);
+}
+
+.medical-section-icon {
+    color: var(--exam-primary);
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    width: 2rem;
+    text-align: center;
+}
+
+.medical-section-title {
+    color: var(--exam-dark);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    flex: 1;
+}
+
+/* ===== FORM CONTROLS ===== */
+.medical-form-label {
+    font-weight: 600;
+    color: var(--exam-dark);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+    .medical-form-label .fas {
+        color: var(--exam-primary);
+        width: 1.2rem;
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+.medical-form-control,
+.medical-form-select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--exam-border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--exam-dark);
+}
+
+    .medical-form-control:focus,
+    .medical-form-select:focus {
+        outline: none;
+        border-color: var(--exam-primary);
+        box-shadow: 0 0 0 4px rgba(4, 99, 250, 0.1);
+        background: var(--exam-light);
+    }
+
+    .medical-form-control::placeholder {
+        color: var(--exam-gray);
+        font-style: italic;
+    }
+
+textarea.medical-form-control {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+/* ===== ROOM ASSIGNMENT SECTION ===== */
+.medical-room-section {
+    border-left: 5px solid var(--exam-primary);
+    background: linear-gradient(135deg, rgba(4, 99, 250, 0.05) 0%, white 100%);
+}
+
+.medical-room-controls {
+    background: var(--exam-light-gray);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--exam-border);
+}
+
+.medical-assigned-rooms {
+    margin-top: 2rem;
+}
+
+.medical-room-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .medical-room-list li {
+        background: white;
+        border: 2px solid var(--exam-border);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+        .medical-room-list li:hover {
+            border-color: var(--exam-primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(4px);
+        }
+
+        .medical-room-list li:last-child {
+            margin-bottom: 0;
+        }
+
+.medical-room-info {
+    flex: 1;
+    color: var(--exam-dark);
+    font-weight: 500;
+}
+
+/* ===== BUTTONS ===== */
+.medical-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-transform: none;
+    min-height: 44px;
+}
+
+    .medical-btn .fas {
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+.medical-btn-back {
+    background: white;
+    color: var(--exam-primary);
+    border: 2px solid var(--exam-primary);
+}
+
+    .medical-btn-back:hover {
+        background: var(--exam-primary);
+        color: white;
+        transform: translateX(-2px);
+    }
+
+.medical-btn-complete {
+    background: linear-gradient(135deg, var(--exam-primary) 0%, #0052cc 100%);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    min-width: 200px;
+    box-shadow: 0 4px 12px rgba(4, 99, 250, 0.3);
+}
+
+    .medical-btn-complete:hover:not(:disabled) {
+        background: linear-gradient(135deg, #0052cc 0%, var(--exam-primary) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(4, 99, 250, 0.4);
+    }
+
+    .medical-btn-complete:disabled {
+        background: var(--exam-gray);
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+    }
+
+.medical-btn-save {
+    background: linear-gradient(135deg, var(--exam-success) 0%, #1e8449 100%);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+    .medical-btn-save:hover {
+        background: linear-gradient(135deg, #1e8449 0%, var(--exam-success) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+    }
+
+.medical-assign-btn {
+    background: var(--exam-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 6px;
+    min-width: 100px;
+}
+
+    .medical-assign-btn:hover {
+        background: #0052cc;
+        transform: scale(1.05);
+    }
+
+/* ===== BUTTON GROUPS ===== */
+.medical-btn-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+/* ===== ALERTS & NOTIFICATIONS ===== */
+.medical-alert {
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+    .medical-alert .fas {
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+    }
+
+.medical-alert-danger {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--exam-danger);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.medical-alert-warning {
+    background: rgba(243, 156, 18, 0.1);
+    color: var(--exam-warning);
+    border: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 992px) {
+    .medical-examination-container {
+        padding: 1.5rem;
+    }
+
+    .medical-page-header {
+        margin: -1.5rem -1.5rem 2rem -1.5rem;
+        padding: 1.25rem;
+    }
+
+    .medical-page-title {
+        font-size: 1.75rem;
+    }
+
+    .medical-form-card {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .medical-examination-wrapper {
+        padding: 1rem 0.5rem;
+    }
+
+    .medical-examination-container {
+        padding: 1rem;
+        margin: 0 0.5rem;
+    }
+
+    .medical-page-header {
+        margin: -1rem -1rem 1.5rem -1rem;
+        padding: 1rem;
+    }
+
+    .medical-page-title {
+        font-size: 1.5rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .medical-form-card {
+        padding: 1rem;
+    }
+
+    .medical-section-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+
+    .medical-btn-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .medical-btn-complete,
+    .medical-btn-save {
+        min-width: 100%;
+        justify-content: center;
+    }
+
+    .medical-room-list li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .medical-assign-btn {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 576px) {
+    .medical-patient-info strong {
+        min-width: 100px;
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .medical-form-label {
+        font-size: 0.9rem;
+    }
+
+    .medical-form-control,
+    .medical-form-select {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.medical-mb-1 {
+    margin-bottom: 0.5rem;
+}
+
+.medical-mb-2 {
+    margin-bottom: 1rem;
+}
+
+.medical-mb-3 {
+    margin-bottom: 1.5rem;
+}
+
+.medical-mb-4 {
+    margin-bottom: 2rem;
+}
+
+.medical-mt-1 {
+    margin-top: 0.5rem;
+}
+
+.medical-mt-2 {
+    margin-top: 1rem;
+}
+
+.medical-mt-3 {
+    margin-top: 1.5rem;
+}
+
+.medical-mt-4 {
+    margin-top: 2rem;
+}
+
+.medical-text-danger {
+    color: var(--exam-danger) !important;
+    font-weight: 500;
+}
+
+.medical-text-success {
+    color: var(--exam-success) !important;
+    font-weight: 500;
+}
+
+.medical-text-primary {
+    color: var(--exam-primary) !important;
+    font-weight: 500;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes medical-slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.medical-form-card {
+    animation: medical-slideIn 0.6s ease-out;
+}
+
+    .medical-form-card:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .medical-form-card:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    .medical-form-card:nth-child(4) {
+        animation-delay: 0.3s;
+    }
+
+/* ===== LOADING STATES ===== */
+.medical-loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+    .medical-loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid var(--exam-primary);
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: medical-spin 1s linear infinite;
+    }
+
+@keyframes medical-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

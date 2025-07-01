@@ -75,6 +75,7 @@
     width: max-content; /* ✅ Đảm bảo chiều rộng mở rộng theo nội dung */
 }
 
+
 .carousel-nav {
     background: white;
     border: 1px solid #ccc;
@@ -209,30 +210,6 @@
         cursor: not-allowed;
         box-shadow: none;
     }
-
-/* === Enhanced Schedule UI === */
-.schedule-container {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    margin-top: 20px;
-}
-
-.schedule-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid var(--light);
-}
-
-.schedule-date {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--dark);
-}
 
 .doctor-info {
     display: flex;
@@ -469,5 +446,148 @@
     .schedule-legend {
         flex-wrap: wrap;
         gap: 15px;
+    }
+}
+
+.time-slots-grid {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center; /* căn các ô vào giữa hàng */
+    gap: 3%;
+    margin-top: 20px;
+}
+
+.time-slot {
+    flex: 0 0 140px; /* mỗi ô rộng cố định */
+}
+
+:root {
+    --primary: #0463FA;
+    --light: #EFF5FF;
+    --dark: #1B2C51;
+    --secondary: #6c757d;
+}
+
+td {
+    padding: 0 !important;
+    vertical-align: middle;
+}
+
+/* Schedule Slot - Khít với td */
+.schedule-slot {
+    display: block;
+    width: 100%;
+    height: 80px;
+    text-decoration: none;
+    color: inherit;
+    margin: 0;
+}
+
+/* Schedule Card - Thẻ bên trong ô */
+.schedule-card {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #ffffff;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 15px;
+    text-align: center;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+    /* Hiệu ứng hover */
+    .schedule-card:hover {
+        border-color: var(--primary);
+        background: var(--light);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(4, 99, 250, 0.2);
+    }
+
+/* Hiệu ứng khi được chọn */
+.schedule-slot.selected .schedule-card {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(4, 99, 250, 0.3);
+}
+
+/* Trạng thái đã được đặt/không khả dụng */
+.schedule-slot.booked .schedule-card {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    border-color: #f1aeb5;
+    color: #dc3545;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+    .schedule-slot.booked .schedule-card:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: #f1aeb5;
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    }
+
+/* Trạng thái đã qua (quá khứ) */
+.schedule-slot.past .schedule-card {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.5;
+    position: relative;
+}
+
+    .schedule-slot.past .schedule-card:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: #e9ecef;
+        background: #e9ecef;
+    }
+
+    /* Đường gạch ngang cho slot đã qua */
+    .schedule-slot.past .schedule-card::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 10%;
+        right: 10%;
+        height: 2px;
+        background: #6c757d;
+        transform: translateY(-50%);
+    }
+
+/* Trạng thái vô hiệu hóa */
+.schedule-slot.disabled .schedule-card {
+    background: #f8f9fa;
+    color: #adb5bd;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+    .schedule-slot.disabled .schedule-card:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: #e9ecef;
+        background: #f8f9fa;
+    }
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    .schedule-slot {
+        width: 60px;
+        height: 60px;
+    }
+
+    .schedule-card {
+        font-size: 9px;
+        padding: 4px;
     }
 }

@@ -35,9 +35,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
-
 // Cấu hình Authentication và Authorization
 builder.Services.AddAuthentication(options =>
 {
@@ -91,7 +88,8 @@ builder.Configuration
     .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 
-
+builder.Services.AddSingleton<BookingQueueService>();
+builder.Services.AddHostedService<BookingProcessor>();
 builder.Services.AddDistributedMemoryCache(); // Bộ nhớ tạm cho session
 builder.Services.AddSession(options =>
 {
@@ -103,10 +101,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
-builder.Services.AddControllersWithViews(options =>
-{
-    options.Filters.Add(new PreventSpamAttribute { Seconds = 2 }); // mặc định trong filters là 2s
-});
+//builder.Services.AddControllersWithViews(options =>
+//{
+//    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
+//});
 
 
 var app = builder.Build();
@@ -138,7 +136,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // Xử lý lỗi trang không tồn tại
-app.UseStatusCodePagesWithReExecute("/Home/NotFound");
+app.UseStatusCodePagesWithRedirects("/Home/NotFound");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -152,6 +150,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=User}/{action=ManageRoom}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

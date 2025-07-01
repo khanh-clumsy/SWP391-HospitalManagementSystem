@@ -7,8 +7,6 @@ public partial class Appointment
 {
     public int AppointmentId { get; set; }
 
-    public string? AppointmentCode { get; set; }
-
     public int? DoctorId { get; set; }
 
     public int PatientId { get; set; }
@@ -44,6 +42,8 @@ public partial class Appointment
     public DateTime? RecordCreatedAt { get; set; }
 
     public virtual Doctor? Doctor { get; set; }
+
+    public virtual ICollection<InvoiceDetail> InvoiceDetails { get; set; } = new List<InvoiceDetail>();
 
     public virtual Package? Package { get; set; }
 

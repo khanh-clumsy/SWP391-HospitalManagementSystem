@@ -463,8 +463,7 @@ namespace HospitalManagement.Controllers
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.Role, "Doctor"),
                         new Claim("DoctorID", user.DoctorId.ToString()),
-                        new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString()),
-                       
+                        new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString())
                     };
 
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

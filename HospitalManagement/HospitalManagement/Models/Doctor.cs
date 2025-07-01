@@ -35,20 +35,32 @@ public partial class Doctor
 
     public virtual ICollection<News> News { get; set; } = new List<News>();
 
+    public virtual ICollection<ScheduleChangeRequest> ScheduleChangeRequests { get; set; } = new List<ScheduleChangeRequest>();
+
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+
     public string GetFullGender()
     {
-        if (this.Gender == "M")
+        return this.Gender switch
         {
-            return "Male";
-        }
-        else if (this.Gender == "F")
+            "M" => "Male",
+            "F" => "Female",
+            _ => "Other"
+        };
+    }
+
+    public string GenerateDoctorCode()
+    {
+        string ans = "";
+        string s = this.FullName;
+        var part = s.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < part.Length; i++)
         {
-            return "Female";
+            string x = part[i];
+            if (i < part.Length - 1) ans += char.ToUpper(x[0]);
+            else ans = x + ans;
         }
-        else
-        {
-            return "Other";
-        }
+        ans += this.DoctorId.ToString();
+        return ans;
     }
 }

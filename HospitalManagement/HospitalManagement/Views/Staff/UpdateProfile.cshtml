@@ -31,10 +31,11 @@
 
 						<!-- Ảnh hiện tại -->
 						<div class="profile-image">
-							<img src="@(Model.ProfileImage != null
-									 ? $"data:image/png;base64,{Model.ProfileImage}"
-									 : Url.Content("~/img/logo.jpg"))"
-								 alt="Current Photo" class="shadow mb-2" />
+							<img src="@(string.IsNullOrEmpty(Model.ProfileImage)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/"+Model.ProfileImage))"
+								 alt="Current Photo"
+								 class="shadow mb-2" />
 						</div>
 						@Html.ValidationMessage("photo", "", new { @class = "text-danger" })
 

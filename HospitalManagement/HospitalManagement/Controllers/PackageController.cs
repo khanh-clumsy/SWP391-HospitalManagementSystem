@@ -13,6 +13,8 @@ using X.PagedList;
 using X.PagedList.Mvc.Core;
 using X.PagedList.Extensions;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Razor.TagHelpers;
+using HospitalManagement.Services;
 
 namespace HospitalManagement.Controllers
 {
@@ -31,7 +33,7 @@ namespace HospitalManagement.Controllers
 
         public async Task<IActionResult> Index(string? CategoryFilter, string? AgeFilter, string? GenderFilter, string? PriceRangeFilter, int? page)
         {
-            int pageSize = 9;
+            int pageSize = 6;
             int pageNumber = page ?? 1;
             ViewBag.CategoryFilter = CategoryFilter ?? "";
             ViewBag.AgeFilter = AgeFilter ?? "";
@@ -113,13 +115,18 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            string? base64Image = null;
             if (model.ThumbnailFile != null && model.ThumbnailFile.Length > 0)
             {
-                using var ms = new MemoryStream();
-                await model.ThumbnailFile.CopyToAsync(ms);
-                var bytes = ms.ToArray();
-                base64Image = Convert.ToBase64String(bytes);
+                try
+                {
+                    var fileName = await ImageService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    model.Thumbnail = fileName;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    TempData["Error"] = ex.Message;
+                    return View(model);
+                }
             }
 
             int ageFrom = 0, ageTo = 100;
@@ -153,7 +160,7 @@ namespace HospitalManagement.Controllers
                 TargetGender = model.TargetGender,
                 AgeFrom = ageFrom,
                 AgeTo = ageTo,
-                Thumbnail = base64Image,
+                Thumbnail = model.Thumbnail,
                 Description = model.Description,
                 DiscountPercent = model.DiscountPercent,
                 CreatedAt = DateTime.Now,
@@ -235,13 +242,18 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            string? base64Image = null;
             if (model.ThumbnailFile != null && model.ThumbnailFile.Length > 0)
             {
-                using var ms = new MemoryStream();
-                await model.ThumbnailFile.CopyToAsync(ms);
-                var bytes = ms.ToArray();
-                base64Image = Convert.ToBase64String(bytes);
+                try
+                {
+                    var fileName = await ImageService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    model.CurrentThumbnail = fileName;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return View(model);
+                }
             }
 
             var package = await _context.Packages
@@ -302,9 +314,9 @@ namespace HospitalManagement.Controllers
             package.AgeFrom = ageFrom;
             package.AgeTo = ageTo;
             package.DiscountPercent = model.DiscountPercent;
-            package.Thumbnail = base64Image ?? package.Thumbnail;
             package.FinalPrice = finalPrice;
             package.OriginalPrice = originalPrice;
+            package.Thumbnail = model.CurrentThumbnail;
 
             Console.WriteLine($"Original Price: {package.OriginalPrice}");
             Console.WriteLine($"Final Price: {package.FinalPrice}");
