@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.DotNet.Scaffolding.Shared.Project;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using X.PagedList;
@@ -938,14 +939,17 @@ namespace HospitalManagement.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [HttpPost]
         public async Task<IActionResult> SelectReplacementInfo(ReplacementInfoViewModel model)
         {
-            if (!ModelState.IsValid)
+            // Nếu lịch cũ có appointment thì bắt buộc phải chọn bác sĩ thay thế
+            if (model.HasAppointment && model.ReplacementDoctorId == null)
             {
-                TempData["error"] = "Vui lòng nhập đầy đủ thông tin.";
+                TempData["error"] = "Vui lòng chọn bác sĩ thay thế.";
                 return View(model);
             }
 
+            // Kiểm tra lịch đổi có hợp lệ không
             var request = await _context.ScheduleChangeRequests
                 .Include(r => r.FromSchedule)
                     .ThenInclude(s => s.Doctor)
@@ -956,37 +960,39 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Yêu cầu đổi lịch không hợp lệ.";
                 return RedirectToAction("ScheduleRequestList");
             }
+
             var fromSchedule = request.FromSchedule;
-            // Nếu có bác sĩ thay thế
 
             Doctor? replacementDoctor = null;
-            replacementDoctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.ReplacementDoctorId.Value);
+
+            // Nếu có bác sĩ thay thế được chọn
             if (model.ReplacementDoctorId.HasValue)
             {
+                replacementDoctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.ReplacementDoctorId.Value);
+
                 // Cập nhật Appointment liên quan
                 var appointments = await _context.Appointments
                     .Include(a => a.Patient)
                     .Where(a =>
-                        a.DoctorId == request.FromSchedule.Doctor.DoctorId &&
-                        a.SlotId == request.FromSchedule.SlotId &&
-                        a.Date == request.FromSchedule.Day &&
+                        a.DoctorId == fromSchedule.Doctor.DoctorId &&
+                        a.SlotId == fromSchedule.SlotId &&
+                        a.Date == fromSchedule.Day &&
                         (a.Status == "Pending" || a.Status == "Confirmed"))
                     .ToListAsync();
 
                 foreach (var appt in appointments)
                 {
                     appt.DoctorId = replacementDoctor.DoctorId;
-                    await _context.SaveChangesAsync();
-                    // Gửi mail cho bệnh nhân
+
+                    // Gửi email cho bệnh nhân
                     if (appt.Patient != null)
                     {
                         var patientBody = $@"
-                        <h4>Lịch khám đã được cập nhật</h4>
-                        <p><strong>Ngày:</strong> {appt.Date:dd/MM/yyyy}</p>
-                        <p><strong>Giờ:</strong> Slot {appt.SlotId}</p>
-                        <p><strong>Bác sĩ mới:</strong> {replacementDoctor.FullName}</p
-                        <p>Vui lòng xem chi tiết trong hệ thông</p>"
-                    ;
+                    <h4>Lịch khám đã được cập nhật</h4>
+                    <p><strong>Ngày:</strong> {appt.Date:dd/MM/yyyy}</p>
+                    <p><strong>Giờ:</strong> Slot {appt.SlotId}</p>
+                    <p><strong>Bác sĩ mới:</strong> {replacementDoctor.FullName}</p>
+                    <p>Vui lòng xem chi tiết trong hệ thống.</p>";
 
                         await _emailService.SendEmailAsync(
                             toEmail: appt.Patient.Email,
@@ -996,16 +1002,14 @@ namespace HospitalManagement.Controllers
                     }
                 }
 
-                // Gửi mail cho bác sĩ thay thế
-                replacementDoctor = await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == model.ReplacementDoctorId.Value);
+                // Gửi email cho bác sĩ thay thế
                 if (replacementDoctor != null)
                 {
                     var replaceBody = $@"
-                    <h4>Bạn được chỉ định thay thế cho lịch hẹn</h4>
-                    <p><strong>Ngày:</strong> {fromSchedule.Day:dd/MM/yyyy}</p>
-                    <p><strong>Slot:</strong> {fromSchedule.SlotId}</p>
-                    <p>Vui lòng xem chi tiết trong hệ thống</p>"
-                    ;
+                <h4>Bạn được chỉ định thay thế cho lịch khám</h4>
+                <p><strong>Ngày:</strong> {fromSchedule.Day:dd/MM/yyyy}</p>
+                <p><strong>Giờ:</strong> Slot {fromSchedule.SlotId}</p>
+                <p>Vui lòng kiểm tra trong hệ thống.</p>";
 
                     await _emailService.SendEmailAsync(
                         toEmail: replacementDoctor.Email,
@@ -1015,26 +1019,23 @@ namespace HospitalManagement.Controllers
                 }
             }
 
-            // Cập nhật lịch cũ
+            // Cập nhật lịch cũ với thông tin mới
             fromSchedule.RoomId = model.RoomId;
             fromSchedule.SlotId = request.ToSlotId;
             fromSchedule.Day = request.ToDay;
 
-            
-
-            // Đánh dấu yêu cầu là đã xử lý
+            // Đánh dấu yêu cầu đã xử lý
             request.Status = "Accepted";
 
-            // Gửi mail cho bác sĩ yêu cầu
-            var requestingDoctor = request.FromSchedule.Doctor;
+            // Gửi email cho bác sĩ yêu cầu
+            var requestingDoctor = fromSchedule.Doctor;
             if (requestingDoctor != null)
             {
                 var confirmBody = $@"
-                <h4>Yêu cầu đổi lịch đã được chấp thuận</h4>
-                <p><strong>Lịch mới:</strong> Slot {fromSchedule.SlotId} - {fromSchedule.Day:dd/MM/yyyy}</p>
-                <p><strong>Phòng mới:</strong> {fromSchedule.RoomId}</p>
-                <p>Vui lòng xem chi tiết trong hệ thống</p>"
-                ;
+            <h4>Yêu cầu đổi lịch đã được chấp thuận</h4>
+            <p><strong>Lịch mới:</strong> Slot {fromSchedule.SlotId} - {fromSchedule.Day:dd/MM/yyyy}</p>
+            <p><strong>Phòng mới:</strong> {fromSchedule.RoomId}</p>
+            <p>Vui lòng kiểm tra trong hệ thống.</p>";
 
                 await _emailService.SendEmailAsync(
                     toEmail: requestingDoctor.Email,
@@ -1048,6 +1049,7 @@ namespace HospitalManagement.Controllers
             TempData["success"] = "Xử lý yêu cầu đổi lịch thành công.";
             return RedirectToAction("ScheduleRequestList");
         }
+
 
 
         public static string NormalizeName(string? input)
