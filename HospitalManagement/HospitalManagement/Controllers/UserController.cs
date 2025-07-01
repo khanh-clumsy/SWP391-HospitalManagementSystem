@@ -939,7 +939,6 @@ namespace HospitalManagement.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        [HttpPost]
         public async Task<IActionResult> SelectReplacementInfo(ReplacementInfoViewModel model)
         {
             // Nếu lịch cũ có appointment thì bắt buộc phải chọn bác sĩ thay thế
