@@ -37,13 +37,13 @@
 		</div>
 		<div class="btn-group mb-3" role="group">
 			<a asp-action="MyAppointments" asp-route-Type="Today"
-			   class="btn @(ViewBag.Type == "Today" ? "btn-success fw-bold" : "btn-outline-success")">Today's</a>
+			   class="btn @(ViewBag.Type == "Today" ? "btn-success fw-bold" : "btn-outline-success")">Hôm nay</a>
 
 			<a asp-action="MyAppointments" asp-route-Type="Ongoing"
-			   class="btn @(ViewBag.Type == "Ongoing" ? "btn-warning text-white fw-bold" : "btn-outline-warning")">Ongoing</a>
+			   class="btn @(ViewBag.Type == "Ongoing" ? "btn-warning text-white fw-bold" : "btn-outline-warning")">Sắp tới</a>
 
 			<a asp-action="MyAppointments" asp-route-Type="Completed"
-			   class="btn @(ViewBag.Type == "Completed" ? "btn-danger fw-bold" : "btn-outline-danger")">Completed</a>
+			   class="btn @(ViewBag.Type == "Completed" ? "btn-danger fw-bold" : "btn-outline-danger")">Hoàn thành</a>
 
 		</div>
 

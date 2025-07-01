@@ -217,8 +217,10 @@ namespace HospitalManagement.Controllers
             if (string.IsNullOrEmpty(user.PhoneNumber))
             {
                 TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                TempData["ReturnUrl"] = Url.Action("BookingByDoctor", new { doctorId, departmentName });
                 return RedirectToAction("UpdateProfile", "Patient");
             }
+
             int selectedYear = DateTime.Today.Year;
             DateOnly selectedWeekStart;
             selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
@@ -398,6 +400,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SlotFilter = SlotFilter;
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
+            ViewBag.Type = Type ?? "Today"; 
             ViewBag.FilterType = Type ?? "Today";
 
             // Truy vấn lọc
@@ -421,7 +424,7 @@ namespace HospitalManagement.Controllers
 
                     case "Ongoing":
                         filteredList = filteredList.Where(a =>  
-                          a.Date > today && (a.Status == "Pending" || a.Status == "Confirmed"))
+                          a.Date > today && (a.Status == "Confirmed") || a.Status == "Pending")
                          .ToList();
                         break;
 

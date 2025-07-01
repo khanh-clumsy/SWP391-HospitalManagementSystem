@@ -35,6 +35,14 @@ namespace HospitalManagement.Services
             return builder.ToString();
         }
 
+        public static string BuildRequestAppointmentFailed(Appointment appointment)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("<h3>✅ Lịch hẹn của bạn đã được xác nhận!</h3>");
+            AppendCommonAppointmentInfo(builder, appointment);
+            return builder.ToString();
+        }
+
         private static void AppendCommonAppointmentInfo(StringBuilder builder, Appointment appointment)
         {
             builder.AppendLine($"<p><strong>Bệnh nhân:</strong> {appointment.Patient?.FullName}</p>");

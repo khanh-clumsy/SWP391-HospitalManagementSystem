@@ -130,24 +130,27 @@ $(document).ready(function () {
 
     // Cập nhật trạng thái nút Đặt Hẹn
     function updateSubmitButton() {
-        const doctorId = $('#SelectedDoctorId').val();
-        const date = $('#AppointmentDate').val();
-        const slotId = $('#SelectedSlotId').val();
+        const doctorId = $('#SelectedDoctorId').val()?.trim();
+        const date = $('#AppointmentDate').val()?.trim();
+        const slotId = $('#SelectedSlotId').val()?.trim();
 
         const isService = $('#serviceRadio').is(':checked');
         const isPackage = $('#packageRadio').is(':checked');
-        const serviceId = $('#serviceDropdown').val();
-        const packageId = $('#packageDropdown').val();
+        const serviceId = $('#serviceDropdown').val()?.trim();
+        const packageId = $('#packageDropdown').val()?.trim();
 
-        let valid = doctorId && date && slotId;
+        let hasServiceOrPackage = false;
 
-        if (isService) {
-            valid = valid && serviceId;
-        } else if (isPackage) {
-            valid = valid && packageId;
+        if (isService && serviceId) {
+            hasServiceOrPackage = true;
+        }
+        if (isPackage && packageId) {
+            hasServiceOrPackage = true;
         }
 
-        console.log("updateSubmitButton debug =>", {
+        const isValid = doctorId && date && slotId && hasServiceOrPackage;
+
+        console.log("🔍 Kiểm tra điều kiện nút Đặt Hẹn:", {
             doctorId,
             date,
             slotId,
@@ -155,11 +158,12 @@ $(document).ready(function () {
             serviceId,
             isPackage,
             packageId,
-            finalValid: valid
+            isValid
         });
 
-        $('.submit-btn').prop('disabled', !valid);
+        $('.submit-btn').prop('disabled', !isValid);
     }
+
     const selectedDepartment = $('#departmentDropdown').val()?.trim();
     if (selectedDepartment) {
         $('#departmentDropdown').trigger('change');
@@ -384,7 +388,5 @@ $(document).ready(function () {
     }
     // Khởi tạo
     updateSubmitButton();
-
-    
 });
     

@@ -101,6 +101,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Package)
                 .Include(a => a.Slot)
                 .OrderByDescending(a => a.Date)
+                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected")
                 .AsQueryable();
 
             // Lọc theo status
