@@ -55,7 +55,6 @@
 </div>
 
 
-
 <!-- Bảng lịch -->
 <div>
 	<table class="table table-bordered text-center">
@@ -81,13 +80,32 @@
 							{
 								foreach (var item in grouped[key])
 								{
-
-									<a href="#">
+									@if (item.Status == "Absent")
+									{
+										<div class="slot-absent">
+											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+											<div><i class="bi bi-x-circle me-1"></i> Absent</div>
+										</div>
+									}
+									else if (item.Status == "Attended")
+									{
+										<div class="slot-attended">
+											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+											<div><i class="bi bi-check-circle me-1"></i> Attended</div>
+										</div>
+									}
+									else // Pending
+									{
 										<div class="schedule-card">
 											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+											<div><i class="bi bi-check-circle me-1"></i> Pending</div>
+
 										</div>
-									</a>
+									}
+
 								}
 							}
 						</td>
@@ -98,17 +116,20 @@
 		</tbody>
 	</table>
 </div>
-		@if (TempData["error"] != null)
-		{
-			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
-				<div>@TempData["error"]</div>
-			</div>
-		}
-		else if (TempData["success"] != null)
-		{
-			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
-				<div>@TempData["success"]</div>
-			</div>
-		}
+
+
+
+@if (TempData["error"] != null)
+{
+	<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
+			role="alert" style="z-index: 1055; border-radius: 8px;">
+		<div>@TempData["error"]</div>
+	</div>
+	}
+	else if (TempData["success"] != null)
+	{
+	<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
+			role="alert" style="z-index: 1055; border-radius: 8px;">
+		<div>@TempData["success"]</div>
+	</div>
+}

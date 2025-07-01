@@ -10,7 +10,7 @@
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
 	var daysInWeek = (List<DateOnly>)ViewBag.DaysInWeek;
 	var slotsPerDay = (int)ViewBag.SlotsPerDay;
-	var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+	var grouped = Model.GroupBy(s => (s.SlotId, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
 	var bookedAppointments = ViewBag.BookedAppointments as List<Appointment>;
 	var today = DateOnly.FromDateTime((DateTime)ViewBag.Today);
 }
@@ -102,7 +102,7 @@
 									string slotClass = "schedule-slot";
 									if (bookedAppointments != null)
 									{
-										var isBooked = bookedAppointments.Any(a => a.Date == day && a.SlotId == item.SlotIndex);
+										var isBooked = bookedAppointments.Any(a => a.Date == day && a.SlotId == item.SlotId);
 										var isPast = day < today;
 										if (isBooked) slotClass += " booked";
 										else if (isPast) slotClass += " past";
@@ -110,7 +110,7 @@
 									
 									<a href="javascript:void(0);" class="@slotClass"
 									   data-day="@item.Day.ToString("yyyy-MM-dd")"
-									   data-slot-id="@item.SlotIndex">
+									   data-slot-id="@item.SlotId">
 										<div class="schedule-card">
 											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>

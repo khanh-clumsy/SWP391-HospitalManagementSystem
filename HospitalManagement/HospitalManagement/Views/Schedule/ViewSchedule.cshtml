@@ -24,27 +24,65 @@
 		vertical-align: top;
 	}
 
+	.slot-attended,
+	.slot-absent,
+	.schedule-card {
+		border-radius: 5px;
+		padding: 10px;
+		margin-bottom: 5px;
+		box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+		cursor: pointer;
+		transition: background-color 0.2s, box-shadow 0.2s;
+	}
+
 	.schedule-card {
 		border: 1px solid #007bff;
 		border-top: 4px solid #007bff;
-		border-radius: 5px;
-		padding: 10px;
 		background-color: #f8faff;
-		margin-bottom: 5px;
-		box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+		color: black;
+	}
+	.schedule-card:hover {
+		background-color: #e9f5ff;
+		box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 	}
 
-		.schedule-card i {
+	.slot-attended {
+		border: 1px solid #28a745;
+		border-top: 4px solid #28a745;
+		background-color: #e6f9ea;
+		color: black;
+	}
+	.slot-attended:hover {
+		background-color: #d2f2d9;
+		box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+	}
+
+	.slot-absent {
+		border: 1px solid #ff1b1b;
+		border-top: 4px solid #ff1b1b;
+		background-color: #ffaa90;
+		color: black;
+	}
+	.slot-absent:hover {
+		background-color: #ff9980;
+		box-shadow: 0 2px 8px rgba(255, 27, 27, 0.3);
+	}
+
+
+	.schedule-card i {
 			color: #007bff;
 		}
 
-		.schedule-card .fw-bold {
-			font-size: 1rem;
-		}
+	.schedule-card .fw-bold {
+		font-size: 1rem;
+	}
 
 	.bg-light {
 		background-color: #f8f9fa;
 	}
+
+
+
 </style>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
@@ -142,12 +180,32 @@
 									{
 										foreach (var item in grouped[key])
 										{
-											<a href="#">
+											@if (item.Status == "Absent")
+											{
+												<div class="slot-absent">
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-x-circle me-1"></i> Absent</div>
+												</div>
+											}
+											else if (item.Status == "Attended")
+											{
+												<div class="slot-attended">
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-check-circle me-1"></i> Attended</div>
+												</div>
+											}
+											else // Pending
+											{
 												<div class="schedule-card">
 													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-check-circle me-1"></i> Pending</div>
+
 												</div>
-											</a>
+											}
+
 										}
 									}
 								</td>
@@ -163,5 +221,5 @@
 </div>
 
  @section Scripts { 
- 	<script src="~/js/Schedule.js" asp-append-version="true"></script> 
+ 	<script src="~/js/ViewSchedule.js" asp-append-version="true"></script> 
  } 

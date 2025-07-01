@@ -66,7 +66,8 @@ namespace HospitalManagement.Controllers
                     StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
                     EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
                     RoomName = s.Room.RoomName,
-                    RoomId = s.Room.RoomId
+                    RoomId = s.Room.RoomId,
+                    Status = s.Status
                 })
                 .ToList();
 
@@ -111,7 +112,8 @@ namespace HospitalManagement.Controllers
                     StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
                     EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
                     RoomName = s.Room.RoomName,
-                    RoomId = s.Room.RoomId
+                    RoomId = s.Room.RoomId,
+                    Status = s.Status
                 })
                 .ToList();
 

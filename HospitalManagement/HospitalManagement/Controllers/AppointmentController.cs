@@ -235,7 +235,7 @@ namespace HospitalManagement.Controllers
                     .Select(s => new DoctorScheduleViewModel.ScheduleItem
                     {
                         Day = s.Day,
-                        SlotIndex = s.SlotId,
+                        SlotId = s.SlotId,
                         StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
                         EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
                         RoomName = s.Room.RoomName
@@ -341,7 +341,7 @@ namespace HospitalManagement.Controllers
                 .Select(s => new DoctorScheduleViewModel.ScheduleItem
                 {
                     Day = s.Day,
-                    SlotIndex = s.SlotId,
+                    SlotId = s.SlotId,
                     StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
                     EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
                     RoomName = s.Room.RoomName
@@ -478,7 +478,7 @@ namespace HospitalManagement.Controllers
                     .Select(s => new DoctorScheduleViewModel.ScheduleItem
                     {
                         Day = s.Day,
-                        SlotIndex = s.SlotId,
+                        SlotId = s.SlotId,
                         StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
                         EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
                         RoomName = s.Room.RoomName
