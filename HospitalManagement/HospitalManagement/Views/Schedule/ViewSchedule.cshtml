@@ -31,8 +31,9 @@
 		padding: 10px;
 		margin-bottom: 5px;
 		box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
-		cursor: pointer;
 		transition: background-color 0.2s, box-shadow 0.2s;
+		cursor: pointer;
+
 	}
 
 	.schedule-card {
@@ -40,6 +41,7 @@
 		border-top: 4px solid #007bff;
 		background-color: #f8faff;
 		color: black;
+
 	}
 	.schedule-card:hover {
 		background-color: #e9f5ff;
@@ -175,6 +177,8 @@
 							@foreach (var day in daysInWeek)
 							{
 								var key = (slot, day);
+								var isToday = (day == DateOnly.FromDateTime(DateTime.Today));
+
 								<td>
 									@if (grouped.ContainsKey(key))
 									{
@@ -182,7 +186,16 @@
 										{
 											@if (item.Status == "Absent")
 											{
-												<div class="slot-absent">
+												<div class="slot-absent"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													onclick="openSlotModal(this)"
+												>
 													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
 													<div><i class="bi bi-x-circle me-1"></i> Absent</div>
@@ -190,18 +203,36 @@
 											}
 											else if (item.Status == "Attended")
 											{
-												<div class="slot-attended">
+												<div class="slot-attended"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													onclick="openSlotModal(this)"
+												>
 													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
 													<div><i class="bi bi-check-circle me-1"></i> Attended</div>
 												</div>
 											}
-											else // Pending
+											else // Not Yet
 											{
-												<div class="schedule-card">
+												<div class="schedule-card"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													onclick="openSlotModal(this)"
+												>
 													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
-													<div><i class="bi bi-check-circle me-1"></i> Pending</div>
+													<div><i class="bi bi-check-circle me-1"></i> Not Yet</div>
 
 												</div>
 											}
@@ -219,6 +250,36 @@
 	</div>
 
 </div>
+
+<div class="modal fade" id="slotModal" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Thông tin Slot</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<p><strong>Ngày:</strong> <span id="modalDate"></span></p>
+				<p><strong>Slot:</strong> <span id="modalSlot"></span></p>
+				<p><strong>Thời gian:</strong> <span id="modalTime"></span></p>
+				<p><strong>Phòng:</strong> <span id="modalRoom"></span></p>
+				<p><strong>Trạng thái:</strong>
+					<select id="modalStatus" class="form-select">
+						<option value="Not Yet">Not Yet</option>
+						<option value="Attended">Attended</option>
+						<option value="Absent">Absent</option>
+					</select>
+				</p>
+				<input type="hidden" id="modalScheduleId" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" id="saveStatusBtn" class="btn btn-primary" onclick="updateScheduleStatus()">Lưu</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
 
  @section Scripts { 
  	<script src="~/js/ViewSchedule.js" asp-append-version="true"></script> 

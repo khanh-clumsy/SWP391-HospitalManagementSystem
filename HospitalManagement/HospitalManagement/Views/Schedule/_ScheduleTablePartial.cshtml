@@ -55,67 +55,99 @@
 </div>
 
 
-<!-- Bảng lịch -->
-<div>
-	<table class="table table-bordered text-center">
-		<thead class="table-light">
-			<tr>
-				<th>Slot</th>
-				@foreach (var day in daysInWeek)
-				{
-					<th>@day.ToString("ddd dd/MM")</th>
-				}
-			</tr>
-		</thead>
-		<tbody>
-			@for (int slot = 1; slot <= slotsPerDay; slot++)
-			{
-				<tr>
-					<td><strong>Slot @slot</strong></td>
-					@foreach (var day in daysInWeek)
+		<!-- Bảng lịch -->
+		<div>
+			<table class="table table-bordered text-center">
+				<thead class="table-light">
+					<tr>
+						<th>Slot</th>
+						@foreach (var day in daysInWeek)
+						{
+							<th>@day.ToString("ddd dd/MM")</th>
+						}
+					</tr>
+				</thead>
+				<tbody>
+					@for (int slot = 1; slot <= slotsPerDay; slot++)
 					{
-						var key = (slot, day);
-						<td>
-							@if (grouped.ContainsKey(key))
+						<tr>
+							<td><strong>Slot @slot</strong></td>
+							@foreach (var day in daysInWeek)
 							{
-								foreach (var item in grouped[key])
-								{
-									@if (item.Status == "Absent")
-									{
-										<div class="slot-absent">
-											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
-											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
-											<div><i class="bi bi-x-circle me-1"></i> Absent</div>
-										</div>
-									}
-									else if (item.Status == "Attended")
-									{
-										<div class="slot-attended">
-											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
-											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
-											<div><i class="bi bi-check-circle me-1"></i> Attended</div>
-										</div>
-									}
-									else // Pending
-									{
-										<div class="schedule-card">
-											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
-											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
-											<div><i class="bi bi-check-circle me-1"></i> Pending</div>
+								var key = (slot, day);
+								var isToday = (day == DateOnly.FromDateTime(DateTime.Today));
 
-										</div>
-									}
+								<td>
+									@if (grouped.ContainsKey(key))
+									{
+										foreach (var item in grouped[key])
+										{
+											@if (item.Status == "Absent")
+											{
+												<div class="slot-absent"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													data-slot="@slot"
+													onclick="openSlotModal(this)"
+												>
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-x-circle me-1"></i> Absent</div>
+												</div>
+											}
+											else if (item.Status == "Attended")
+											{
+												<div class="slot-attended"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													data-slot="@slot"
+													onclick="openSlotModal(this)"
+												>
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-check-circle me-1"></i> Attended</div>
+												</div>
+											}
+											else // Not Yet
+											{
+												<div class="schedule-card"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													data-slot="@slot"
+													onclick="openSlotModal(this)"
+												>
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-check-circle me-1"></i> Not Yet</div>
 
-								}
+												</div>
+											}
+
+										}
+									}
+								</td>
 							}
-						</td>
+						</tr>
 					}
-				</tr>
-			}
 
-		</tbody>
-	</table>
-</div>
+				</tbody>
+			</table>
+		</div>
 
 
 

@@ -127,6 +127,27 @@ namespace HospitalManagement.Controllers
             return PartialView("_ScheduleTablePartial", schedule);
         }
 
+        [Authorize(Roles = "Doctor")]
+        [HttpPost]
+        public IActionResult UpdateScheduleStatus(int scheduleId, string status)
+        {
+            var user = HttpContext.User;
+            string email = user.FindFirstValue(ClaimTypes.Email);
+            if (email == null) Unauthorized();
+
+            var doctor = _context.Doctors.FirstOrDefault(d => d.Email == email);
+            if (doctor == null) return NotFound();
+
+            var schedule = _context.Schedules.FirstOrDefault(s => s.ScheduleId == scheduleId);
+
+            if (schedule == null)
+                return Json(new { success = false, message = "Không tìm thấy lịch cần cập nhật." });
+
+            schedule.Status = status;
+
+            _context.SaveChanges();
+            return Json(new { success = true });
+        }
 
 
         // ========================  add  ========================
@@ -353,7 +374,7 @@ namespace HospitalManagement.Controllers
 
             var endDate = startDate.AddDays(6);
 
-            var schedules =  _context.Schedules
+            var schedules = _context.Schedules
                 .Where(s => s.DoctorId == parsedDoctorId && s.Day >= startDate && s.Day <= endDate)
                 .Select(s => new DoctorScheduleViewModel.ScheduleItem
                 {
@@ -542,7 +563,7 @@ namespace HospitalManagement.Controllers
 
             var endDate = startDate.AddDays(6);
 
-            var schedules =  _context.Schedules
+            var schedules = _context.Schedules
                 .Where(s => s.DoctorId == parsedDoctorId && s.Day >= startDate && s.Day <= endDate)
                 .Select(s => new DoctorScheduleViewModel.ScheduleItem
                 {
@@ -621,6 +642,58 @@ namespace HospitalManagement.Controllers
             return Json(new { success = true });
         }
         
+        // ========================  expired slots  ========================
+
+        
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult UpdateExpiredSlots()
+        {
+            return View(new List<DoctorScheduleViewModel.ScheduleItem> ());
+        }
+
+        [HttpPost]
+        public IActionResult UpdateExpiredSlotsConfirmed()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var expiredSchedules = _context.Schedules
+                .Where(s => s.Day < today && s.Status == "Not Yet")
+                .Include(s => s.Room)
+                .Include(s => s.Slot)
+                .Include(s => s.Doctor)
+                .ToList();
+
+            foreach (var s in expiredSchedules)
+            {
+                s.Status = "Absent";
+            }
+
+            _context.SaveChanges();
+
+
+            var expiredItems = expiredSchedules
+                .Select(s => new DoctorScheduleViewModel.ScheduleItem
+                {
+                    ScheduleId = s.ScheduleId,
+                    Day = s.Day,
+                    SlotId = s.SlotId,
+                    StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
+                    EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
+                    RoomId = s.Room.RoomId,
+                    RoomName = s.Room.RoomName,
+                    DoctorId = s.DoctorId,
+                    DoctorName = s.Doctor.GenerateDoctorCode(),
+                    Status = s.Status // absent
+                })
+                .OrderBy(s => s.Day)
+                .ThenBy(s => s.SlotId)
+                .ThenBy(s => s.DoctorId)
+                .ToList();
+
+            TempData["success"] = $"Cập nhật {expiredItems.Count} lịch làm việc quá hạn thành công";
+            return View("UpdateExpiredSlots", expiredItems);
+        }
 
     }
 }

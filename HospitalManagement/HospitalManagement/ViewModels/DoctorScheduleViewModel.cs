@@ -10,6 +10,8 @@
         public string RoomName { get; set; }
         public int RoomId { get; set; }
         public int DoctorId { get; set; }
-        public string Status {get; set;}
+        public string Status { get; set; }
+        public string DoctorName {get; set;}
+
     }
 }

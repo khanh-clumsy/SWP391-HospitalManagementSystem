@@ -43,4 +43,63 @@ function getFirstMondayOfYear(year) {
     return firstMonday.toISOString().split('T')[0];
 }
 
+function openSlotModal(el){
+    const scheduleId = el.dataset.id;
+    const day = el.dataset.day;
+    const start = el.dataset.start;
+    const end = el.dataset.end;
+    const roomName = el.dataset.room;
+    const status = el.dataset.status;
+    const isToday = el.dataset.istoday == "True";
+    const slot = el.dataset.slot;
 
+    // console.log(isToday);
+
+	document.getElementById("modalDate").textContent = day;
+	document.getElementById("modalTime").textContent = `${start} - ${end}`;
+	document.getElementById("modalRoom").textContent = roomName;
+    document.getElementById("modalSlot").textContent = slot;
+
+	document.getElementById("modalStatus").value = status;
+	document.getElementById("modalScheduleId").value = scheduleId;
+
+    document.getElementById("modalStatus").disabled = !isToday;
+	document.getElementById("saveStatusBtn").disabled = !isToday;
+
+    const modal = new bootstrap.Modal(document.getElementById('slotModal'));
+    modal.show();
+}
+
+function updateScheduleStatus(){
+   
+    const status = document.getElementById('modalStatus').value;
+    const scheduleId = document.getElementById('modalScheduleId').value;
+
+    // alert(" status: " + status + " scheduleid: "+scheduleId);
+    // return; //debug
+
+    if (!scheduleId) {
+        alert("Không xác định được lịch cần thay đổi.");
+        return;
+    }
+
+    if (!confirm("Bạn xác nhận thay đổi trạng thái này?")) return;
+
+    $.ajax({
+        url: "/Schedule/UpdateScheduleStatus",
+        type: "POST",
+        data: { scheduleId: scheduleId, status: status },
+        success: function (res) {
+            if (res.success) {
+                $('#slotModal').modal('hide');
+                alert("Đã thay đổi thành công.");
+                updateSchedule(); // cập nhật lại lịch
+            } else {
+                alert("Thay đổi thất bại: " + res.message);
+            }
+        },
+        error: function () {
+            alert("Có lỗi xảy ra khi thay đổi.");
+        }
+    });
+}
