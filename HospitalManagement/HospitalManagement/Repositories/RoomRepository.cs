@@ -14,9 +14,6 @@ namespace HospitalManagement.Repositories
             _context = context;
         }
 
-
-
-
         public async Task<int> CountAsync(
                         string? name,
                         string? building,
@@ -284,5 +281,9 @@ namespace HospitalManagement.Repositories
             return availableRooms;
         }
 
+        public Task<RoomWithDoctorDtoViewModel> GetRoomWithDoctorByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

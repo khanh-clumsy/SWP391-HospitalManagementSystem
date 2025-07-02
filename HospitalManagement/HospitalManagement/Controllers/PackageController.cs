@@ -119,7 +119,7 @@ namespace HospitalManagement.Controllers
             {
                 try
                 {
-                    var fileName = await ImageService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    var fileName = await FileService.SaveImageAsync(model.ThumbnailFile, "Package");
                     model.Thumbnail = fileName;
                 }
                 catch (InvalidOperationException ex)
@@ -246,7 +246,7 @@ namespace HospitalManagement.Controllers
             {
                 try
                 {
-                    var fileName = await ImageService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    var fileName = await FileService.SaveImageAsync(model.ThumbnailFile, "Package");
                     model.CurrentThumbnail = fileName;
                 }
                 catch (InvalidOperationException ex)

@@ -3,6 +3,9 @@
     public class TestResultInputViewModel
     {
         public int TestListID { get; set; }
+
+        public int TestID { get; set; }
+
         public string TestName { get; set; }
 
         // Bệnh nhân

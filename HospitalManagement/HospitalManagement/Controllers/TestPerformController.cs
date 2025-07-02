@@ -98,6 +98,7 @@ namespace HospitalManagement.Controllers
             TempData["Success"] = "Lưu kết quả xét nghiệm thành công.";
             return RedirectToAction("TestListForDoctor"); 
         }
+
         [HttpGet]
         [Authorize(Roles = "TestDoctor")]
         public async Task<IActionResult> ViewOngoingTest()
@@ -117,9 +118,6 @@ namespace HospitalManagement.Controllers
                             s.Slot.EndTime >= currentTime)
                 .Select(s => s.RoomId)
                 .FirstOrDefaultAsync();
-
-            if (roomId == null)
-                return View(new List<TestPatientViewModel>()); 
 
             // Lấy các test đang ở trạng thái Ongoing trong phòng
             var patients = await _context.Trackings
