@@ -70,6 +70,25 @@ namespace HospitalManagement.Repositories
             return schedule?.RoomId;
         }
 
+        public async Task<int?> GetCurrentWorkingRoomIdWithTestDoctor(int doctorId)
+        {
+            var now = DateTime.Now;
+            var today = DateOnly.FromDateTime(now);
+            var currentTime = TimeOnly.FromDateTime(now);
+
+            var schedule = await _context.Schedules
+                .Include(s => s.Slot)
+                .Where(s =>
+                    s.DoctorId == doctorId &&
+                    s.Day == today &&
+                    s.Slot.StartTime <= currentTime)
+                .OrderByDescending(s => s.Slot.StartTime)
+                .FirstOrDefaultAsync();
+
+            return schedule?.RoomId;
+        }
+            
+
         public async Task<List<ScheduleViewModel>> GetDoctorSchedulesInRangeAsync(int doctorId, DateOnly startDate, DateOnly endDate)
         {
             return await _context.Schedules

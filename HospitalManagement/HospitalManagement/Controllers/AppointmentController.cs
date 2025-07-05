@@ -256,7 +256,7 @@ namespace HospitalManagement.Controllers
                 PackageOptions = await GetPackageListAsync(),
                 AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
                 SelectedDoctorId = doctorId,
-                DepartmentOptions = await GetDepartmentListAsync(),
+                DepartmentOptions = await GetDepartmentListAsync(false),
                 WeeklySchedule = schedules
             };
             return View(model);
@@ -269,7 +269,7 @@ namespace HospitalManagement.Controllers
             if (!ModelState.IsValid)
             {
                 // Nạp lại dropdown nếu có lỗi
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 return View(model);
@@ -297,7 +297,7 @@ namespace HospitalManagement.Controllers
             if (isPatientConflict)
             {
                 TempData["error"] = "Bạn đã có một cuộc hẹn trong khung giờ này!";
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 return View(model);
@@ -497,7 +497,7 @@ namespace HospitalManagement.Controllers
                 SelectedDoctorId = doctorId,
                 ServiceOptions = await GetServiceListAsync(),
                 PackageOptions = await GetPackageListAsync(),
-                DepartmentOptions = await GetDepartmentListAsync(),
+                DepartmentOptions = await GetDepartmentListAsync(false),
                 WeeklySchedule = schedules
             };
 
@@ -512,7 +512,7 @@ namespace HospitalManagement.Controllers
             if (!ModelState.IsValid)
             {
                 // Nạp lại dropdown nếu có lỗi
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 model.WeeklySchedule = new List<DoctorScheduleViewModel.ScheduleItem>();
@@ -603,7 +603,7 @@ namespace HospitalManagement.Controllers
             if (confirmedAppointment == null)
             {
                 TempData["error"] = $"Lỗi khi tạo lịch hẹn!";
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 model.WeeklySchedule = new List<DoctorScheduleViewModel.ScheduleItem>();
@@ -993,17 +993,25 @@ namespace HospitalManagement.Controllers
                 })
                 .ToListAsync();
         }
-        private async Task<List<SelectListItem>> GetDepartmentListAsync()
+        private async Task<List<SelectListItem>> GetDepartmentListAsync(bool? containTestDoc)
         {
-            var depts = await _context.Doctors
+            var query = _context.Doctors.AsQueryable();
+
+            if (!(containTestDoc ?? false))
+            {
+                query = query.Where(d =>
+                    d.DepartmentName != "Xét nghiệm" &&
+                    d.DepartmentName != "Chẩn đoán hình ảnh");
+            }
+
+            var departmentNames = await query
+                .Where(d => !string.IsNullOrEmpty(d.DepartmentName))
                 .Select(d => d.DepartmentName)
-                .Where(name => !string.IsNullOrEmpty(name))
                 .Distinct()
                 .OrderBy(name => name)
                 .ToListAsync();
 
-            // Chuyển thành SelectListItem
-            return depts
+            return departmentNames
                 .Select(name => new SelectListItem
                 {
                     Value = name,
@@ -1011,6 +1019,7 @@ namespace HospitalManagement.Controllers
                 })
                 .ToList();
         }
+
 
         private async Task<List<SelectListItem>> GetPackageListAsync()
         {

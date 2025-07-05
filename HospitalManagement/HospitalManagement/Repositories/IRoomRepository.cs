@@ -19,5 +19,6 @@ namespace HospitalManagement.Repositories
         Task<List<Room>> GetAvailableRoomsForSchedulesAsync(List<int> selectedScheduleIds);
         Task<List<SelectListItem>> GetAvailableRoomsAsync(int slotId, DateOnly day);
 
+
     }
 }

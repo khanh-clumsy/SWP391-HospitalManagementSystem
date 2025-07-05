@@ -82,7 +82,7 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments
                 .Include(a => a.Patient)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id);
-            var allTestsCompleted = await _context.TestLists
+            var allTestsCompleted = await _context.TestRecords
                     .Where(t => t.AppointmentId == id)
                     .AllAsync(t => t.TestStatus == "Completed");
 
@@ -91,7 +91,7 @@ namespace HospitalManagement.Controllers
 
             // Lấy danh sách phòng đã chỉ định (Tracking + Room)
             var assignedRooms = await _context.Trackings
-                                .Include(t => t.TestList)
+                                .Include(t => t.TestRecord)
                                     .ThenInclude(tl => tl.Test)
                                 .Include(t => t.Room)
                                 .Where(t => t.AppointmentId == id)
@@ -122,11 +122,11 @@ namespace HospitalManagement.Controllers
             var trackingViewModel = viewModel.AssignedRooms
                 .Select(t => new TrackingViewModel
                 {
-                    TestListId = t.TestListId ?? 0,
-                    TestId = t.TestList.Test.TestId,
-                    TestName = t.TestList?.Test?.Name,
-                    TestStatus = t.TestList?.TestStatus,
-                    RoomId = t.Room.RoomId,
+                    TestRecordID = t.TestRecordId ?? 0,
+                    TestID = t.TestRecord.Test.TestId,
+                    TestName = t.TestRecord?.Test?.Name,
+                    TestStatus = t.TestRecord?.TestStatus,
+                    RoomID = t.Room.RoomId,
                     RoomName = t.Room.RoomName,
                     RoomType = t.Room.RoomType
                 }).ToList();
@@ -151,12 +151,12 @@ namespace HospitalManagement.Controllers
 
             // 2. Kiểm tra xem đã có test này với phòng này chưa
             bool exists = _context.Trackings
-                .Include(t => t.TestList)
+                .Include(t => t.TestRecord)
                 .Any(t =>
                     t.AppointmentId == appointmentId &&
                     t.RoomId == roomId &&
-                    t.TestList != null &&
-                    t.TestList.TestId == testId);
+                    t.TestRecord != null &&
+                    t.TestRecord.TestId == testId);
 
             if (exists)
             {
@@ -164,19 +164,19 @@ namespace HospitalManagement.Controllers
             }
 
             // 3. Tìm hoặc tạo mới TestList
-            var testList = _context.TestLists
+            var testRecord = _context.TestRecords
                 .FirstOrDefault(t => t.AppointmentId == appointmentId && t.TestId == testId);
 
-            if (testList == null)
+            if (testRecord == null)
             {
-                testList = new TestList
+                testRecord = new TestRecord
                 {
                     AppointmentId = appointmentId,
                     TestId = testId,
                     CreatedAt = DateTime.Now,
                     TestStatus = "Ongoing"
                 };
-                _context.TestLists.Add(testList);
+                _context.TestRecords.Add(testRecord);
                 _context.SaveChanges();
             }
 
@@ -186,7 +186,7 @@ namespace HospitalManagement.Controllers
                 AppointmentId = appointmentId,
                 RoomId = roomId,
                 Time = DateTime.Now,
-                TestListId = testList.TestListId
+                TestRecordId = testRecord.TestRecordId
             };
             _context.Trackings.Add(tracking);
             _context.SaveChanges();
@@ -201,10 +201,10 @@ namespace HospitalManagement.Controllers
             // 6. Trả về DTO cho JS
             var dto = new
             {
-                testListId = testList.TestListId,
-                testId = testList.TestId,
+                testRecordId = testRecord.TestRecordId,
+                testId = testRecord.TestId,
                 testName = test.Name,
-                testStatus = testList.TestStatus,
+                testStatus = testRecord.TestStatus,
                 roomId = room.RoomId,
                 roomName = room.RoomName,
                 roomType = room.RoomType,
@@ -218,11 +218,11 @@ namespace HospitalManagement.Controllers
         {
             return trackings.Select(t => new TrackingViewModel
             {
-                TestListId = t.TestListId ?? 0,
-                TestId = t.TestList.Test.TestId,
-                TestName = t.TestList?.Test?.Name,
-                TestStatus = t.TestList?.TestStatus,
-                RoomId = t.Room.RoomId,
+                TestRecordID = t.TestRecordId ?? 0,
+                TestID = t.TestRecord.Test.TestId,
+                TestName = t.TestRecord?.Test?.Name,
+                TestStatus = t.TestRecord?.TestStatus,
+                RoomID = t.Room.RoomId,
                 RoomName = t.Room.RoomName,
                 RoomType = t.Room.RoomType,
                 Status = t.Room.Status
@@ -249,7 +249,7 @@ namespace HospitalManagement.Controllers
             if (actionType.Equals("submit"))
             {
                 // Kiểm tra tất cả các xét nghiệm đã được hoàn thành
-                bool allTestsCompleted = await _context.TestLists
+                bool allTestsCompleted = await _context.TestRecords
                     .Where(t => t.AppointmentId == model.AppointmentId)
                     .AllAsync(t => t.TestStatus == "Completed");
 
@@ -259,7 +259,7 @@ namespace HospitalManagement.Controllers
 
                     // Gán lại ViewBag và model để quay lại đúng trang
                     var assignedRooms = await _context.Trackings
-                                        .Include(t => t.TestList)
+                                        .Include(t => t.TestRecord)
                                             .ThenInclude(tl => tl.Test)
                                         .Include(t => t.Room)
                                         .Where(t => t.AppointmentId == model.AppointmentId)
@@ -277,11 +277,11 @@ namespace HospitalManagement.Controllers
                     var trackingViewModel = assignedRooms
                         .Select(t => new TrackingViewModel
                         {
-                            TestListId = t.TestListId ?? 0,
-                            TestId = t.TestList.Test.TestId,
-                            TestName = t.TestList?.Test?.Name,
-                            TestStatus = t.TestList?.TestStatus,
-                            RoomId = t.Room.RoomId,
+                            TestRecordID = t.TestRecordId ?? 0,
+                            TestID = t.TestRecord.Test.TestId,
+                            TestName = t.TestRecord?.Test?.Name,
+                            TestStatus = t.TestRecord?.TestStatus,
+                            RoomID = t.Room.RoomId,
                             RoomName = t.Room.RoomName,
                             RoomType = t.Room.RoomType
                         }).ToList();
@@ -316,18 +316,18 @@ namespace HospitalManagement.Controllers
 
         public IActionResult PerformTest(int id)
         {
-            var testList = _context.TestLists
+            var testList = _context.TestRecords
                 .Include(t => t.Test)
                 .Include(t => t.Appointment)
                     .ThenInclude(a => a.Patient)
-                .FirstOrDefault(t => t.TestListId == id);
+                .FirstOrDefault(t => t.TestRecordId == id);
 
             if (testList == null)
                 return NotFound();
 
             var model = new PerformTestViewModel
             {
-                TestListId = testList.TestListId,
+                TestRecordID = testList.TestRecordId,
                 TestName = testList.Test.Name,
                 ResultDescription = testList.Result,
                 PatientName = testList.Appointment.Patient.FullName,

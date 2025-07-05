@@ -121,7 +121,7 @@
             success: function (response) {
                 console.log(response);
                 const newTracking = {
-                    testListId: response.testListId,
+                    testRecordId: response.testRecordId,
                     testId: testId, 
                     roomId: response.roomId,
                     roomName: response.roomName,

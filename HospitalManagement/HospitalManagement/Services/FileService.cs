@@ -2,12 +2,13 @@
 {
     public class FileService
     {
+
         public static async Task<string> SaveImageAsync(IFormFile file, string subFolder, long maxSizeInBytes = 5 * 1024 * 1024)
         {
             var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg" };
 
             if (!allowedTypes.Contains(file.ContentType.ToLower()))
-                throw new InvalidOperationException("Loại file không hợp lệ.");
+                throw new InvalidOperationException("Loại file không hợp lệ! Chỉ chấp nhận ảnh");
 
             if (file.Length > maxSizeInBytes)
                 throw new InvalidOperationException("File quá lớn, phải nhỏ hơn 5MB.");
@@ -44,7 +45,7 @@
                 throw new InvalidOperationException("Kích thước file vượt quá giới hạn (tối đa 5MB).");
 
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", subFolder);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", subFolder);
 
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
@@ -57,6 +58,18 @@
             }
 
             return fileName;
+        }
+        public static void DeleteImage(string folderName, string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) return;
+
+            var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var fullPath = Path.Combine(rootPath, "img", folderName, fileName);
+
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+            }
         }
     }
 }

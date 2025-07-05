@@ -1,35 +1,44 @@
 ﻿@model List<HospitalManagement.ViewModels.TestPatientViewModel>
 
-<h2>Danh sách bệnh nhân cần thực hiện xét nghiệm</h2>
-@if (Model.Count == 0)
-{
-    <p>Không có bệnh nhân nào.</p>
-}
-else
-{
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Tên bệnh nhân</th>
-                <th>Tên xét nghiệm</th>
-                <th>Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.PatientName</td>
-                    <td>@item.TestName</td>
-                    <td>
-                        <a asp-action="TestInput"
-                           asp-route-testListId="@item.TestListId"
-                           class="btn btn-primary">
-                            Bắt đầu test
-                        </a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<div class="container my-5">
+    <h2 class="text-primary mb-4">
+        Danh sách bệnh nhân cần thực hiện xét nghiệm - Phòng @ViewBag.RoomNow
+    </h2>
+
+    @if (Model.Count == 0)
+    {
+        <div class="alert alert-info text-center" role="alert">
+            Không có bệnh nhân nào.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle text-center border shadow-sm">
+                <thead class="table-primary">
+                    <tr>
+                        <th scope="col">Tên bệnh nhân</th>
+                        <th scope="col">Tên xét nghiệm</th>
+                        <th scope="col">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.PatientName</td>
+                            <td>@item.TestName</td>
+                            <td>
+                                <a asp-action="TestInput"
+                                   asp-route-testRecordID="@item.TestRecordID"
+                                   class="btn btn-sm btn-outline-primary px-3">
+                                    <i class="fas fa-vial me-1"></i> Bắt đầu test
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

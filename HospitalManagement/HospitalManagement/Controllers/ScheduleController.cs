@@ -29,7 +29,7 @@ namespace HospitalManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, TestDoctor")]
         public async Task<IActionResult> ViewSchedule(int? year, string? weekStart)
         {
             var user = HttpContext.User;
@@ -82,7 +82,7 @@ namespace HospitalManagement.Controllers
             return date.AddDays(-diff);
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, TestDoctor")]
         [HttpGet]
         public IActionResult GetScheduleTable(int year, DateOnly weekStart)
         {
@@ -204,7 +204,7 @@ namespace HospitalManagement.Controllers
                 ViewBag.SlotsPerDay = slots.Count();
                 ViewBag.SelectedYear = selectedYear;
                 ViewBag.SelectedWeekStart = selectedWeekStart;
-                ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(false);
+                ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(true);
                 ViewBag.ListRoom = await _roomRepo.GetAllActiveRoom();
                 var doctorList = _context.Doctors.ToList();
                 ViewBag.ListDoctor = doctorList

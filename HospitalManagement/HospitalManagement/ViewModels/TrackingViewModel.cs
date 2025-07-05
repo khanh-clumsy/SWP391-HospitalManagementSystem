@@ -2,12 +2,12 @@
 {
     public class TrackingViewModel
     {
-        public int TestListId { get; set; }
-        public int TestId { get; set; }
+        public int TestRecordID { get; set; }
+        public int TestID{ get; set; }
         public string? TestName { get; set; }
         public string? TestStatus { get; set; }
 
-        public int RoomId { get; set; }
+        public int RoomID { get; set; }
         public string RoomName { get; set; } = "";
         public string RoomType { get; set; } = "";
 

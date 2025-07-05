@@ -1,6 +1,7 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
+using HospitalManagement.Services;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,38 +9,42 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagement.Controllers
 {
-    public class 
-        TestPerformController : Controller
+    public class TestPerformController : Controller
     {
         private readonly HospitalManagementContext _context;
-     
+        private readonly IRoomRepository _roomRepo;
 
-        public TestPerformController(HospitalManagementContext context)
+        public TestPerformController(HospitalManagementContext context, IRoomRepository roomRepo)
         {
             _context = context;
+            _roomRepo = roomRepo;
         }
 
         [Authorize(Roles = "TestDoctor")]
         [HttpGet]
-        public async Task<IActionResult> InputTestResult(int id)
+        public async Task<IActionResult> TestInput(int testRecordID)
         {
-            var testList = await _context.TestLists
+            var testList = await _context.TestRecords
                 .Include(t => t.Test)
                 .Include(t => t.Appointment).ThenInclude(a => a.Patient)
-                .FirstOrDefaultAsync(t => t.TestListId == id);
+                .FirstOrDefaultAsync(t => t.TestRecordId == testRecordID);
 
-            if (testList == null) return NotFound();
-
-            var vm = new TestResultInputViewModel
+            if (testList == null)
             {
-                TestListID = testList.TestListId,
+                TempData["error"] = "Không tìm thấy xét nghiệm.";
+                return RedirectToAction("ViewOngoingTest", "TestPerform");
+            }
+
+            var model = new TestResultInputViewModel
+            {
+                TestRecordID = testList.TestRecordId,
                 TestName = testList.Test.Name,
                 PatientFullName = testList.Appointment.Patient.FullName,
                 Gender = testList.Appointment.Patient.Gender,
                 DOB = testList.Appointment.Patient.Dob ?? DateTime.MinValue
             };
 
-            return View(vm);
+            return View(model);
         }
 
         [Authorize(Roles = "TestDoctor")]
@@ -47,10 +52,10 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> InputTestResult(TestResultInputViewModel model)
         {
 
-            var test = await _context.TestLists.FindAsync(model.TestListID);
+            var test = await _context.TestRecords.FindAsync(model.TestRecordID);
             if (test == null)
             {
-                TempData["Error"] = "Không tìm thấy xét nghiệm.";
+                TempData["error"] = "Không tìm thấy xét nghiệm.";
                 return NotFound();
             }
             if (model.ResultFile == null)
@@ -58,45 +63,31 @@ namespace HospitalManagement.Controllers
                 TempData["Error"] = "Chưa cập nhật kết quả";
                 return View(model);
             }
-            // Ghi chú bác sĩ
-            test.TestNote = model.Note;
 
             // Validate file
             if (model.ResultFile != null)
             {
-                var allowedTypes = new[] { "application/pdf", "image/jpeg", "image/png", "image/jpg" };
-                var maxSize = 5 * 1024 * 1024; // 5MB
-
-                if (!allowedTypes.Contains(model.ResultFile.ContentType.ToLower()))
+                try
                 {
-                    TempData["Error"] = "File không hợp lệ. Chỉ cho phép PDF và ảnh.";
+                    var fileName = await FileService.SaveTestFileAsync(model.ResultFile, "TestResult");
+                    model.ResultFileName = fileName;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    TempData["Error"] = ex.Message;
                     return View(model);
                 }
-
-                if (model.ResultFile.Length > maxSize)
-                {
-                    TempData["Error"] = "Kích thước file vượt quá giới hạn (tối đa 5MB).";
-                    return View(model);
-                }
-
-                var fileName = Guid.NewGuid() + Path.GetExtension(model.ResultFile.FileName);
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "testresults", fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await model.ResultFile.CopyToAsync(stream);
-                }
-
-                test.Result = fileName;
             }
-
+            // Add các trường vào DB
+            test.TestNote = model.Note;
+            test.Result = model.ResultFileName;
             test.TestStatus = "Completed";
             test.CreatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Lưu kết quả xét nghiệm thành công.";
-            return RedirectToAction("TestListForDoctor"); 
+            return RedirectToAction("TestListForDoctor");
         }
 
         [HttpGet]
@@ -111,34 +102,40 @@ namespace HospitalManagement.Controllers
             var currentTime = TimeOnly.FromDateTime(now);
 
             var roomId = await _context.Schedules
-                .Include(s => s.Slot)
-                .Where(s => s.DoctorId == doctorId &&
-                            s.Day == today &&
-                            s.Slot.StartTime <= currentTime &&
-                            s.Slot.EndTime >= currentTime)
-                .Select(s => s.RoomId)
-                .FirstOrDefaultAsync();
+                            .Include(s => s.Slot)
+                            .Where(s => s.DoctorId == doctorId &&
+                                        s.Day == today &&
+                                        s.Slot.StartTime <= currentTime)
+                            .OrderByDescending(s => s.Slot.StartTime)
+                            .Select(s => s.RoomId)
+                            .FirstOrDefaultAsync();
+
+
+            if (roomId == 0)
+            {
+                TempData["error"] = "Bạn không có lịch làm xét nghiệm trong ngày này.";
+                return RedirectToAction("Index", "Home");
+            }
 
             // Lấy các test đang ở trạng thái Ongoing trong phòng
-            var patients = await _context.Trackings
-                .Include(t => t.TestList).ThenInclude(tl => tl.Test)
+            var ongoingTests = await _context.Trackings
+                .Include(t => t.TestRecord).ThenInclude(tl => tl.Test)
                 .Include(t => t.Appointment).ThenInclude(a => a.Patient)
                 .Where(t => t.RoomId == roomId &&
-                            t.TestList != null &&
-                            t.TestList.TestStatus == "Ongoing")
+                            t.TestRecordId != null &&
+                            t.TestRecord.TestStatus == "Ongoing")
                 .Select(t => new TestPatientViewModel
                 {
-                    PatientId = t.Appointment.PatientId,
+                    PatientID = t.Appointment.PatientId,
                     PatientName = t.Appointment.Patient.FullName,
-                    TestName = t.TestList.Test.Name,
-                    TestListId = t.TestListId.Value
+                    TestName = t.TestRecord.Test.Name,
+                    TestRecordID = t.TestRecordId ?? 0,
+                    TestId = t.TestRecord.TestId
                 })
                 .ToListAsync();
-
-            return View(patients);
+            Room room = await _roomRepo.GetRoomById(roomId);
+            ViewBag.RoomNow = room?.RoomName ?? "Không xác định";
+            return View(ongoingTests);
         }
-
-
-
     }
 }

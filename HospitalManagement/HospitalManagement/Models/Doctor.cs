@@ -30,7 +30,7 @@ public partial class Doctor
     public string? Gender { get; set; }
 
     public string? ProfileImage { get; set; }
-
+    
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual ICollection<News> News { get; set; } = new List<News>();
@@ -38,6 +38,7 @@ public partial class Doctor
     public virtual ICollection<ScheduleChangeRequest> ScheduleChangeRequests { get; set; } = new List<ScheduleChangeRequest>();
 
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+    public virtual ICollection<TestRecord> TestRecords { get; set; } = new List<TestRecord>();
 
     public string GetFullGender()
     {

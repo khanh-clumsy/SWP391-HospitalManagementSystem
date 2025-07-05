@@ -1,36 +1,71 @@
 ﻿@model HospitalManagement.ViewModels.TestResultInputViewModel
 
 @{
-    ViewData["Title"] = "Nhập kết quả xét nghiệm";
+	ViewData["Title"] = "Nhập kết quả xét nghiệm";
 }
 
-<h2>Nhập kết quả xét nghiệm</h2>
+<div class="container my-5">
+	<h2 class="text-primary mb-4">Nhập kết quả xét nghiệm</h2>
 
-<form asp-action="InputTestResult" method="post" enctype="multipart/form-data">
-    <input type="hidden" asp-for="TestListID" />
+	<!-- FORM CẬP NHẬT NGÀY SINH (RIÊNG) -->
+	@if (Model.DOB == DateTime.MinValue)
+	{
+		<form asp-action="UpdateDOB" method="post" class="mb-3">
+			<input type="hidden" name="patientId" value="@Model.PatientID" />
+			<div class="row g-2 align-items-center">
+				<div class="col-auto">
+					<label for="dob" class="col-form-label fw-bold">Ngày sinh:</label>
+				</div>
+				<div class="col-auto">
+					<input type="date" id="dob" name="dob" class="form-control" required />
+				</div>
+				<div class="col-auto">
+					<button type="submit" class="btn btn-sm btn-primary">Lưu ngày sinh</button>
+				</div>
+			</div>
+			<div class="form-text text-danger">Ngày sinh chưa có. Vui lòng nhập!</div>
+		</form>
+	}
+	else
+	{
+		<div class="mb-3">
+			<label class="form-label fw-bold">Ngày sinh:</label>
+			<div class="form-control-plaintext">@Model.DOB.ToString("dd/MM/yyyy")</div>
+		</div>
+	}
 
-    <div>
-        <strong>Tên xét nghiệm:</strong> @Model.TestName
-    </div>
-    <div>
-        <strong>Bệnh nhân:</strong> @Model.PatientFullName
-    </div>
-    <div>
-        <strong>Giới tính:</strong> @(Model.Gender == "M" ? "Nam" : "Nữ")
-    </div>
-    <div>
-        <strong>Ngày sinh:</strong> @Model.DOB.ToString("dd/MM/yyyy")
-    </div>
+	<!-- FORM NHẬP KẾT QUẢ CHÍNH -->
+	<form asp-action="InputTestResult" method="post" enctype="multipart/form-data" class="p-4 shadow-sm border rounded bg-white">
+		<input type="hidden" asp-for="TestRecordID" />
+		<input type="hidden" asp-for="DOB" /> <!-- vẫn gửi DOB trong model -->
 
-    <div class="form-group">
-        <label for="Note">Ghi chú:</label>
-        <textarea class="form-control" asp-for="Note" rows="4"></textarea>
-    </div>
+		<div class="mb-3">
+			<label class="form-label fw-bold">Tên xét nghiệm:</label>
+			<div class="form-control-plaintext">@Model.TestName</div>
+		</div>
 
-    <div class="form-group">
-        <label for="ResultFile">Upload kết quả (PDF/ảnh):</label>
-        <input class="form-control" type="file"  asp-for="ResultFile" accept=".pdf,image/*" />
-    </div>
+		<div class="mb-3">
+			<label class="form-label fw-bold">Bệnh nhân:</label>
+			<div class="form-control-plaintext">@Model.PatientFullName</div>
+		</div>
 
-    <button type="submit" class="btn btn-primary">Lưu kết quả</button>
-</form>
+		<div class="mb-3">
+			<label class="form-label fw-bold">Giới tính:</label>
+			<div class="form-control-plaintext">@(Model.Gender == "M" ? "Nam" : "Nữ")</div>
+		</div>
+
+		<div class="mb-4">
+			<label asp-for="ResultFile" class="form-label fw-bold">Upload kết quả (PDF hoặc hình ảnh):</label>
+			<input type="file" class="form-control" asp-for="ResultFile" accept=".pdf,image/*" />
+		</div>
+
+		<div class="mb-3">
+			<label asp-for="Note" class="form-label fw-bold">Ghi chú:</label>
+			<textarea class="form-control" asp-for="Note" rows="4" placeholder="Nhập ghi chú (nếu có)..."></textarea>
+		</div>
+
+		<button type="submit" class="btn btn-primary px-4">
+			<i class="fas fa-save me-2"></i> Lưu kết quả
+		</button>
+	</form>
+</div>

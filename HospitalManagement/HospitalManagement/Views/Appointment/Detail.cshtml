@@ -129,7 +129,7 @@
 					</div>
 
 					<!-- Test List -->
-					@if (Model.TestLists != null)
+					@if (Model.TestRecords != null)
 					{
 						<div class="row mb-4">
 							<div class="col-12">
@@ -147,7 +147,7 @@
 											</tr>
 										</thead>
 										<tbody>
-											@foreach (var test in Model.TestLists)
+											@foreach (var test in Model.TestRecords)
 											{
 												<tr>
 													<td>@test.Test.Name</td>

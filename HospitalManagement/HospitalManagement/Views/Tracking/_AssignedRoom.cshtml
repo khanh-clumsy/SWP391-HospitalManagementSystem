@@ -14,7 +14,7 @@ else
 	<ul class="list-group">
 		@foreach (var tracking in Model)
 		{
-			var testStatus = tracking.TestList?.TestStatus ?? "Chưa rõ";
+			var testStatus = tracking.TestRecord?.TestStatus ?? "Chưa rõ";
 			if (tracking.Room.RoomType == "Phòng khám")
 			{
 				<li class="list-group-item d-flex justify-content-between align-items-center">
@@ -27,14 +27,14 @@ else
 			{
 				<li class="list-group-item d-flex justify-content-between align-items-center">
 					<div>
-						<strong>@tracking.Room.RoomName - @tracking.Room.RoomType - @tracking.TestList?.Test?.Name</strong>
+						<strong>@tracking.Room.RoomName - @tracking.Room.RoomType - @tracking.TestRecord?.Test?.Name</strong>
 						<br />
 						<span class="badge bg-secondary">Trạng thái: @testStatus</span>
 					</div>
 
 					@if (testStatus == "Completed")
 					{
-						<a href="@Url.Action("TestDetail", "Tracking", new { id = tracking.TestListId })"
+						<a href="@Url.Action("TestDetail", "Tracking", new { id = tracking.TestRecord })"
 						   class="btn btn-sm btn-outline-primary">
 							Xem kết quả
 						</a>
