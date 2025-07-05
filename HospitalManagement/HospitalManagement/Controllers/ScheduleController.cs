@@ -235,6 +235,7 @@ namespace HospitalManagement.Controllers
                 ViewBag.SelectedYear = selectedYear;
                 ViewBag.SelectedWeekStart = selectedWeekStart;
                 ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(false);
+
                 ViewBag.ListRoom = await _roomRepo.GetAllActiveRoom();
                 var doctorList = _context.Doctors.ToList();
                 ViewBag.ListDoctor = doctorList

@@ -120,7 +120,7 @@
             if (patients.length > 0) {
                 const id = patients[0].id;
                 hiddenIds.push(id);
-                localStorage.setItem('hiddenPatients', JSON.stringify(hiddenIds));
+                sessionStorage.setItem('hiddenPatients', JSON.stringify(hiddenIds));
                 fetchPatients();
             }
         }

@@ -281,9 +281,10 @@ namespace HospitalManagement.Repositories
             return availableRooms;
         }
 
-        public Task<RoomWithDoctorDtoViewModel> GetRoomWithDoctorByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+
+        //public Task<RoomWithDoctorDtoViewModel> GetRoomWithDoctorByIdAsync(int id)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

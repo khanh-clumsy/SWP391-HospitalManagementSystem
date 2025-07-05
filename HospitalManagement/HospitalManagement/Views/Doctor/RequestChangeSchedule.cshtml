@@ -137,7 +137,7 @@
                                         {
                                             foreach (var item in grouped[key])
                                             {
-                                                var today = DateOnly.FromDateTime(DateTime.Today);
+                                                var today = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
                                                 bool isPast = item.Day <= today;
 
                                                 <input type="hidden" id="selectedScheduleId" name="selectedScheduleId" />
