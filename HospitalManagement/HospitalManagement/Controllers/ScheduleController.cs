@@ -29,7 +29,7 @@ namespace HospitalManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, TestDoctor")]
         public async Task<IActionResult> ViewSchedule(int? year, string? weekStart)
         {
             var user = HttpContext.User;
