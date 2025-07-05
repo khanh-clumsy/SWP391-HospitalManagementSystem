@@ -119,48 +119,52 @@
 					<a asp-action="ViewDoctors" asp-controller="Home" class="nav-item nav-link">Chuyên gia</a>
 					<a asp-action="News" asp-controller="News" class="nav-item nav-link">Tin tức</a>
 					<a asp-action="Index" asp-controller="Package" class="nav-item nav-link">Gói khám sức khỏe</a>
-
-					@if (User.IsInRole("Patient"))
-					{
-						<!-- Patient -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Thông tin cá nhân</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="Patient" asp-action="ViewProfile">Xem thông tin cá nhân</a>
+                    @if (User.IsInRole("Patient"))
+                    {
+                        <!-- Patient -->
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Thông tin cá nhân</a>
+                            <div class="dropdown-menu rounded-0 rounded-bottom m-0">
+                                <a class="dropdown-item" asp-controller="Patient" asp-action="ViewProfile">Xem thông tin cá nhân</a>
+                                <a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn của tôi</a>
+                                <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem các xét nghiệm</a>
+                                <a class="dropdown-item" asp-controller="Patient" asp-action="UpdateProfile">Cập nhật thông tin</a>
+                                <a class="dropdown-item" asp-controller="Patient" asp-action="ChangePassword">Đổi mật khẩu</a>
+                                <a class="dropdown-item" asp-controller="Patient" asp-action="Logout">Đăng xuất</a>
+                            </div>
+                        </div>
+                        <a asp-action="BookingType" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
+                    }
+                    else if (User.IsInRole("Doctor"))
+                    {
+                        <!-- Doctor -->
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Thông tin cá nhân</a>
+                            <div class="dropdown-menu rounded-0 rounded-bottom m-0">
+                                <a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">Xem thông tin cá nhân</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn của tôi</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem các xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="Patient" asp-action="UpdateProfile">Cập nhật thông tin</a>
-								<a class="dropdown-item" asp-controller="Patient" asp-action="ChangePassword">Đổi mật khẩu</a>
-								<a class="dropdown-item" asp-controller="Patient" asp-action="Logout">Đăng xuất</a>
-							</div>
-						</div>
-						<a asp-action="BookingType" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
-					}
-					else if (User.IsInRole("Doctor"))
-					{
-						<!-- Doctor -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Thông tin cá nhân</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">Xem thông tin cá nhân</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn của tôi</a>
-								<a class="dropdown-item" asp-controller="Tracking" asp-action="DoctorTodayAppointment">Khám bệnh</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="RequestChangeSchedule">Thay đổi lịch làm việc</a>
 								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
 													User.FindFirst("IsDepartmentHead")?.Value == "True")
 								{
-									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Quản lý lịch làm việc</a>
+									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
+								<a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
+
 								}
-								<a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Cập nhật thông tin</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Đổi mật khẩu</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Đăng xuất</a>
-							</div>
-						</div>
-						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Bác sĩ</a>
-					}
+                                else{
+                                    <a class="dropdown-item" asp-controller="Doctor" asp-action="RequestChangeSchedule">Yêu cầu đổi lịch</a>
+                                }
+
+                                <a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
+                                <a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Cập nhật thông tin</a>
+                                <a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Đổi mật khẩu</a>
+                                <a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Đăng xuất</a>
+                            </div>
+                        </div>
+                        <a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Bác sĩ</a>
+                    }
+
 					else if (User.IsInRole("TestDoctor"))
 					{
 						<!-- Doctor -->
@@ -169,10 +173,17 @@
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="ViewProfile">Xem thông tin cá nhân</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="OngoingPatientScreen">Xem bệnh nhân sắp tới</a>
-								<a class="dropdown-item" asp-controller="TestPerform" asp-action="ViewOngoingTest">Các xét nghiệm sắp tới</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
-								<a class="dropdown-item" asp-controller="Doctor" asp-action="RequestChangeSchedule">Thay đổi lịch làm việc</a>
+								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
+															User.FindFirst("IsDepartmentHead")?.Value == "True")
+								{
+									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
+								    <a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
+								}
+                                else{
+                                    <a class="dropdown-item" asp-controller="Doctor" asp-action="RequestChangeSchedule">Yêu cầu đổi lịch</a>
+                                }
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="UpdateProfile">Cập nhật thông tin</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="ChangePassword">Đổi mật khẩu</a>
 								<a class="dropdown-item" asp-controller="Doctor" asp-action="Logout">Đăng xuất</a>
@@ -181,89 +192,74 @@
 						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Bác sĩ xét nghiệm</a>
 					}
 
+                    else if (User.IsInRole("Admin"))
+                    {
+                        <!-- Admin -->
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
+                            <div class="dropdown-menu rounded-0 rounded-bottom m-0">
+                                <a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Quản lý tài khoản</a>
+                                <a class="dropdown-item" asp-controller="User" asp-action="ManageRoom">Quản lý phòng</a>
 
-					else if (User.IsInRole("Receptionist"))
-					{
-						<!-- Admin -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Quản lý tài khoản</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="ManageRoom">Quản lý phòng</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="Tracking" asp-action="Index">Checkin cuộc hẹn</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
-							</div>
-						</div>
-						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Quản trị viên</a>
-					}
+                                <a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Cuộc hẹn</a>
+                                <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
+                                <a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
 
-					else if (User.IsInRole("Admin"))
-					{
-						<!-- Admin -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Quản lý tài khoản</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="ManageRoom">Quản lý phòng</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Cuộc hẹn</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
-								<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Quản lý lịch làm việc</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="ScheduleRequestList">Yêu cầu đổi lịch</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
-							</div>
-						</div>
-						<a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Quản trị viên</a>
-					}
-					else if (User.IsInRole("Sales"))
-					{
-						<!-- Sales -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
-							</div>
-						</div>
-						<a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Tạo cuộc hẹn<i class="fa fa-arrow-right ms-3"></i></a>
-					}
-					else if (User.IsInRole("Cashier"))
-					{
-						<!-- Cashier -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
-							</div>
-						</div>
-						<a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Tạo cuộc hẹn<i class="fa fa-arrow-right ms-3"></i></a>
-					}
-					else
-					{
-						<!-- Nếu chưa đăng nhập -->
-						<a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Đăng nhập</a>
-						<a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Đăng ký</a>
-						<a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
-					}
-				</div>
+								<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
+                                <a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
+                                <a class="dropdown-item" asp-controller="Schedule" asp-action="UpdateExpiredSlots">Kiểm soát lịch bỏ trống</a>
+								<a class="dropdown-item" asp-controller="User" asp-action="ScheduleRequestList">Xem yêu cầu đổi lịch</a>
+
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
+                            </div>
+                        </div>
+                        <a href="#" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Chào mừng Quản trị viên</a>
+                    }
+                    else if (User.IsInRole("Sales"))
+                    {
+                        <!-- Sales -->
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
+                            <div class="dropdown-menu rounded-0 rounded-bottom m-0">
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
+                                <a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
+                                <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
+                                <a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
+                            </div>
+                        </div>
+                        <a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Tạo cuộc hẹn<i class="fa fa-arrow-right ms-3"></i></a>
+                    }
+                    else if (User.IsInRole("Cashier"))
+                    {
+                        <!-- Cashier -->
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
+                            <div class="dropdown-menu rounded-0 rounded-bottom m-0">
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
+                                <a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
+                                <a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
+                                <a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
+                                <a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
+                            </div>
+                        </div>
+                        <a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Tạo cuộc hẹn<i class="fa fa-arrow-right ms-3"></i></a>
+                    }
+                    else
+                    {
+                        <!-- Nếu chưa đăng nhập -->
+                        <a asp-controller="Auth" asp-action="Login" class="nav-item nav-link">Đăng nhập</a>
+                        <a asp-controller="Auth" asp-action="Register" class="nav-item nav-link">Đăng ký</a>
+                        <a asp-controller="Auth" asp-action="Login" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Đặt lịch hẹn<i class="fa fa-arrow-right ms-3"></i></a>
+                    }
+                </div>
 
 			</div>
 		</nav>

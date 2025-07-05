@@ -1,0 +1,51 @@
+@model List<DoctorScheduleViewModel.ScheduleItem>
+@{
+	ViewData["Title"] = "Cập nhật slot quá hạn";
+}
+
+<div class="container mt-4">
+	<h2>Cập nhật slot quá hạn</h2>
+
+	<form asp-action="UpdateExpiredSlotsConfirmed" method="post" class="mb-4">
+		<button type="submit" class="btn btn-danger"
+				onclick="return confirm('Bạn có chắc muốn cập nhật lại tất cả slot đã quá hạn?');">
+			Cập nhật
+		</button>
+	</form>
+
+	@if (Model != null && Model.Any())
+	{
+		<h4>Danh sách slot đã cập nhật:</h4>
+		<table class="table table-bordered">
+			<thead class="table-light">
+				<tr>
+					<th>#</th>
+					<th>Ngày</th>
+					<th>Slot</th>
+					<th>Giờ</th>
+					<th>Phòng</th>
+					<th>Bác sĩ</th>
+					<th>Trạng thái mới</th>
+				</tr>
+			</thead>
+			<tbody>
+				@for (int i = 0; i < Model.Count; i++)
+				{
+					<tr>
+						<td>@(i + 1)</td>
+						<td>@Model[i].Day.ToString("dd/MM/yyyy")</td>
+						<td>Slot @Model[i].SlotId</td>
+						<td>@Model[i].StartTime - @Model[i].EndTime</td>
+						<td>@Model[i].RoomName</td>
+						<td>@Model[i].DoctorName</td>
+						<td class="text-danger fw-bold">@Model[i].Status</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	}
+	else
+	{
+		<p class="text-muted">Chưa có slot nào được cập nhật.</p>
+	}
+</div>

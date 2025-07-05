@@ -10,7 +10,7 @@
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
 	var daysInWeek = (List<DateOnly>)ViewBag.DaysInWeek;
 	var slotsPerDay = (int)ViewBag.SlotsPerDay;
-	var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+	var grouped = Model.GroupBy(s => (s.SlotId, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
 }
 
 <div class="d-flex justify-content-center align-items-center mb-3 gap-2">
@@ -55,60 +55,113 @@
 </div>
 
 
-
-<!-- Bảng lịch -->
-<div>
-	<table class="table table-bordered text-center">
-		<thead class="table-light">
-			<tr>
-				<th>Slot</th>
-				@foreach (var day in daysInWeek)
-				{
-					<th>@day.ToString("ddd dd/MM")</th>
-				}
-			</tr>
-		</thead>
-		<tbody>
-			@for (int slot = 1; slot <= slotsPerDay; slot++)
-			{
-				<tr>
-					<td><strong>Slot @slot</strong></td>
-					@foreach (var day in daysInWeek)
+		<!-- Bảng lịch -->
+		<div>
+			<table class="table table-bordered text-center">
+				<thead class="table-light">
+					<tr>
+						<th>Slot</th>
+						@foreach (var day in daysInWeek)
+						{
+							<th>@day.ToString("ddd dd/MM")</th>
+						}
+					</tr>
+				</thead>
+				<tbody>
+					@for (int slot = 1; slot <= slotsPerDay; slot++)
 					{
-						var key = (slot, day);
-						<td>
-							@if (grouped.ContainsKey(key))
+						<tr>
+							<td><strong>Slot @slot</strong></td>
+							@foreach (var day in daysInWeek)
 							{
-								foreach (var item in grouped[key])
-								{
+								var key = (slot, day);
+								var isToday = (day == DateOnly.FromDateTime(DateTime.Today));
 
-									<a href="#">
-										<div class="schedule-card">
-											<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
-											<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
-										</div>
-									</a>
-								}
+								<td>
+									@if (grouped.ContainsKey(key))
+									{
+										foreach (var item in grouped[key])
+										{
+											@if (item.Status == "Absent")
+											{
+												<div class="slot-absent"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													data-slot="@slot"
+													onclick="openSlotModal(this)"
+												>
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-x-circle me-1"></i> Absent</div>
+												</div>
+											}
+											else if (item.Status == "Attended")
+											{
+												<div class="slot-attended"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													data-slot="@slot"
+													onclick="openSlotModal(this)"
+												>
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-check-circle me-1"></i> Attended</div>
+												</div>
+											}
+											else // Not Yet
+											{
+												<div class="schedule-card"
+													data-id="@item.ScheduleId"
+													data-day="@day"
+													data-start="@item.StartTime"
+													data-end="@item.EndTime"
+													data-room="@item.RoomName"
+													data-status="@item.Status"
+													data-istoday="@isToday"
+													data-slot="@slot"
+													onclick="openSlotModal(this)"
+												>
+													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+													<div><i class="bi bi-check-circle me-1"></i> Not Yet</div>
+
+												</div>
+											}
+
+										}
+									}
+								</td>
 							}
-						</td>
+						</tr>
 					}
-				</tr>
-			}
 
-		</tbody>
-	</table>
-</div>
-		@if (TempData["error"] != null)
-		{
-			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
-				<div>@TempData["error"]</div>
-			</div>
-		}
-		else if (TempData["success"] != null)
-		{
-			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
-				<div>@TempData["success"]</div>
-			</div>
-		}
+				</tbody>
+			</table>
+		</div>
+
+
+
+@if (TempData["error"] != null)
+{
+	<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
+			role="alert" style="z-index: 1055; border-radius: 8px;">
+		<div>@TempData["error"]</div>
+	</div>
+	}
+	else if (TempData["success"] != null)
+	{
+	<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
+			role="alert" style="z-index: 1055; border-radius: 8px;">
+		<div>@TempData["success"]</div>
+	</div>
+}

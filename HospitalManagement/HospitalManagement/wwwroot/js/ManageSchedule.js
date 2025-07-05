@@ -124,7 +124,7 @@ function changeWeek(offset) {
 function updateSchedule(newyear = 0) {
     const year = newyear !== 0 ? newyear : document.getElementById("yearDropdown").value;
     const weekStart = newyear !== 0
-        ? (new Date(newyear, 0, 1)).toISOString().split('T')[0]
+        ? (new Date(newyear, 0, 1)).toLocaleDateString().split('T')[0]
         : document.getElementById("weekDropdown").value;
 
     $.ajax({
@@ -180,21 +180,6 @@ function submitAddDoctorToSlots() {
     formData.append("year", year);
     formData.append("weekStart", weekStart);
 
-    console.log(failList.length);
-    console.log(successList.length);
-    console.log(workingList.length);
-
-
-    // Thêm các list đã tồn tại trước đó
-    failList.forEach((item, index) => {
-            formData.append(`existingFailList[${index}]`, item);
-    });
-    successList.forEach((item, index) => {
-        formData.append(`existingSuccessList[${index}]`, item);
-    });
-    workingList.forEach((item, index) => {
-        formData.append(`existingWorkingList[${index}]`, item);
-    });
 
 
     // Gửi AJAX
