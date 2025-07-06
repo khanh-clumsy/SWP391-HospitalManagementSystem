@@ -15,7 +15,5 @@ namespace HospitalManagement.Repositories
         Task<List<Appointment>> FilterApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter);
         Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day);
 
-        Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day);
-
     }
 }
