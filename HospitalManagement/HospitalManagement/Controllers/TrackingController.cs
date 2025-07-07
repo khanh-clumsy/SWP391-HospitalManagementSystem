@@ -39,7 +39,7 @@ namespace HospitalManagement.Controllers
             ViewBag.Phone = phone;
             var appointments = await _appointmentRepo.GetTodayAppointmentsAsync(phone);
             var pagedAppointments = appointments
-                .OrderByDescending(a => a.AppointmentId)
+                .OrderBy(a => a.Slot.StartTime)
                 .ToPagedList(pageNumber, pageSize);
 
             return View(pagedAppointments);

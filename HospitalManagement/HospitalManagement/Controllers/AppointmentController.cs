@@ -26,15 +26,17 @@ namespace HospitalManagement.Controllers
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly EmailService _emailService;
         private readonly BookingQueueService _bookingQueue;
+        private readonly InvoiceService _invoiceService;
 
 
-        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository, EmailService emailService, BookingQueueService bookingQueue)
+        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository, EmailService emailService, BookingQueueService bookingQueue, InvoiceService invoiceService)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
             _appointmentRepository = appointmentRepository;
             _emailService = emailService;
             _bookingQueue = bookingQueue;
+            _invoiceService = invoiceService;
         }
 
         public IActionResult BookingType()
@@ -64,6 +66,7 @@ namespace HospitalManagement.Controllers
             if (string.IsNullOrEmpty(user.PhoneNumber))
             {
                 TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                TempData["ReturnUrl"] = Url.Action("BookingByService", new { serviceId, packageId });
                 return RedirectToAction("UpdateProfile", "Patient");
             }
             var model = new BookingByServiceViewModel
@@ -708,7 +711,6 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Bác sĩ đã có cuộc hẹn khác trong khung giờ này.";
                 return RedirectToAction("ApproveAppointment");
             }
-
             appointment.DoctorId = model.SelectedDoctorId;
             appointment.Status = "Confirmed";
             _context.Update(appointment);
@@ -722,6 +724,9 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
+
+            //Tạo ra hóa đơn tương ứng
+            await _invoiceService.CreateInvoiceForAppointmentAsync(savedAppointment!);
 
             if (savedAppointment == null)
             {
@@ -769,37 +774,7 @@ namespace HospitalManagement.Controllers
             {
                 case "Accept":
                     appointment.Status = "Confirmed";
-                    bool hasInvoice = await _context.InvoiceDetails.AnyAsync(i => i.AppointmentId == id &&
-                                    (i.ItemType == "Service" || i.ItemType == "Package"));
-                    if (!hasInvoice)
-                    {
-                        if (appointment.ServiceId != null)
-                        {
-                            _context.InvoiceDetails.Add(new InvoiceDetail
-                            {
-                                AppointmentId = id,
-                                ItemType = "Service",
-                                ItemId = appointment.ServiceId.Value,
-                                ItemName = appointment.Service?.ServiceType ?? "",
-                                UnitPrice = appointment.Service?.ServicePrice ?? 0,
-                                PaymentStatus = "Pending",
-                                CreatedAt = DateTime.Now
-                            });
-                        }
-                        else if (appointment.PackageId != null)
-                        {
-                            _context.InvoiceDetails.Add(new InvoiceDetail
-                            {
-                                AppointmentId = id,
-                                ItemType = "Package",
-                                ItemId = appointment.PackageId.Value,
-                                ItemName = appointment.Package?.PackageName ?? "",
-                                UnitPrice = appointment.Package?.FinalPrice ?? 0,
-                                PaymentStatus = "Pending",
-                                CreatedAt = DateTime.Now
-                            });
-                        }
-                    }
+                    await _invoiceService.CreateInvoiceForAppointmentAsync(appointment);
                     TempData["success"] = "Cuộc hẹn đã được duyệt.";
                     break;
 

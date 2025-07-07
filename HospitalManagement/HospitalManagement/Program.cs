@@ -25,8 +25,7 @@ builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
 builder.Services.AddScoped<ISlotRepository, SlotRepository>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IScheduleChangeRepository, ScheduleChangeRepository>();
-
-
+builder.Services.AddScoped<InvoiceService>();
 
 // Add services to the container
 builder.Services.AddCors(options =>
