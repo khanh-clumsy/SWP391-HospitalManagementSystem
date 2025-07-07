@@ -400,7 +400,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SlotFilter = SlotFilter;
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
-            ViewBag.Type = Type ?? "Today"; 
+            ViewBag.Type = Type ?? "Today";
             ViewBag.FilterType = Type ?? "Today";
 
             // Truy vấn lọc
@@ -423,7 +423,7 @@ namespace HospitalManagement.Controllers
                         break;
 
                     case "Ongoing":
-                        filteredList = filteredList.Where(a =>  
+                        filteredList = filteredList.Where(a =>
                           a.Date > today && (a.Status == "Confirmed") || a.Status == "Pending")
                          .ToList();
                         break;
@@ -744,7 +744,7 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = $"Duyệt cuộc hẹn không thành công: {ex.Message}";
             }
 
-            
+
             TempData["success"] = "Chỉ định bác sĩ thành công.";
             return RedirectToAction("ApproveAppointment");
         }
@@ -769,6 +769,37 @@ namespace HospitalManagement.Controllers
             {
                 case "Accept":
                     appointment.Status = "Confirmed";
+                    bool hasInvoice = await _context.InvoiceDetails.AnyAsync(i => i.AppointmentId == id &&
+                                    (i.ItemType == "Service" || i.ItemType == "Package"));
+                    if (!hasInvoice)
+                    {
+                        if (appointment.ServiceId != null)
+                        {
+                            _context.InvoiceDetails.Add(new InvoiceDetail
+                            {
+                                AppointmentId = id,
+                                ItemType = "Service",
+                                ItemId = appointment.ServiceId.Value,
+                                ItemName = appointment.Service?.ServiceType ?? "",
+                                UnitPrice = appointment.Service?.ServicePrice ?? 0,
+                                PaymentStatus = "Pending",
+                                CreatedAt = DateTime.Now
+                            });
+                        }
+                        else if (appointment.PackageId != null)
+                        {
+                            _context.InvoiceDetails.Add(new InvoiceDetail
+                            {
+                                AppointmentId = id,
+                                ItemType = "Package",
+                                ItemId = appointment.PackageId.Value,
+                                ItemName = appointment.Package?.PackageName ?? "",
+                                UnitPrice = appointment.Package?.FinalPrice ?? 0,
+                                PaymentStatus = "Pending",
+                                CreatedAt = DateTime.Now
+                            });
+                        }
+                    }
                     TempData["success"] = "Cuộc hẹn đã được duyệt.";
                     break;
 

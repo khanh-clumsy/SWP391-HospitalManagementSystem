@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using X.PagedList;
 using X.PagedList.Extensions;
+using X.PagedList.EF;
 
 namespace HospitalManagement.Controllers
 {
@@ -27,18 +29,20 @@ namespace HospitalManagement.Controllers
             _RoomRepository = roomRepository;
             _context = context;
         }
+
         [Authorize(Roles = "Receptionist")]
         //tìm cuộc hẹn theo sd0t
-        public async Task<IActionResult> StartMedical(string phone)
+        public async Task<IActionResult> StartAppointmentProcess(string? phone, int? page)
         {
+            int pageSize = 12;
+            int pageNumber = page ?? 1;
             ViewBag.Phone = phone;
+            var appointments = await _appointmentRepo.GetTodayAppointmentsAsync(phone);
+            var pagedAppointments = appointments
+                .OrderByDescending(a => a.AppointmentId)
+                .ToPagedList(pageNumber, pageSize);
 
-            if (string.IsNullOrWhiteSpace(phone))
-            {
-                return View(null);
-            }
-            var list = await _TrackingRepository.GetAppointmentsAsync(phone);
-            return View(list);
+            return View(pagedAppointments);
         }
         
         //Bắt đầu cuộc hẹn chuyển status của appoinment sang Ongoing
@@ -46,14 +50,15 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Receptionist")]
         public async Task<IActionResult> StartAppointment(int id)
         {
-            var tracking = await _TrackingRepository.GetAppointmentByIdAsync(id);
+            var appointment = await _appointmentRepo.GetAppointmentByIdAsync(id);
 
-            var appointment = tracking.Appointment;
             if (appointment == null)
                 return Json(new { success = false, message = "Không tìm thấy cuộc hẹn" });
 
-            await _TrackingRepository.StartAppointmentAsync(id);
+            await _appointmentRepo.StartAppointmentAsync(id);
 
+            // Lấy tracking info để hiển thị trong view
+            var tracking = await _TrackingRepository.GetRoomByAppointmentIdAsync(id);
             return PartialView("RoomInfo", tracking);
         }
 
@@ -68,7 +73,7 @@ namespace HospitalManagement.Controllers
             if (!int.TryParse(doctorClaim.Value, out int doctorId))
                 return RedirectToAction("Login", "Auth");
 
-            var appointmentList = await _TrackingRepository.GetOngoingAppointmentsByDoctorIdAsync(doctorId);
+            var appointmentList = await _appointmentRepo.GetOngoingAppointmentsByDoctorIdAsync(doctorId);
             int pageNumber = page ?? 1;
             int pageSize = 10;
             var pagedAppointments = appointmentList.ToPagedList(pageNumber, pageSize);
