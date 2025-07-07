@@ -223,9 +223,9 @@ namespace HospitalManagement.Repositories
             var currentRoomId = selectedSchedules.First().RoomId;
 
 
-            // Lấy danh sách các phòng đang hoạt động
+            // Lấy danh sách các phòng đang active
             var activeRooms = await _context.Rooms
-                .Where(r => r.Status == "Hoạt động")
+                .Where(r => r.Status == "Active")
                 .ToListAsync();
 
             // Tạo danh sách để chứa các phòng thỏa điều kiện

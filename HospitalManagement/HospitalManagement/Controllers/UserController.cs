@@ -87,7 +87,7 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status, string? roomType)
         {
             name = UserController.NormalizeName(name);
-            int pageSize = 10;
+            int pageSize = 9;
             int pageNumber = page ?? 1;
 
             List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, roomType, pageNumber, pageSize);
@@ -271,8 +271,8 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("ManageRoom");
             }
 
-            // Nếu muốn chuyển sang "Bảo trì", kiểm tra có lịch trong tương lai không
-            if (room.Status == "Bảo trì")
+            // Nếu muốn chuyển sang "Maintain", kiểm tra có lịch trong tương lai không
+            if (room.Status == "Maintain")
             {
                 var now = DateTime.Now;
                 bool hasFutureSchedule = roomInDb.Schedules.Any(s =>
@@ -286,7 +286,6 @@ namespace HospitalManagement.Controllers
             }
 
             // Cập nhật thông tin
-            roomInDb.RoomName = room.RoomName.Trim();
             roomInDb.RoomType = room.RoomType.Trim();
             roomInDb.Status = room.Status.Trim();
 
@@ -412,7 +411,7 @@ namespace HospitalManagement.Controllers
             }
 
             // Lưu phòng mới
-            room.Status = "Hoạt động"; // Hoặc null nếu bạn không cần trạng thái
+            room.Status = "Active"; // Hoặc null nếu bạn không cần trạng thái
             _context.Rooms.Add(room);
             _context.SaveChanges();
 
