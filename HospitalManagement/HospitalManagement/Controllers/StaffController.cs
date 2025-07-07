@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace HospitalManagement.Controllers
 {
-    [Authorize(Roles = "Admin,Sales,Cashier")]
+    [Authorize(Roles = "Admin, Sales, Cashier, Receptionist")]
     public class StaffController : Controller
     {
         private readonly PasswordHasher<Staff> _passwordHasher;
@@ -176,13 +176,17 @@ namespace HospitalManagement.Controllers
                     return RedirectToAction("UpdateProfile");
 
                 }
-                // convert img -> Byte ->  Base64String
-                using var ms = new MemoryStream();
-                await photo.CopyToAsync(ms);
-                var imageBytes = ms.ToArray();
-                user.ProfileImage = Convert.ToBase64String(imageBytes);
+                // Tạo tên file duy nhất để tránh trùng
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(photo.FileName);
+                var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", fileName);
 
-                // add in database
+                // Lưu file vào wwwroot/uploads
+                using (var stream = new FileStream(uploadPath, FileMode.Create))
+                {
+                    await photo.CopyToAsync(stream);
+                }
+
+                user.ProfileImage = fileName;
 
                 var dbUser = context.Staff.FirstOrDefault(u => u.StaffId == user.StaffId);
                 if (dbUser != null)
@@ -199,7 +203,7 @@ namespace HospitalManagement.Controllers
             }
 
             // do nothing
-            TempData["success"] = null;
+            TempData["success"] = "Không có ảnh được tải lên";
             return RedirectToAction("UpdateProfile");
         }
         [HttpPost]

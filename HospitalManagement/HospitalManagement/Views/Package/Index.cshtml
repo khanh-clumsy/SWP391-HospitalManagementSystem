@@ -89,7 +89,9 @@
 							}
 
 							<div class="package-image">
-								<img src="@(package.Thumbnail != null ? $"data:image/png;base64,{package.Thumbnail}" : Url.Content("~/img/logo.jpg"))"
+								<img src="@(string.IsNullOrEmpty(package.Thumbnail)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/Package/"+package.Thumbnail))"
 									 alt="@package.PackageName"
 									 class="w-100 h-100" />
 							</div>

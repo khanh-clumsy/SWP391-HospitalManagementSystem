@@ -1,6 +1,8 @@
-﻿using HospitalManagement.Models;
+﻿using HospitalManagement.Data;
+using HospitalManagement.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using HospitalManagement.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 namespace HospitalManagement.Repositories
 {
     public class DoctorRepository : IDoctorRepository
@@ -12,10 +14,13 @@ namespace HospitalManagement.Repositories
             _context = context;
         }
 
-        public async Task<int> CountAsync(string? name, string? department, int? exp, bool? isHead, bool? isActive)
+        public async Task<int> CountAsync(string? name, string? department, int? exp, bool? isHead, bool? isActive, bool? containTestDoc)
         {
             var query = _context.Doctors.AsQueryable();
-
+            if(!(containTestDoc.HasValue) || containTestDoc == false)
+            {
+                query = query.Where(d => d.DepartmentName != "Xét nghiệm" && d.DepartmentName != "Chẩn đoán hình ảnh");
+            }
             if (isActive.HasValue)
             {
                 query = query.Where(d => d.IsActive == isActive);
@@ -51,17 +56,35 @@ namespace HospitalManagement.Repositories
             return await _context.Doctors.FirstOrDefaultAsync(d => d.DoctorId == id);
         }
 
-        public async Task<List<string?>> GetDistinctDepartment()
+        public async Task<List<string?>> GetDistinctDepartment(bool? containTestDoc)
         {
+            if (!(containTestDoc.HasValue) || containTestDoc == false)
+            {
+                return await _context.Doctors
+                    .Where(d => d.DepartmentName != "Xét nghiệm" && d.DepartmentName != "Chẩn đoán hình ảnh")
+                    .Select(d => d.DepartmentName)
+                    .Distinct().ToListAsync();
+            }
             return await _context.Doctors
                 .Where(d => d.DepartmentName != null)
                 .Select(d => d.DepartmentName)
                 .Distinct().ToListAsync();
         }
 
-        public async Task<List<Doctor>> SearchAsync(string? name, string? department, int? exp, bool? isHead, string? sort, bool? isActive, int page, int pageSize)
+        public async Task<List<Doctor>> GetAllDoctorsWithDepartment(string dep)
+        {
+            return await _context.Doctors
+                .Where(d => d.DepartmentName != null && d.DepartmentName == dep)
+                .Select(d => d)
+                .ToListAsync();
+        }
+        public async Task<List<Doctor>> SearchAsync(string? name, string? department, int? exp, bool? isHead, string? sort, bool? isActive,bool? containTestDoc, int page, int pageSize)
         {
             var query = _context.Doctors.AsQueryable();
+            if (!(containTestDoc.HasValue) || containTestDoc == false)
+            {
+                query = query.Where(d => d.DepartmentName != "Xét nghiệm" && d.DepartmentName != "Chẩn đoán hình ảnh");
+            }
             if (isActive.HasValue)
             {
                 query = query.Where(d => d.IsActive == isActive);
@@ -102,6 +125,7 @@ namespace HospitalManagement.Repositories
         {
             return await _context.Doctors
                 .Where(d=>d.IsActive == true)
+                .Where(d => d.DepartmentName != "Xét nghiệm" && d.DepartmentName != "Chẩn đoán hình ảnh") // Loại bỏ bác sĩ xét nghiệm và chẩn đoán hình ảnh
                 .OrderByDescending(d => d.IsSpecial) // Ưu tiên bác sĩ đặc biệt
                 .ThenBy(d => d.DoctorId) // Sắp xếp phụ theo tên (hoặc theo ý bạn)
                 .Skip((pageNumber - 1) * pageSize)
@@ -111,7 +135,59 @@ namespace HospitalManagement.Repositories
 
         public async Task<int> CountAllActiveDoctorsAsync()
         {
-            return await _context.Doctors.Where(d=>d.IsActive == true).CountAsync();
+            return await _context.Doctors.Where(d=>d.IsActive == true).Where(d => d.DepartmentName != "Xét nghiệm" && d.DepartmentName != "Chẩn đoán hình ảnh").CountAsync();
         }
+
+        public async Task<List<Doctor>> GetDoctorsBySchedule(List<int> ids)
+        {
+            var doctors = await _context.Schedules
+                .Where(s => ids.Contains(s.ScheduleId))
+                .Include(s => s.Doctor).Select(s => s.Doctor)
+                .Distinct()
+                .ToListAsync();
+
+            return doctors;
+        }
+
+        public async Task<List<SelectListItem>> GetAvailableDoctorsAsync(string departmentName, int slotId, DateOnly day, int excludeDoctorId)
+        {
+            // Danh sách bác sĩ cùng khoa (trừ người hiện tại)
+            var doctorIdsInSameDept = await _context.Doctors
+                .Where(d => d.DepartmentName == departmentName && d.DoctorId != excludeDoctorId)
+                .Select(d => d.DoctorId)
+                .ToListAsync();
+
+            // Các bác sĩ có lịch vào slot & ngày đó
+            var scheduledDoctorIds = await _context.Schedules
+                .Where(s => doctorIdsInSameDept.Contains(s.DoctorId) && s.SlotId == slotId && s.Day == day)
+                .Select(s => s.DoctorId)
+                .Distinct()
+                .ToListAsync();
+
+            // Các bác sĩ KHÔNG có appointment trong slot đó ngày đó
+            var busyDoctorIds = await _context.Appointments
+                .Where(a => (a.Status == "Pending" || a.Status == "Confirmed") &&
+                            a.SlotId == slotId && a.Date == day)
+                .Select(a => a.DoctorId)
+                .Where(id => id != null)
+                .Cast<int>()
+                .Distinct()
+                .ToListAsync();
+
+            var availableDoctorIds = scheduledDoctorIds.Except(busyDoctorIds).ToList();
+
+            // Truy xuất thông tin bác sĩ
+            var doctors = await _context.Doctors
+                .Where(d => availableDoctorIds.Contains(d.DoctorId))
+                .Select(d => new SelectListItem
+                {
+                    Value = d.DoctorId.ToString(),
+                    Text = d.FullName
+                })
+                .ToListAsync();
+
+            return doctors;
+        }
+
     }
 }

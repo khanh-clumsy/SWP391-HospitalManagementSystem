@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 public class CreateAppointmentViewModel
 {
+
     [Required(ErrorMessage = "Name is required.")]
     public string? Name { get; set; }
 
@@ -21,21 +20,31 @@ public class CreateAppointmentViewModel
     [DataType(DataType.Date)]
     public DateOnly AppointmentDate { get; set; }
 
-    public int? SelectedDoctorId { get; set; }
-
-    public List<Doctor> Doctors { get; set; } = new List<Doctor>();
+    [Required(ErrorMessage = "Slot is required.")]
+    public int? SelectedSlotId { get; set; }
 
     public List<Slot> Slots { get; set; } = new List<Slot>();
 
-    public int? SelectedSlotId { get; set; }
+    public string? SelectedDepartmentId { get; set; }
 
-    public int SelectedServiceId { get; set; }
+    public List<SelectListItem> DepartmentOptions { get; set; } = new List<SelectListItem>();
+
+    public int? SelectedDoctorId { get; set; }
+
+    public List<SelectListItem> DoctorOptions { get; set; } = new List<SelectListItem>();
+
+    public int? SelectedServiceId { get; set; }
 
     public List<SelectListItem> ServiceOptions { get; set; } = new List<SelectListItem>();
+
+    public int? SelectedPackageId { get; set; }
+
+    public List<SelectListItem> PackageOptions { get; set; } = new List<SelectListItem>();
 
     [StringLength(500, ErrorMessage = "Note must be under 500 characters.")]
     public string? Note { get; set; }
 
+    public List<DoctorScheduleViewModel.ScheduleItem> WeeklySchedule { get; set; } = new List<DoctorScheduleViewModel.ScheduleItem>();
     // Custom validation method to ensure appointment date is not before tomorrow
     public static ValidationResult ValidateAppointmentDate(DateTime date, ValidationContext context)
     {
@@ -46,3 +55,4 @@ public class CreateAppointmentViewModel
         return ValidationResult.Success;
     }
 }
+

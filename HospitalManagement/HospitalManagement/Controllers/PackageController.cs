@@ -13,6 +13,8 @@ using X.PagedList;
 using X.PagedList.Mvc.Core;
 using X.PagedList.Extensions;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Razor.TagHelpers;
+using HospitalManagement.Services;
 
 namespace HospitalManagement.Controllers
 {
@@ -21,12 +23,14 @@ namespace HospitalManagement.Controllers
         private readonly HospitalManagementContext _context;
         private readonly ITestRepository _testRepository;
         private readonly IPackageRepository _packageRepository;
+        private readonly IWebHostEnvironment _env;
 
-        public PackageController(HospitalManagementContext context, ITestRepository testRepository, IPackageRepository packageRepository)
+        public PackageController(HospitalManagementContext context, ITestRepository testRepository, IPackageRepository packageRepository, IWebHostEnvironment env)
         {
             _context = context;
             _testRepository = testRepository;
             _packageRepository = packageRepository;
+            _env = env;
         }
 
         public async Task<IActionResult> Index(string? CategoryFilter, string? AgeFilter, string? GenderFilter, string? PriceRangeFilter, int? page)
@@ -113,13 +117,18 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            string? base64Image = null;
             if (model.ThumbnailFile != null && model.ThumbnailFile.Length > 0)
             {
-                using var ms = new MemoryStream();
-                await model.ThumbnailFile.CopyToAsync(ms);
-                var bytes = ms.ToArray();
-                base64Image = Convert.ToBase64String(bytes);
+                try
+                {
+                    var fileName = await FileService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    model.Thumbnail = fileName;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    TempData["Error"] = ex.Message;
+                    return View(model);
+                }
             }
 
             int ageFrom = 0, ageTo = 100;
@@ -153,7 +162,7 @@ namespace HospitalManagement.Controllers
                 TargetGender = model.TargetGender,
                 AgeFrom = ageFrom,
                 AgeTo = ageTo,
-                Thumbnail = base64Image,
+                Thumbnail = model.Thumbnail,
                 Description = model.Description,
                 DiscountPercent = model.DiscountPercent,
                 CreatedAt = DateTime.Now,
@@ -235,13 +244,18 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
-            string? base64Image = null;
             if (model.ThumbnailFile != null && model.ThumbnailFile.Length > 0)
             {
-                using var ms = new MemoryStream();
-                await model.ThumbnailFile.CopyToAsync(ms);
-                var bytes = ms.ToArray();
-                base64Image = Convert.ToBase64String(bytes);
+                try
+                {
+                    var fileName = await FileService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    model.CurrentThumbnail = fileName;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    TempData["error"] = ex.Message;
+                    return View(model);
+                }
             }
 
             var package = await _context.Packages
@@ -302,9 +316,9 @@ namespace HospitalManagement.Controllers
             package.AgeFrom = ageFrom;
             package.AgeTo = ageTo;
             package.DiscountPercent = model.DiscountPercent;
-            package.Thumbnail = base64Image ?? package.Thumbnail;
             package.FinalPrice = finalPrice;
             package.OriginalPrice = originalPrice;
+            package.Thumbnail = model.CurrentThumbnail;
 
             Console.WriteLine($"Original Price: {package.OriginalPrice}");
             Console.WriteLine($"Final Price: {package.FinalPrice}");
@@ -328,6 +342,10 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Index");
             }
 
+            if (package.Thumbnail != null)
+            {
+                FileService.DeleteImage(package.Thumbnail, "Package");
+            }
             _context.PackageTests.RemoveRange(package.PackageTests);
 
             _context.Packages.Remove(package);

@@ -33,7 +33,11 @@
 
             @if (!string.IsNullOrEmpty(Model.Thumbnail))
             {
-                <img src="data:image/jpeg;base64,@Model.Thumbnail" style="max-width:200px;" />
+                <img src="@(string.IsNullOrEmpty(Model.Thumbnail)
+												 ? Url.Content("~/img/logo.jpg")
+												 : Url.Content("~/img/" + Model.Thumbnail))"
+                     alt="@Model.Title"
+                     class="news-image" />
             }
             <input type="file" name="photo" class="form-control mb-3" accept="image/*" />
 

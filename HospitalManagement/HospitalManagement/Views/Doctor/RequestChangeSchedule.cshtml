@@ -1,0 +1,271 @@
+﻿@using HospitalManagement.ViewModels
+@model List<ScheduleViewModel>
+
+@{
+    ViewData["Title"] = "Thay đổi lịch làm việc";
+    int selectedYear = (int)ViewBag.SelectedYear;
+    DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
+    DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+    DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-((int)new DateTime(selectedYear, 1, 1).DayOfWeek + 6) % 7);
+    DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-((int)new DateTime(selectedYear, 12, 25).DayOfWeek + 6) % 7);
+
+    DateOnly prevWeek = selectedWeekStart.AddDays(-7);
+    DateOnly nextWeek = selectedWeekStart.AddDays(7);
+
+    var daysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
+    var slots = ViewBag.Slots as List<Slot>;
+    var grouped = Model.GroupBy(s => (s.SlotIndex, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+}
+
+<head>
+    <style>
+        .selectable-card-wrapper .schedule-card {
+            cursor: pointer;
+            transition: border 0.2s, background-color 0.2s;
+        }
+
+        .disabled-card {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .selectable-card-wrapper.selected .schedule-card {
+            background-color: #e6f0ff;
+            border-color: #0056b3;
+            box-shadow: 0 0 5px rgba(0, 86, 179, 0.3);
+        }
+
+        table td {
+            vertical-align: top;
+        }
+
+        .schedule-card {
+            border: 1px solid #007bff;
+            border-top: 4px solid #007bff;
+            border-radius: 8px;
+            padding: 10px;
+            background-color: #f8faff;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+        }
+
+            .schedule-card i {
+                color: #007bff;
+            }
+
+            .schedule-card .fw-bold {
+                font-size: 1rem;
+            }
+
+        .bg-light {
+            background-color: #f8f9fa;
+        }
+    </style>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4 mb-3">
+        <div class="justify-content-center">
+            <h1 class="mb-3">Thay đổi lịch làm việc</h1>
+        </div>
+        <!-- Bộ chọn tuần -->
+        <div class="d-flex justify-content-center align-items-center mb-3">
+            <div class="d-flex gap-2 align-items-center">
+                <select id="yearDropdown" class="form-select d-inline-block" style="width:100px;" onchange="onYearChange(this)">
+                    @for (int y = 2023; y <= DateTime.Now.Year + 1; y++)
+                    {
+                        <option value="@y" selected="@(y == selectedYear)">@y</option>
+                    }
+                </select>
+                <button class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <select id="weekDropdown" class="form-select" style="width:250px;" onchange="onWeekChange(this)">
+                    @{
+                        var start = firstWeekStart;
+                        while (start <= lastWeekStart)
+                        {
+                            var label = $"{start:dd/MM} - {start.AddDays(6):dd/MM}";
+                            <option value="@start.ToString("yyyy-MM-dd")" selected="@(start == selectedWeekStart)">
+                                @label
+                            </option>
+                            ;
+                            start = start.AddDays(7);
+                        }
+                    }
+                </select>
+
+                <button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+
+
+                <!-- Nút request đổi lịch -->
+                <button type="button" class="btn btn-warning" id="btnRequestChange" onclick="openScheduleChangePopup()" disabled>
+                    Request đổi lịch
+                </button>
+
+
+            </div>
+        </div>
+
+
+        <div id="scheduleTable">
+            <!-- Bảng lịch -->
+            <div>
+                <table class="table table-bordered text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Slot</th>
+                            @foreach (var day in daysInWeek)
+                            {
+                                <th>@day.ToString("ddd dd/MM")</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var slot in slots)
+                        {
+                            <tr>
+                                <td><strong>Slot @slot.SlotId</strong><br />@slot.StartTime - @slot.EndTime</td>
+                                @foreach (var day in daysInWeek)
+                                {
+                                    var key = (slot.SlotId, day);
+                                    <td>
+                                        @if (grouped.ContainsKey(key))
+                                        {
+                                            foreach (var item in grouped[key])
+                                            {
+                                                var today = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
+                                                bool isPast = item.Day <= today;
+
+                                                <input type="hidden" id="selectedScheduleId" name="selectedScheduleId" />
+                                                <a href="javascript:void(0);"
+                                                   class="selectable-card-wrapper @(isPast ? "disabled-card" : "")"
+                                                   data-schedule-id="@(isPast ? "" : item.ScheduleId)">
+                                                    <div class="schedule-card">
+                                                        <div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+                                                        <div><i class="bi bi-building me-1"></i> @item.RoomName</div>
+                                                    </div>
+                                                </a>
+                                            }
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="changeSlotModal" tabindex="-1" aria-labelledby="changeSlotModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chọn lịch muốn đổi sang</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalBodyContent">
+                    <!-- AJAX will fill this -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        document.querySelectorAll('.selectable-card-wrapper').forEach(card => {
+            card.addEventListener('click', function () {
+                // Bỏ chọn tất cả
+                document.querySelectorAll('.selectable-card-wrapper').forEach(c => c.classList.remove('selected'));
+
+                // Chọn thẻ hiện tại
+                card.classList.add('selected');
+
+                // Cập nhật giá trị vào hidden input
+                const selectedId = card.getAttribute('data-schedule-id');
+                document.getElementById('selectedScheduleId').value = selectedId;
+
+                // Bật nút request
+                document.getElementById('btnRequestChange').disabled = false;
+            });
+        });
+
+
+        function openScheduleChangePopup() {
+            const selected = document.querySelector('.selectable-card-wrapper.selected');
+            if (!selected) {
+                alert("Vui lòng chọn lịch cần đổi.");
+                return;
+            }
+
+            const selectedId = selected.getAttribute("data-schedule-id");
+
+            // Gửi AJAX để lấy nội dung popup
+            $.ajax({
+                url: '/Doctor/GetAvailableSlotsPopup',
+                type: 'POST',
+                data: JSON.stringify({ fromScheduleId: selectedId }),
+                contentType: 'application/json',
+                success: function (partialHtml) {
+                    $('#changeSlotModal .modal-body').html(partialHtml);
+                    $('#changeSlotModal').modal('show');
+                },
+                error: function () {
+                    alert("Đã có lỗi xảy ra khi tải danh sách lịch trống.");
+                }
+            });
+        }
+
+
+        function onYearChange(select) {
+            const year = parseInt(select.value);
+
+            // Tìm ngày 1/1 của năm đó
+            const jan1 = new Date(year, 0, 1);
+            const dayOfWeek = jan1.getDay();
+
+            // Tính offset để đến thứ Hai gần nhất sau 1/1
+            const offset = (dayOfWeek+6)%7;
+
+            // Tính ngày bắt đầu tuần đầu tiên
+            const weekStartDate = new Date(jan1);
+            weekStartDate.setDate(jan1.getDate() - offset + 1);
+
+            const formattedWeekStart = weekStartDate.toISOString().split("T")[0];
+            const url = `/Doctor/RequestChangeSchedule?weekStart=${formattedWeekStart}`;
+            window.location.href = url;
+        }
+
+        function onWeekChange(select) {
+            const week = select.value;
+            const url = `/Doctor/RequestChangeSchedule?weekStart=${week}`;
+            window.location.href = url;
+        }
+
+        function changeWeek(delta) {
+            const weekSelect = document.getElementById("weekDropdown");
+            const options = weekSelect.options;
+            const currentIndex = weekSelect.selectedIndex;
+            const newIndex = currentIndex + delta;
+
+            if (newIndex >= 0 && newIndex < options.length) {
+                const newWeek = options[newIndex].value;
+                const url = `/Doctor/RequestChangeSchedule?weekStart=${newWeek}`;
+                window.location.href = url;
+            }
+        }
+        // Auto-hide popup alerts after 3 seconds
+        window.setTimeout(function () {
+            const alertBox = document.getElementById('popup-alert');
+            if (alertBox) {
+                alertBox.classList.remove('show');
+                alertBox.classList.add('hide');
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 3000);
+    </script>
+</body>

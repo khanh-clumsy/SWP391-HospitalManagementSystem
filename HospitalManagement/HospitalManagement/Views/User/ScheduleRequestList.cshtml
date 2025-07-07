@@ -1,0 +1,215 @@
+﻿@model HospitalManagement.ViewModels.ScheduleChangeRequestListViewModel
+@{
+    Layout = null;
+}
+
+<head>
+    <meta charset="utf-8">
+    <title>Yêu Cầu Đổi Lịch</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .popup-alert {
+            position: fixed;
+            text-align: center;
+            top: 5px;
+            right: 5px;
+        }
+    </style>
+    
+</head>
+<body>
+    <div>
+        @if (TempData["error"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["error"]</div>
+            </div>
+        }
+        @if (TempData["success"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["success"]</div>
+            </div>
+        }
+    </div>
+    <div class="container py-4">
+        <div class="row mb-4">
+                <div class="col-12">
+                    <a asp-action="Index" asp-controller="Home" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Trở về trang chủ
+                    </a>
+                </div>
+            </div>
+        <h2 class="mb-4">Yêu cầu đổi lịch</h2>
+
+        <div class="btn-group mb-4" role="group">
+            <a href="?type=Pending" class="btn btn-outline-warning @(Model.ViewType == "Pending" ? "active" : "")">Chờ xử lý</a>
+            <a href="?type=Completed" class="btn btn-outline-success @(Model.ViewType == "Completed" ? "active" : "")">Đã xử lý</a>
+        </div>
+
+        <table class="table table-bordered text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Bác sĩ</th>
+                    <th>Lịch</th>
+                    <th>Lịch muốn đổi</th>
+                    <th>Lý do</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    @if (Model.ViewType == "Pending")
+                    {
+                        <th>Hành động</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var req in Model.Requests)
+                {
+                    <tr>
+                        <td>@req.RequestId</td>
+                        <td>@req.DoctorName.FullName</td>
+                        <td>Slot @req.FromSlotTime - @req.FromDay.ToString("dd/MM/yyyy")</td>
+                        <td>Slot @req.ToSlotTime - @req.ToDay.ToString("dd/MM/yyyy")</td>
+                        <td>@req.Reason</td>
+                        <td>
+                            @if (req.Status == "Accepted")
+                            {
+                                <span class="badge bg-success">Chấp nhận</span>
+                            }
+                            else if (req.Status == "Rejected")
+                            {
+                                <span class="badge bg-danger">Từ chối</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                            }
+                        </td>
+                        <td>@req.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        @if (Model.ViewType == "Pending")
+                        {
+                            <td>
+                                <form method="post" asp-action="HandleRequest">
+                                    <input type="hidden" name="requestId" value="@req.RequestId" />
+                                    <button type="submit" name="decision" value="accept" class="btn btn-sm btn-success">Chấp nhận</button>
+                                    <button type="submit" name="decision" value="reject" class="btn btn-sm btn-danger">Từ chối</button>
+                                </form>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+                <!-- Pagination start -->
+                @{
+                int maxPagesToShow = 5;
+                int startPage = Model.Requests.PageNumber - maxPagesToShow / 2;
+                if (startPage < 1) startPage = 1;
+
+                int endPage = startPage + maxPagesToShow - 1;
+                if (endPage > Model.Requests.PageCount)
+                {
+                    endPage = Model.Requests.PageCount;
+                    startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+                }
+                }
+                @if (Model.Requests.PageCount > 1)
+                {
+                    <div class="d-flex justify-content-center mt-5">
+                        <nav>
+                            <ul class="pagination">
+
+                                @* Previous button *@
+                                <li class="page-item @(Model.Requests.HasPreviousPage ? "" : "disabled")">
+                                    <a class="page-link" href="@(Model.Requests.HasPreviousPage ? Url.Action("ManageAccount", new {
+                                                Type = Model.ViewType,
+											    page = Model.Requests.PageNumber - 1,}) : "#")" tabindex="-1">Trước</a>
+                                </li>
+
+                                @* Trang đầu nếu startPage > 1 và dấu "..." *@
+                                @if (startPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = Model.ViewType,
+											    page = 1,})">1</a>
+                                    </li>
+                                    @if (startPage > 2)
+                                    {
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    }
+                                }
+
+                                @* Các trang hiển thị trong khoảng từ startPage đến endPage *@
+                                @for (int i = startPage; i <= endPage; i++)
+                                {
+                                    <li class="page-item @(i == Model.Requests.PageNumber ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = Model.ViewType,
+											    page = i,})">@i</a>
+                                            </li>
+                                        }
+
+                                @* Trang cuối nếu endPage < total pages và dấu "..." *@
+                                @if (endPage < Model.Requests.PageCount)
+                                {
+                                    if (endPage < Model.Requests.PageCount - 1)
+                                    {
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    }
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("ManageAccount", new {
+                                                Type = Model.ViewType,
+											    page = Model.Requests.PageCount,})">@Model.Requests.PageCount</a>
+                                            </li>
+                                        }
+
+                                        @* Next button *@
+                                <li class="page-item @(Model.Requests.HasNextPage ? "" : "disabled")">
+                                    <a class="page-link" href="@(Model.Requests.HasNextPage ? Url.Action("ManageAccount", new {
+                                                Type = Model.ViewType,
+										        page = Model.Requests.PageNumber + 1,}) : "#")">Sau</a>
+                                </li>
+
+                            </ul>
+                        </nav>
+                    </div>
+                 } 
+                <!-- Pagination end -->
+    </div>
+    <script>
+        // Auto-hide popup alerts after 3 seconds
+        window.setTimeout(function () {
+            const alertBox = document.getElementById('popup-alert');
+            if (alertBox) {
+                alertBox.classList.remove('show');
+                alertBox.classList.add('hide');
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 3000);
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/lib/easing/easing.min.js"></script>
+    <script src="/lib/waypoints/waypoints.min.js"></script>
+    <script src="/lib/counterup/counterup.min.js"></script>
+    <script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="~/js/main.js"></script>
+</body>
+

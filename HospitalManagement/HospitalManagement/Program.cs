@@ -21,7 +21,11 @@ builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-
+builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
+builder.Services.AddScoped<ISlotRepository, SlotRepository>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+builder.Services.AddScoped<IScheduleChangeRepository, ScheduleChangeRepository>();
+builder.Services.AddScoped<InvoiceService>();
 
 // Add services to the container
 builder.Services.AddCors(options =>
@@ -33,9 +37,6 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader(); // Cho phép bất kỳ header nào
     });
 });
-
-
-
 
 // Cấu hình Authentication và Authorization
 builder.Services.AddAuthentication(options =>
@@ -90,7 +91,8 @@ builder.Configuration
     .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 
-
+builder.Services.AddSingleton<BookingQueueService>();
+builder.Services.AddHostedService<BookingProcessor>();
 builder.Services.AddDistributedMemoryCache(); // Bộ nhớ tạm cho session
 builder.Services.AddSession(options =>
 {
@@ -102,10 +104,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 
-builder.Services.AddControllersWithViews(options =>
-{
-    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
-});
+//builder.Services.AddControllersWithViews(options =>
+//{
+//    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
+//});
 
 
 var app = builder.Build();
@@ -137,7 +139,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // Xử lý lỗi trang không tồn tại
-app.UseStatusCodePagesWithReExecute("/Home/NotFound");
+app.UseStatusCodePagesWithRedirects("/Home/NotFound");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
