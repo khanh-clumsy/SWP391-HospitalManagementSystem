@@ -65,6 +65,8 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
+                .Include(a => a.Service)
+                .Include(a => a.Package)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(Name))
@@ -209,17 +211,25 @@ namespace HospitalManagement.Repositories
             var query = _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
+                .Include(a => a.InvoiceDetails)
                 .Where(a => a.Status == "Confirmed" && a.Date == today);
-
-            if (!string.IsNullOrWhiteSpace(phone))
-            {
-                phone = string.Join("", phone.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-                query = query.Where(a => a.Patient.PhoneNumber.Contains(phone));
-            }
-
-            return await query
+           
+            var appointments = await query
                 .OrderBy(a => a.Slot.StartTime)
                 .ToListAsync();
+
+            // Gán giá trị IsServiceOrPackagePaid
+            foreach (var appointment in appointments)
+            {
+                appointment.IsServiceOrPackagePaid = appointment.InvoiceDetails != null &&
+                    appointment.InvoiceDetails.Any(i =>
+                        (i.ItemType == "Service" || i.ItemType == "Package") &&
+                        (i.PaymentStatus == "Success") &&
+                        (i.UnitPrice > 0)
+                    );
+            }
+
+            return appointments;
         }
 
         public async Task StartAppointmentAsync(int appointmentId)

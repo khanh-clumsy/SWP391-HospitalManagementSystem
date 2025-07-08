@@ -1,6 +1,7 @@
 ﻿using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Data;
+using HospitalManagement.Models;
 
 namespace HospitalManagement.Repositories
 {
@@ -103,6 +104,21 @@ namespace HospitalManagement.Repositories
                     EndTime = s.Slot.EndTime.ToString(@"hh\:mm")
                 })
                 .ToListAsync();
+        }
+
+        public async Task<int?> GetRoomIdByDoctorSlotAndDayAsync(int doctorId, int slotId, DateOnly day)
+        {
+            var schedule = await _context.Schedules
+                .Where(s => s.DoctorId == doctorId && s.SlotId == slotId && s.Day == day)
+                .FirstOrDefaultAsync();
+            return schedule?.RoomId;
+        }
+
+        public async Task<Schedule?> GetScheduleWithRoomAsync(int doctorId, int slotId, DateOnly day)
+        {
+            return await _context.Schedules
+                .Include(s => s.Room)
+                .FirstOrDefaultAsync(s => s.DoctorId == doctorId && s.SlotId == slotId && s.Day == day);
         }
     }
 }

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using HospitalManagement.Repositories;

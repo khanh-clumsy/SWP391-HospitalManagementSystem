@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using X.PagedList;
 using X.PagedList.Extensions;
 using X.PagedList.EF;
+using System.Threading.Tasks;
 
 namespace HospitalManagement.Controllers
 {
@@ -21,13 +22,15 @@ namespace HospitalManagement.Controllers
         private readonly ITrackingRepository _TrackingRepository;
         private readonly IRoomRepository _RoomRepository;
         private readonly HospitalManagementContext _context;
+        private readonly IScheduleRepository _scheduleRepository;
 
-        public TrackingController(IAppointmentRepository appointmentRepo, ITrackingRepository trackingRepository, IRoomRepository roomRepository, HospitalManagementContext context)
+        public TrackingController(IAppointmentRepository appointmentRepo, ITrackingRepository trackingRepository, IRoomRepository roomRepository, HospitalManagementContext context, IScheduleRepository scheduleRepository)
         {
             _appointmentRepo = appointmentRepo;
             _TrackingRepository = trackingRepository;
             _RoomRepository = roomRepository;
             _context = context;
+            _scheduleRepository = scheduleRepository;
         }
 
         [Authorize(Roles = "Receptionist")]
@@ -44,23 +47,79 @@ namespace HospitalManagement.Controllers
 
             return View(pagedAppointments);
         }
-        
+
         //Bắt đầu cuộc hẹn chuyển status của appoinment sang Ongoing
-        [HttpGet]
-        [Authorize(Roles = "Receptionist")]
         public async Task<IActionResult> StartAppointment(int id)
         {
-            var appointment = await _appointmentRepo.GetAppointmentByIdAsync(id);
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                    .ThenInclude(d => d.Schedules)
+                .Include(a => a.Slot)
+                .FirstOrDefaultAsync(a => a.AppointmentId == id);
 
             if (appointment == null)
-                return Json(new { success = false, message = "Không tìm thấy cuộc hẹn" });
+                return NotFound();
 
-            await _appointmentRepo.StartAppointmentAsync(id);
+            // Lấy phòng làm việc của bác sĩ tại slot và ngày của appointment
+            int doctorId = appointment.DoctorId ?? 0;
+            int slotId = appointment.SlotId ?? 0;
+            var day = appointment.Date;
+            Console.WriteLine($"doctorId={doctorId}, slotId={slotId}, day={day}");
+            string doctorRoomName = null;
+            if (doctorId > 0 && slotId > 0)
+            {
+                var roomId = await _scheduleRepository.GetRoomIdByDoctorSlotAndDayAsync(doctorId, slotId, day);
+                if (roomId.HasValue)
+                {
+                    var room = await _context.Rooms.FirstOrDefaultAsync(r => r.RoomId == roomId.Value);
+                    doctorRoomName = room?.RoomName;
+                }
 
-            // Lấy tracking info để hiển thị trong view
-            var tracking = await _TrackingRepository.GetRoomByAppointmentIdAsync(id);
-            return PartialView("RoomInfo", tracking);
+            }
+            ViewBag.DoctorRoomName = doctorRoomName;
+
+            // Trả về một partial view chứa quy trình khám
+            return PartialView("_StartAppointmentPartial", appointment);
         }
+        [HttpPost]
+        public async Task<IActionResult> StartDiagnosis(int appointmentId)
+        {
+            var appointment = _context.Appointments
+                .FirstOrDefault(a => a.AppointmentId == appointmentId);
+
+            if (appointment == null)
+            {
+                TempData["error"] = "Không tìm thấy cuộc hẹn.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Cập nhật trạng thái bắt đầu khám nếu cần
+            appointment.Status = "Ongoing";
+            var schedule = await _scheduleRepository.GetScheduleWithRoomAsync(appointment.DoctorId ?? 0, appointment.SlotId ?? 0, appointment.Date);
+
+            if (schedule != null && schedule.Room != null)
+            {
+                // Lưu bản ghi mới vào bảng Trackings
+                var tracking = new Tracking
+                {
+                    AppointmentId = appointment.AppointmentId,
+                    RoomId = schedule.Room.RoomId,
+                    Time = DateTime.Now
+                };
+                _context.Trackings.Add(tracking);
+            }
+            // Nếu không tìm thấy lịch hoặc phòng thì không lưu tracking
+
+            await _context.SaveChangesAsync();
+
+            // ✅ Gán thông báo thành công
+            TempData["success"] = "Bắt đầu quy trình thành công!";
+
+            // ✅ Chuyển hướng sang trang quy trình
+            return RedirectToAction("StartAppointmentProcess", "Tracking");
+        }
+
 
         //Hiện các cuộc hẹn cần khám ontime
         [Authorize(Roles = "Doctor")]
@@ -87,6 +146,7 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments
                 .Include(a => a.Patient)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id);
+
             var allTestsCompleted = await _context.TestRecords
                     .Where(t => t.AppointmentId == id)
                     .AllAsync(t => t.TestStatus == "Completed");
@@ -95,23 +155,22 @@ namespace HospitalManagement.Controllers
                 return NotFound();
 
             // Lấy danh sách phòng đã chỉ định (Tracking + Room)
-            var assignedRooms = await _context.Trackings
+            var trackings = await _context.Trackings
                                 .Include(t => t.TestRecord)
                                     .ThenInclude(tl => tl.Test)
                                 .Include(t => t.Room)
                                 .Where(t => t.AppointmentId == id)
                                 .ToListAsync();
 
-
             // Tạo ViewModel
-            var viewModel = new ExaminationViewModel
+            var examViewModel = new ExaminationViewModel
             {
                 AppointmentId = appointment.AppointmentId,
                 PatientName = appointment.Patient.FullName,
                 DateOfBirth = appointment.Patient.Dob,
                 Gender = appointment.Patient.Gender,
                 TestStatus = appointment.Status,
-                AssignedRooms = assignedRooms,
+                AssignedRooms = trackings,
                 AvailableTests = _context.Tests
                                        .Select(t => new Test { TestId = t.TestId, Name = t.Name })
                                        .ToList(),
@@ -124,23 +183,28 @@ namespace HospitalManagement.Controllers
                 PackageName = appointment.Package?.PackageName
             };
             ViewBag.AllTestsCompleted = allTestsCompleted;
-            var trackingViewModel = viewModel.AssignedRooms
-                .Select(t => new TrackingViewModel
+            // Lọc chỉ lấy các phòng không phải là phòng khám
+            var assignedRooms = examViewModel.AssignedRooms
+                .Where(tracking => tracking.Room?.RoomType != "Phòng khám")
+                .Select(tracking => new TrackingViewModel
                 {
-                    TestRecordID = t.TestRecordId ?? 0,
-                    TestID = t.TestRecord.Test.TestId,
-                    TestName = t.TestRecord?.Test?.Name,
-                    TestStatus = t.TestRecord?.TestStatus,
-                    RoomID = t.Room.RoomId,
-                    RoomName = t.Room.RoomName,
-                    RoomType = t.Room.RoomType
-                }).ToList();
-            var options = new JsonSerializerOptions
+                    TestRecordID = tracking.TestRecordId ?? 0,
+                    TestID = tracking.TestRecord?.Test?.TestId ?? 0,
+                    TestName = tracking.TestRecord?.Test?.Name,
+                    TestStatus = tracking.TestRecord?.TestStatus,
+                    RoomID = tracking.Room?.RoomId ?? 0,
+                    RoomName = tracking.Room?.RoomName ?? "Không xác định",
+                    RoomType = tracking.Room?.RoomType ?? "Không xác định"
+                })
+                .ToList();
+
+            var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
-            ViewBag.AssignedRoom = JsonSerializer.Serialize(trackingViewModel, options);
-            return View(viewModel);
+
+            ViewBag.AssignedRoom = JsonSerializer.Serialize(assignedRooms, jsonOptions);
+            return View(examViewModel);
         }
 
         [HttpPost]
@@ -179,7 +243,7 @@ namespace HospitalManagement.Controllers
                     AppointmentId = appointmentId,
                     TestId = testId,
                     CreatedAt = DateTime.Now,
-                    TestStatus = "Ongoing"
+                    TestStatus = "Waiting for payment"
                 };
                 _context.TestRecords.Add(testRecord);
                 _context.SaveChanges();
@@ -263,7 +327,7 @@ namespace HospitalManagement.Controllers
                     TempData["error"] = "Vui lòng hoàn thành tất cả xét nghiệm trước khi kết thúc khám bệnh.";
 
                     // Gán lại ViewBag và model để quay lại đúng trang
-                    var assignedRooms = await _context.Trackings
+                    var assignedTrackings = await _context.Trackings
                                         .Include(t => t.TestRecord)
                                             .ThenInclude(tl => tl.Test)
                                         .Include(t => t.Room)
@@ -276,10 +340,10 @@ namespace HospitalManagement.Controllers
                     model.AvailableTests = _context.Tests
                        .Select(t => new Test { TestId = t.TestId, Name = t.Name })
                        .ToList();
-                    model.AssignedRooms = assignedRooms;
+                    model.AssignedRooms = assignedTrackings;
 
                     ViewBag.AllTestsCompleted = false;
-                    var trackingViewModel = assignedRooms
+                    var trackingDtoList = assignedTrackings
                         .Select(t => new TrackingViewModel
                         {
                             TestRecordID = t.TestRecordId ?? 0,
@@ -290,11 +354,11 @@ namespace HospitalManagement.Controllers
                             RoomName = t.Room.RoomName,
                             RoomType = t.Room.RoomType
                         }).ToList();
-                    var options = new JsonSerializerOptions
+                    var jsonOptions = new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     };
-                    ViewBag.AssignedRoom = JsonSerializer.Serialize(trackingViewModel, options);
+                    ViewBag.AssignedRoom = JsonSerializer.Serialize(trackingDtoList, jsonOptions);
 
                     return View("MedicalExam", model);
                 }

@@ -1026,7 +1026,6 @@ namespace HospitalManagement.Controllers
                 .ToList();
         }
 
-
         private async Task<List<SelectListItem>> GetPackageListAsync()
         {
             return await _context.Packages
@@ -1084,7 +1083,7 @@ namespace HospitalManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Patient, Sales, Admin, Doctor")]
+        [Authorize(Roles = "Patient, Sales, Admin, Doctor, Receptionist")]
         public IActionResult Detail(int appId)
         {
             var appointment = _context.Appointments
@@ -1092,6 +1091,10 @@ namespace HospitalManagement.Controllers
                                 .Include(a => a.Doctor)
                                 .Include(a => a.Staff)
                                 .Include(a => a.Slot)
+                                .Include(a => a.Service)
+                                .Include(a => a.Package)
+                                .Include(a => a.TestRecords).ThenInclude(tr => tr.Test)
+                                .Include(a => a.Trackings).ThenInclude(t => t.Room)
                                 .FirstOrDefault(a => a.AppointmentId == appId);
             if (appointment == null)
             {
@@ -1100,7 +1103,7 @@ namespace HospitalManagement.Controllers
             }
 
 
-            if (User.IsInRole("Admin") || User.IsInRole("Sales"))
+            if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Receptionist"))
             {
                 return View(appointment);
             }
