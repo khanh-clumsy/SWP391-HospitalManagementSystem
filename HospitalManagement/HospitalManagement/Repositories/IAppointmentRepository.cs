@@ -13,8 +13,11 @@ namespace HospitalManagement.Repositories
         Task<List<Appointment>> FilterForAdmin(string? Name, string? slotId, string? Date, string? Status);
 
         Task<List<Appointment>> FilterApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter);
-
         Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day);
-
+        Task<List<Appointment>> GetAppointmentsAsync(string phone);
+        Task StartAppointmentAsync(int appointmentId);
+        Task<List<Appointment>> GetTodayAppointmentsAsync(string? phone);
+        Task<List<Appointment>> GetOngoingAppointmentsByDoctorIdAsync(int doctorId);
+        Task<Appointment> GetAppointmentByIdAsync(int appointmentId);
     }
 }

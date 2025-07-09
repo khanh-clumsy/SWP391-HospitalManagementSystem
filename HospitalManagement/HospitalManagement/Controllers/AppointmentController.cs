@@ -26,15 +26,17 @@ namespace HospitalManagement.Controllers
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly EmailService _emailService;
         private readonly BookingQueueService _bookingQueue;
+        private readonly InvoiceService _invoiceService;
 
 
-        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository, EmailService emailService, BookingQueueService bookingQueue)
+        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository, EmailService emailService, BookingQueueService bookingQueue, InvoiceService invoiceService)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
             _appointmentRepository = appointmentRepository;
             _emailService = emailService;
             _bookingQueue = bookingQueue;
+            _invoiceService = invoiceService;
         }
 
         public IActionResult BookingType()
@@ -64,6 +66,7 @@ namespace HospitalManagement.Controllers
             if (string.IsNullOrEmpty(user.PhoneNumber))
             {
                 TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                TempData["ReturnUrl"] = Url.Action("BookingByService", new { serviceId, packageId });
                 return RedirectToAction("UpdateProfile", "Patient");
             }
             var model = new BookingByServiceViewModel
@@ -256,7 +259,7 @@ namespace HospitalManagement.Controllers
                 PackageOptions = await GetPackageListAsync(),
                 AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
                 SelectedDoctorId = doctorId,
-                DepartmentOptions = await GetDepartmentListAsync(),
+                DepartmentOptions = await GetDepartmentListAsync(false),
                 WeeklySchedule = schedules
             };
             return View(model);
@@ -269,7 +272,7 @@ namespace HospitalManagement.Controllers
             if (!ModelState.IsValid)
             {
                 // Nạp lại dropdown nếu có lỗi
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 return View(model);
@@ -297,7 +300,7 @@ namespace HospitalManagement.Controllers
             if (isPatientConflict)
             {
                 TempData["error"] = "Bạn đã có một cuộc hẹn trong khung giờ này!";
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 return View(model);
@@ -400,7 +403,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SlotFilter = SlotFilter;
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
-            ViewBag.Type = Type ?? "Today"; 
+            ViewBag.Type = Type ?? "Today";
             ViewBag.FilterType = Type ?? "Today";
 
             // Truy vấn lọc
@@ -423,7 +426,7 @@ namespace HospitalManagement.Controllers
                         break;
 
                     case "Ongoing":
-                        filteredList = filteredList.Where(a =>  
+                        filteredList = filteredList.Where(a =>
                           a.Date > today && (a.Status == "Confirmed") || a.Status == "Pending")
                          .ToList();
                         break;
@@ -497,7 +500,7 @@ namespace HospitalManagement.Controllers
                 SelectedDoctorId = doctorId,
                 ServiceOptions = await GetServiceListAsync(),
                 PackageOptions = await GetPackageListAsync(),
-                DepartmentOptions = await GetDepartmentListAsync(),
+                DepartmentOptions = await GetDepartmentListAsync(false),
                 WeeklySchedule = schedules
             };
 
@@ -512,7 +515,7 @@ namespace HospitalManagement.Controllers
             if (!ModelState.IsValid)
             {
                 // Nạp lại dropdown nếu có lỗi
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 model.WeeklySchedule = new List<DoctorScheduleViewModel.ScheduleItem>();
@@ -603,7 +606,7 @@ namespace HospitalManagement.Controllers
             if (confirmedAppointment == null)
             {
                 TempData["error"] = $"Lỗi khi tạo lịch hẹn!";
-                model.DepartmentOptions = await GetDepartmentListAsync();
+                model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 model.WeeklySchedule = new List<DoctorScheduleViewModel.ScheduleItem>();
@@ -708,7 +711,6 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Bác sĩ đã có cuộc hẹn khác trong khung giờ này.";
                 return RedirectToAction("ApproveAppointment");
             }
-
             appointment.DoctorId = model.SelectedDoctorId;
             appointment.Status = "Confirmed";
             _context.Update(appointment);
@@ -722,6 +724,9 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
+
+            //Tạo ra hóa đơn tương ứng
+            await _invoiceService.CreateInvoiceForAppointmentAsync(savedAppointment!);
 
             if (savedAppointment == null)
             {
@@ -744,7 +749,7 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = $"Duyệt cuộc hẹn không thành công: {ex.Message}";
             }
 
-            
+
             TempData["success"] = "Chỉ định bác sĩ thành công.";
             return RedirectToAction("ApproveAppointment");
         }
@@ -769,6 +774,7 @@ namespace HospitalManagement.Controllers
             {
                 case "Accept":
                     appointment.Status = "Confirmed";
+                    await _invoiceService.CreateInvoiceForAppointmentAsync(appointment);
                     TempData["success"] = "Cuộc hẹn đã được duyệt.";
                     break;
 
@@ -993,17 +999,25 @@ namespace HospitalManagement.Controllers
                 })
                 .ToListAsync();
         }
-        private async Task<List<SelectListItem>> GetDepartmentListAsync()
+        private async Task<List<SelectListItem>> GetDepartmentListAsync(bool? containTestDoc)
         {
-            var depts = await _context.Doctors
+            var query = _context.Doctors.AsQueryable();
+
+            if (!(containTestDoc ?? false))
+            {
+                query = query.Where(d =>
+                    d.DepartmentName != "Xét nghiệm" &&
+                    d.DepartmentName != "Chẩn đoán hình ảnh");
+            }
+
+            var departmentNames = await query
+                .Where(d => !string.IsNullOrEmpty(d.DepartmentName))
                 .Select(d => d.DepartmentName)
-                .Where(name => !string.IsNullOrEmpty(name))
                 .Distinct()
                 .OrderBy(name => name)
                 .ToListAsync();
 
-            // Chuyển thành SelectListItem
-            return depts
+            return departmentNames
                 .Select(name => new SelectListItem
                 {
                     Value = name,
@@ -1069,15 +1083,19 @@ namespace HospitalManagement.Controllers
         }
 
 
-        [Authorize(Roles = "Patient, Sales, Admin, Doctor")]
-        public IActionResult Detail(int appId)
+        [Authorize(Roles = "Patient, Sales, Admin, Doctor, Receptionist")]
+        public async Task<IActionResult> Detail(int appId)
         {
-            var appointment = _context.Appointments
+            var appointment = await _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
                                 .Include(a => a.Staff)
                                 .Include(a => a.Slot)
-                                .FirstOrDefault(a => a.AppointmentId == appId);
+                                .Include(a => a.Service)
+                                .Include(a => a.Package)
+                                .Include(a => a.TestRecords).ThenInclude(tr => tr.Test)
+                                .Include(a => a.Trackings).ThenInclude(t => t.Room)
+                                .FirstOrDefaultAsync(a => a.AppointmentId == appId);
             if (appointment == null)
             {
                 TempData["error"] = "Trang không tồn tại";
@@ -1085,7 +1103,7 @@ namespace HospitalManagement.Controllers
             }
 
 
-            if (User.IsInRole("Admin") || User.IsInRole("Sales"))
+            if (User.IsInRole("Admin") || User.IsInRole("Sales") || User.IsInRole("Receptionist"))
             {
                 return View(appointment);
             }
@@ -1119,7 +1137,6 @@ namespace HospitalManagement.Controllers
             }
 
             TempData["error"] = "Bạn không có quyền truy cập";
-
             return RedirectToAction("Index", "Home");
         }
         public static string NormalizeName(string? input)

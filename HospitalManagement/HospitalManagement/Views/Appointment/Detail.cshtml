@@ -3,20 +3,6 @@
 	ViewData["Title"] = "Chi tiết cuộc hẹn";
 }
 
-<!-- Page Header Start -->
-<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
-	<div class="container py-5">
-		<h1 class="display-3 text-white mb-3 animated slideInDown">Appointment Details</h1>
-		<nav aria-label="breadcrumb animated slideInDown">
-			<ol class="breadcrumb text-uppercase mb-0">
-				<li class="breadcrumb-item"><a class="text-white" href="/">Home</a></li>
-				<li class="breadcrumb-item"><a class="text-white" href="/Appointment">Appointments</a></li>
-				<li class="breadcrumb-item text-primary active" aria-current="page">Details</li>
-			</ol>
-		</nav>
-	</div>
-</div>
-<!-- Page Header End -->
 <!-- Appointment Details Start -->
 <div class="container-xxl py-5">
 	<div class="container">
@@ -25,7 +11,7 @@
 				<div class="bg-white rounded p-5">
 					<div class="row mb-4">
 						<div class="col-12">
-							<h2 class="d-inline-block border rounded-pill py-1 px-4 text-primary">Appointment Information</h2>
+							<h2 class="d-inline-block border rounded-pill py-1 px-4 text-primary">Thông tin cuộc hẹn</h2>
 						</div>
 					</div>
 
@@ -37,7 +23,7 @@
 									<i class="fa fa-user text-white"></i>
 								</div>
 								<div>
-									<h5 class="mb-1">Patient Information</h5>
+									<h5 class="mb-1">Thông tin bệnh nhân</h5>
 									<p class="mb-0 text-muted">@Model.Patient?.FullName</p>
 								</div>
 							</div>
@@ -48,7 +34,7 @@
 									<i class="fa fa-user-md text-white"></i>
 								</div>
 								<div>
-									<h5 class="mb-1">Doctor</h5>
+									<h5 class="mb-1">Bác sĩ</h5>
 									<p class="mb-0 text-muted">@Model.Doctor?.FullName</p>
 								</div>
 							</div>
@@ -63,7 +49,7 @@
 									<i class="fa fa-calendar text-white"></i>
 								</div>
 								<div>
-									<h6 class="mb-1">Date</h6>
+									<h6 class="mb-1">Ngày khám</h6>
 									<p class="mb-0 text-muted">@Model.Date.ToShortDateString()</p>
 								</div>
 							</div>
@@ -72,7 +58,7 @@
 									<i class="fa fa-clock text-white"></i>
 								</div>
 								<div>
-									<h6 class="mb-1">Time</h6>
+									<h6 class="mb-1">Khung giờ</h6>
 									<p class="mb-0 text-muted">@Model.Slot?.StartTime - @Model.Slot?.EndTime</p>
 								</div>
 							</div>
@@ -81,7 +67,7 @@
 									<i class="fa fa-info-circle text-white"></i>
 								</div>
 								<div>
-									<h6 class="mb-1">Status</h6>
+									<h6 class="mb-1">Trạng thái cuộc hẹn</h6>
 									@{
 										string badgeClass = "badge ";
 										string badgeText = "";
@@ -128,59 +114,132 @@
 						</div>
 					</div>
 
-					<!-- Test List -->
-					@if (Model.TestLists != null)
-					{
-						<div class="row mb-4">
-							<div class="col-12">
-								<h5 class="mb-3">
-									<i class="fa fa-vial text-primary me-2"></i>
-									Tests Performed
-								</h5>
-								<div class="table-responsive">
-									<table class="table table-bordered">
-										<thead class="table-light">
-											<tr>
-												<th>Test Name</th>
-												<th>Result</th>
-												<th>Date Performed</th>
-											</tr>
-										</thead>
-										<tbody>
-											@foreach (var test in Model.TestLists)
-											{
-												<tr>
-													<td>@test.Test.Name</td>
-													<td>@test.Result</td>
-													<td>@test.CreatedAt?.ToString("dd/MM/yyyy")</td>
-												</tr>
-											}
-										</tbody>
-									</table>
+					<!-- Service/Package Used -->
+					<div class="row g-4 mb-4">
+						<div class="col-md-6">
+							<div class="d-flex align-items-center bg-light rounded p-3 h-100">
+								<div class="d-flex flex-shrink-0 align-items-center justify-content-center rounded-circle bg-primary me-3" style="width: 45px; height: 45px;">
+									<i class="fa fa-briefcase-medical text-white"></i>
+								</div>
+								<div>
+									<h6 class="mb-1">Dịch vụ sử dụng</h6>
+									<p class="mb-0 text-muted">
+										@if (Model.Service != null)
+										{
+											<span><strong>Gói dịch vụ:</strong> @Model.Service.ServiceType</span>
+										}
+										else if (Model.Package != null)
+										{
+											<span><strong>Gói khám:</strong> @Model.Package.PackageName</span>
+										}
+										else
+										{
+											<span>Chưa có thông tin dịch vụ hoặc gói khám.</span>
+										}
+									</p>
 								</div>
 							</div>
 						</div>
-					}
+					</div>
+
+					<!-- Room & Test List (Gộp) -->
+					<div class="row mb-4">
+						<div class="col-12">
+							<h5 class="mb-3">
+								<i class="fa fa-hospital text-primary me-2"></i>
+								Các phòng cần đi qua & Xét nghiệm
+							</h5>
+							<div class="table-responsive">
+								<table class="table table-bordered table-hover text-center align-middle text-center w-100">
+									<thead>
+										<tr>
+											<th>Tên phòng</th>
+											<th>Loại phòng</th>
+											<th>Thời gian chỉ định</th>
+											<th>Tên xét nghiệm</th>
+											<th>Trạng thái</th>
+											<th>Ngày thực hiện</th>
+											<th>Kết quả</th>
+										</tr>
+									</thead>
+									<tbody>
+										@if (Model.Trackings != null && Model.Trackings.Any())
+										{
+											foreach (var tracking in Model.Trackings.OrderBy(t => t.Time))
+											{
+												<tr>
+													<td>@tracking.Room?.RoomName</td>
+													<td>@tracking.Room?.RoomType</td>
+													<td>@tracking.Time.ToString("dd/MM/yyyy HH:mm")</td>
+													<td>@tracking.TestRecord?.Test?.Name</td>
+													<td>
+														@if (tracking.TestRecord != null)
+														{
+															string badgeClassTest = "badge ";
+															string badgeTextTest = "";
+															switch (tracking.TestRecord.TestStatus)
+															{
+																case "Waiting for payment":
+																	badgeClassTest += "bg-warning text-dark";
+																	badgeTextTest = "Chờ thanh toán";
+																	break;
+																case "Ongoing":
+																	badgeClassTest += "bg-info text-white";
+																	badgeTextTest = "Đang diễn ra";
+																	break;
+																case "Completed":
+																	badgeClass += "bg-primary";
+																	badgeTextTest = "Hoàn thành";
+																	break;
+																default:
+																	badgeClassTest += "bg-secondary";
+																	badgeTextTest = tracking.TestRecord.TestStatus ?? "Không xác định";
+																	break;
+															}
+															<span class="@badgeClassTest">@badgeTextTest</span>
+														}
+													</td>
+													<td>@tracking.TestRecord?.CreatedAt?.ToString("dd/MM/yyyy")</td>
+													<td>
+														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Complete")
+														{
+															<a class="btn btn-sm btn-outline-primary" asp-controller="TestPerform" asp-action="ViewOngoingTest" asp-route-id="@tracking.TestRecord.TestRecordId">Xem kết quả</a>
+														}
+													</td>
+												</tr>
+											}
+										}
+										else
+										{
+											<tr>
+												<td colspan="7" class="text-center text-muted">Chưa có phòng nào được chỉ định.</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
 
 					<!-- Medical Information -->
 					<div class="row mb-4">
 						<div class="col-12">
 							<h5 class="mb-3">
 								<i class="fa fa-stethoscope text-primary me-2"></i>
-								Medical Information
+								Thông tin khám bệnh
 							</h5>
 							<div class="row">
 								@if (!string.IsNullOrEmpty(Model.Symptoms))
 								{
 									<div class="col-md-6 mb-3">
-										<h6 class="text-muted">Symptoms</h6>
+										<h6 class="text-muted">Triệu chứng</h6>
 										<p class="mb-0">@Model.Symptoms</p>
 									</div>
 								}
 								@if (!string.IsNullOrEmpty(Model.Diagnosis))
 								{
 									<div class="col-md-6 mb-3">
-										<h6 class="text-muted">Diagnosis</h6>
+										<h6 class="text-muted">Chẩn đoán</h6>
 										<p class="mb-0">@Model.Diagnosis</p>
 									</div>
 								}
@@ -188,47 +247,10 @@
 							@if (!string.IsNullOrEmpty(Model.Note))
 							{
 								<div class="mt-3">
-									<h6 class="text-muted">Notes</h6>
+									<h6 class="text-muted">Ghi chú</h6>
 									<p class="mb-0">@Model.Note</p>
 								</div>
 							}
-						</div>
-					</div>
-
-					<!-- Payment Information -->
-					<div class="row mb-4">
-						<div class="col-12">
-							<h5 class="mb-3">
-								<i class="fa fa-credit-card text-primary me-2"></i>
-								Payment Information
-							</h5>
-							<div class="row">
-								<div class="col-md-3 mb-3">
-									<h6 class="text-muted">Service Price</h6>
-									<p class="mb-0 fw-bold text-primary">@Model.Service</p>
-								</div>
-								<div class="col-md-3 mb-3">
-									<h6 class="text-muted">Total Price</h6>
-									<p class="mb-0 fw-bold text-primary">@Model.TotalPrice</p>
-								</div>
-								@*<div class="col-md-3 mb-3">
-									<h6 class="text-muted">Payment Method</h6>
-									<p class="mb-0">@Model.PaymentMethod</p>
-								</div>*@
-								<div class="col-md-3 mb-3">
-									<h6 class="text-muted">Payment Status</h6>
-									<span class="badge bg-@(Model.PaymentStatus == "Paid" ? "success" : "warning") text-white">@Model.PaymentStatus</span>
-								</div>
-							</div>
-							@*
-							@if (!string.IsNullOrEmpty(Model.TransactionCode))
-							{
-								<div class="mt-3">
-									<h6 class="text-muted">Transaction Code</h6>
-									<p class="mb-0 font-monospace">@Model.TransactionCode</p>
-								</div>
-							}
-							*@
 						</div>
 					</div>
 
@@ -237,25 +259,18 @@
 						<div class="col-12">
 							<h5 class="mb-3">
 								<i class="fa fa-info text-primary me-2"></i>
-								Additional Information
+								Thông tin bổ sung
 							</h5>
 							<div class="row">
-								@if (Model.Service?.ServiceType != null)
-								{
-									<div class="col-md-4 mb-3">
-										<h6 class="text-muted">Service Type</h6>
-										<p class="mb-0">@Model.Service.ServiceType</p>
-									</div>
-								}
 								@if (Model.Staff != null)
 								{
 									<div class="col-md-4 mb-3">
-										<h6 class="text-muted">Staff Member</h6>
+										<h6 class="text-muted">Nhân viên hỗ trợ</h6>
 										<p class="mb-0">@Model.Staff.FullName</p>
 									</div>
 								}
 								<div class="col-md-4 mb-3">
-									<h6 class="text-muted">Created At</h6>
+									<h6 class="text-muted">Ngày tạo</h6>
 									<p class="mb-0">@Model.RecordCreatedAt?.ToString("dd/MM/yyyy HH:mm")</p>
 								</div>
 							</div>
@@ -263,14 +278,38 @@
 					</div>
 
 					<!-- Action Buttons -->
-					<div class="row">
-						<div class="col-12 text-center">
-							<a asp-action="MyAppointments" class="btn btn-primary py-3 px-5 me-3">
-								<i class="fa fa-arrow-left me-2"></i>
-								Back to My Appointments
-							</a>
+					@if (User.IsInRole("Receptionist"))
+					{
+						<div class="row">
+							<div class="col-12 text-center">
+								<a asp-controller="Tracking" asp-action="StartAppointmentProcess" class="btn btn-primary py-3 px-5 me-3">
+									<i class="fa fa-arrow-left me-2"></i>
+									Quay lại danh sách hôm nay
+								</a>
+							</div>
 						</div>
-					</div>
+					}
+					else
+					{
+						<div class="row">
+							<div class="col-12 text-center">
+								<a asp-action="MyAppointments" class="btn btn-primary py-3 px-5 me-3">
+									<i class="fa fa-arrow-left me-2"></i>
+									Quay lại lịch hẹn của tôi
+								</a>
+							</div>
+						</div>
+						@if (Model.InvoiceDetails != null && Model.InvoiceDetails.Any())
+						{
+							<div class="row mb-4">
+								<div class="col-12 text-center">
+									<a class="btn btn-outline-primary" asp-controller="Invoice" asp-action="Detail" asp-route-id="@Model.InvoiceDetails.First().InvoiceDetailId">
+										<i class="fa fa-file-invoice me-2"></i> Xem hóa đơn
+									</a>
+								</div>
+							</div>
+						}
+					}
 				</div>
 			</div>
 		</div>

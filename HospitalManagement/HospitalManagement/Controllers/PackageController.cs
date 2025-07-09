@@ -23,12 +23,14 @@ namespace HospitalManagement.Controllers
         private readonly HospitalManagementContext _context;
         private readonly ITestRepository _testRepository;
         private readonly IPackageRepository _packageRepository;
+        private readonly IWebHostEnvironment _env;
 
-        public PackageController(HospitalManagementContext context, ITestRepository testRepository, IPackageRepository packageRepository)
+        public PackageController(HospitalManagementContext context, ITestRepository testRepository, IPackageRepository packageRepository, IWebHostEnvironment env)
         {
             _context = context;
             _testRepository = testRepository;
             _packageRepository = packageRepository;
+            _env = env;
         }
 
         public async Task<IActionResult> Index(string? CategoryFilter, string? AgeFilter, string? GenderFilter, string? PriceRangeFilter, int? page)
@@ -119,7 +121,7 @@ namespace HospitalManagement.Controllers
             {
                 try
                 {
-                    var fileName = await ImageService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    var fileName = await FileService.SaveImageAsync(model.ThumbnailFile, "Package");
                     model.Thumbnail = fileName;
                 }
                 catch (InvalidOperationException ex)
@@ -246,7 +248,7 @@ namespace HospitalManagement.Controllers
             {
                 try
                 {
-                    var fileName = await ImageService.SaveImageAsync(model.ThumbnailFile, "Package");
+                    var fileName = await FileService.SaveImageAsync(model.ThumbnailFile, "Package");
                     model.CurrentThumbnail = fileName;
                 }
                 catch (InvalidOperationException ex)
@@ -340,6 +342,10 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Index");
             }
 
+            if (package.Thumbnail != null)
+            {
+                FileService.DeleteImage(package.Thumbnail, "Package");
+            }
             _context.PackageTests.RemoveRange(package.PackageTests);
 
             _context.Packages.Remove(package);

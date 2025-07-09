@@ -12,7 +12,6 @@ namespace HospitalManagement.ViewModels
 
         public bool HasAppointment { get; set; } // để biết có hiển thị bác sĩ không
 
-        [Required(ErrorMessage = "Vui lòng chọn bác sĩ thay thế.")]
         public int? ReplacementDoctorId { get; set; } // chỉ required nếu HasAppointment == true
     }
 }

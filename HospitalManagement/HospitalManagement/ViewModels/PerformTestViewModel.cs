@@ -4,7 +4,7 @@ namespace HospitalManagement.ViewModels
 {
     public class PerformTestViewModel
     {
-        public int TestListId { get; set; }
+        public int TestRecordID { get; set; }
 
         public string TestName { get; set; } = string.Empty;
 

@@ -48,12 +48,12 @@ namespace HospitalManagement.Repositories
         public async Task<List<Patient>> GetOngoingLabPatientsByRoom(int roomId)
         {
             var ongoingTrackings = await _context.Trackings
-                .Include(t => t.TestList)
+                .Include(t => t.TestRecord)
                 .Include(t => t.Appointment).ThenInclude(a => a.Patient)
                 .Where(t =>
                     t.RoomId == roomId &&
-                    t.TestList != null &&
-                    t.TestList.TestStatus == "Ongoing")
+                    t.TestRecord != null &&
+                    t.TestRecord.TestStatus == "Ongoing")
                 .ToListAsync();
 
             var validTrackings = new List<Tracking>();
@@ -61,13 +61,13 @@ namespace HospitalManagement.Repositories
             foreach (var tracking in ongoingTrackings)
             {
                 var appointmentId = tracking.AppointmentId;
-                var currentTestListId = tracking.TestListId!.Value;
+                var currentTestListId = tracking.TestRecordId!.Value;
 
                 // Lấy tất cả TestList có ID nhỏ hơn của cùng AppointmentID
-                var previousTestLists = await _context.TestLists
+                var previousTestLists = await _context.TestRecords
                     .Where(tl =>
                         tl.AppointmentId == appointmentId &&
-                        tl.TestListId < currentTestListId)
+                        tl.TestRecordId < currentTestListId)
                     .ToListAsync();
 
                 // Kiểm tra nếu tất cả TestList nhỏ hơn đã "Done"

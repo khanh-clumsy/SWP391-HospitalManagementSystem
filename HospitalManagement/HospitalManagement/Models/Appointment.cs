@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HospitalManagement.Models;
 
@@ -51,7 +52,11 @@ public partial class Appointment
 
     public virtual Staff? Staff { get; set; }
 
-    public virtual ICollection<TestList> TestLists { get; set; } = new List<TestList>();
+    public virtual ICollection<TestRecord> TestRecords { get; set; } = new List<TestRecord>();
 
     public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
+
+    [NotMapped]
+    public bool IsServiceOrPackagePaid { get; set; }
+
 }

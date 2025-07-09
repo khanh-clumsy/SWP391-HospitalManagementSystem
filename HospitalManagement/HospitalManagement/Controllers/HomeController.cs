@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
 using System.Security.Claims;
 using X.PagedList;
+using Microsoft.EntityFrameworkCore;
+using HospitalManagement.Data;
 
 namespace HospitalFETemplate.Controllers
 {
@@ -13,15 +15,42 @@ namespace HospitalFETemplate.Controllers
     public class HomeController : Controller
     {
         private readonly IDoctorRepository _doctorRepo;
-        public HomeController(IDoctorRepository doctorRepo)
+        private readonly HospitalManagementContext _context;
+        public HomeController(IDoctorRepository doctorRepo, HospitalManagementContext context)
         {
             _doctorRepo = doctorRepo;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // Nếu là bệnh nhân, lấy phòng cần tới
+            if (User.Identity.IsAuthenticated && User.IsInRole("Patient"))
+            {
+                var patientIdClaim = User.FindFirst("PatientID")?.Value;
+                if (int.TryParse(patientIdClaim, out int patientId))
+                {
+                    // Lấy duy nhất 1 appointment Ongoing của bệnh nhân
+                    var appointment = await _context.Appointments
+                        .Where(a => a.PatientId == patientId && a.Status == "Ongoing")
+                        .FirstOrDefaultAsync();
+                    if (appointment != null)
+                    {
+                        // Lấy tracking mới nhất của appointment này (có phòng)
+                        var tracking = await _context.Trackings
+                            .Include(t => t.Room)
+                            .Where(t => t.AppointmentId == appointment.AppointmentId)
+                            .OrderByDescending(t => t.Time)
+                            .FirstOrDefaultAsync();
+                        if (tracking?.Room != null)
+                        {
+                            ViewBag.PatientCurrentRoom = $"Bạn đang có cuộc hẹn cần tới phòng: {tracking.Room.RoomName}";
+                            ViewBag.PatientCurrentAppointmentId = appointment.AppointmentId;
+                        }
+                    }
+                }
+            }
             return View();
-
         }
         public IActionResult About()
         {

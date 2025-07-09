@@ -9,7 +9,7 @@ public partial class Tracking
 
     public int AppointmentId { get; set; }
 
-    public int? TestListId { get; set; }
+    public int? TestRecordId { get; set; }
 
     public int RoomId { get; set; }
 
@@ -19,5 +19,5 @@ public partial class Tracking
 
     public virtual Room Room { get; set; } = null!;
 
-    public virtual TestList? TestList { get; set; }
+    public virtual TestRecord? TestRecord { get; set; }
 }

@@ -148,7 +148,9 @@ namespace HospitalManagement.Controllers
                     return View(LogInfo);
                 }
                 string roleName = "Doctor";
-                if (user.DepartmentName == "Xét nghiệm" || user.DepartmentName == "Chẩn đoán hình ảnh")
+                if (user.DepartmentName != null &&
+                (user.DepartmentName.Trim().Equals("Xét nghiệm", StringComparison.OrdinalIgnoreCase)
+                 || user.DepartmentName.Trim().Equals("Chẩn đoán hình ảnh", StringComparison.OrdinalIgnoreCase)))
                 {
                     roleName = "TestDoctor";
                 }
@@ -461,7 +463,7 @@ namespace HospitalManagement.Controllers
                 var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Email, user.Email),
-                        new Claim(ClaimTypes.Role, "Doctor"),
+                        new Claim(ClaimTypes.Role, roleName),
                         new Claim("DoctorID", user.DoctorId.ToString()),
                         new Claim("IsDepartmentHead", user.IsDepartmentHead.ToString())
 

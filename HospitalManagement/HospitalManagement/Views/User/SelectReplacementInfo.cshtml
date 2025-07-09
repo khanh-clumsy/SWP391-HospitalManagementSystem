@@ -60,7 +60,7 @@
                     </div>
                     <div class="wrap-input100 validate-input">
                         <select asp-for="RoomId" class="input100 form-select" asp-items="ViewBag.Rooms">
-                            <option value="">-- Chọn phòng --</option>
+                            <option value="-1">-- Chọn phòng --</option>
                         </select>
                         <span class="focus-input100"></span>
                     </div>
@@ -75,7 +75,7 @@
                         </div>
                         <div class="wrap-input100 validate-input">
                             <select asp-for="ReplacementDoctorId" class="input100 form-select" asp-items="ViewBag.Doctors">
-                                <option value="">-- Chọn bác sĩ --</option>
+                                <option value="-1">-- Chọn bác sĩ --</option>
                             </select>
                             <span class="focus-input100"></span>
                         </div>
@@ -84,6 +84,7 @@
                     <!-- Submit button -->
                     <div class="container-login100-form-btn m-t-17 w-100">
                         <input type="hidden" asp-for="RequestId" />
+                        <input type="hidden" asp-for="HasAppointment" />
                         <button type="submit" class="login100-form-btn">Xác nhận</button>
                     </div>
                 </form>

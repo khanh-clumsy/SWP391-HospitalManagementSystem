@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using HospitalManagement.Repositories;
@@ -30,7 +29,7 @@ namespace HospitalManagement.Controllers
 
         // ========================  view own  =======================
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, TestDoctor")]
         public async Task<IActionResult> ViewSchedule(int? year, string? weekStart)
         {
             var user = HttpContext.User;
@@ -86,7 +85,7 @@ namespace HospitalManagement.Controllers
             return date.AddDays(-diff);
         }
 
-        [Authorize(Roles = "Doctor")]
+        [Authorize(Roles = "Doctor, TestDoctor")]
         [HttpGet]
         public IActionResult GetScheduleTable(int year, DateOnly weekStart)
         {
@@ -235,6 +234,7 @@ namespace HospitalManagement.Controllers
                 ViewBag.SelectedYear = selectedYear;
                 ViewBag.SelectedWeekStart = selectedWeekStart;
                 ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(false);
+
                 ViewBag.ListRoom = await _roomRepo.GetAllActiveRoom();
                 var doctorList = _context.Doctors.ToList();
                 ViewBag.ListDoctor = doctorList

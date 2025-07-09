@@ -73,7 +73,7 @@
                             @foreach (var day in daysInWeek)
                             {
                                 var key = (slot.SlotId, day);
-                                bool isFuture = day > DateOnly.FromDateTime(DateTime.Today); // chỉ cho chọn ngày mai trở đi
+                                bool isFuture = day > DateOnly.FromDateTime(DateTime.Today.AddDays(1)); // chỉ cho chọn ngày mai trở đi
 
                                 if (!isFuture)
                                 {

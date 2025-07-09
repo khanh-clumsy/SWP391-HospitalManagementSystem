@@ -1,6 +1,8 @@
-﻿$(document).ready(function () {
-    renderTrackingList();
-
+﻿
+$(document).ready(function () {
+    console.log("Trackings hiện tại:", trackings);
+    const selectedTestIds = new Set(trackings.map(t => String(t.testID)));
+    console.log("Các testId đã được chọn:", selectedTestIds);
     $('#testSelector').on('change', function () {
         let testId = $(this).val();
         console.log("Đã chọn TestID:", testId);
@@ -52,6 +54,20 @@
         let html = '<ul class="list-group">';
         trackings.forEach(tracking => {
             const testStatus = tracking.testStatus || 'Chưa rõ';
+            let badgeClass = 'bg-secondary';
+            switch (testStatus) {
+                case 'Waiting for payment':
+                    badgeClass = 'bg-warning text-dark';
+                    break;
+                case 'Ongoing':
+                    badgeClass = 'bg-info text-white';
+                    break;
+                case 'Completed':
+                    badgeClass = 'bg-primary';
+                    break;
+                default:
+                    badgeClass = 'bg-secondary';
+            }
             if (tracking.roomType === 'Phòng khám') {
                 html += `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -61,12 +77,27 @@
                     </li>
                 `;
             } else {
+                // Hiển thị trạng thái tiếng Việt
+                let statusText = testStatus;
+                switch (testStatus) {
+                    case 'Waiting for payment':
+                        statusText = 'Chờ thanh toán';
+                        break;
+                    case 'Ongoing':
+                        statusText = 'Đang diễn ra';
+                        break;
+                    case 'Completed':
+                        statusText = 'Hoàn thành';
+                        break;
+                    default:
+                        statusText = testStatus;
+                }
                 html += `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
                             <strong>${tracking.roomName} - ${tracking.roomType} - ${tracking.testName || ''}</strong>
                             <br>
-                            <span class="badge bg-secondary">Trạng thái: ${testStatus}</span>
+                            <span class="badge ${badgeClass}">Trạng thái: ${statusText}</span>
                         </div>
                         <div class="d-flex align-items-center">
                             ${testStatus === 'Completed' ? `
@@ -121,7 +152,7 @@
             success: function (response) {
                 console.log(response);
                 const newTracking = {
-                    testListId: response.testListId,
+                    testRecordId: response.testRecordId,
                     testId: testId, 
                     roomId: response.roomId,
                     roomName: response.roomName,
@@ -143,22 +174,32 @@
     };
 
     function updateTestSelectOptions() {
-        const $select = $('#testSelector');
-        const selectedTestIds = trackings.map(t => parseInt(t.testId));
+        const $testSelect = $('#testSelector');
 
-        $select.find('option').each(function () {
-            const option = $(this);
-            const optionVal = parseInt(option.val());
+        // ⚠️ Chuyển toàn bộ testId sang chuỗi
+        const selectedTestIds = new Set(trackings.map(t => String(t.testID)));
 
-            if (isNaN(optionVal)) return; // Bỏ qua option "-- Chọn loại xét nghiệm --"
+        $testSelect.find('option').each(function () {
+            const $option = $(this);
+            const val = $option.val();
 
-            if (selectedTestIds.includes(optionVal)) {
-                option.hide();
+            if (!val) {
+                $option.prop('disabled', false).show();
+                return;
+            }
+
+            // 🔍 So sánh đúng kiểu string
+            if (selectedTestIds.has(val)) {
+                $option.prop('disabled', true).hide();
             } else {
-                option.show();
+                $option.prop('disabled', false).show();
             }
         });
-        $select.prop('selectedIndex', 0);
+
+        $testSelect.val('');
+        $('#availableRoomListContainer').html('<select class="medical-form-select form-control flex-grow-1" id="roomSelector"><option value="">-- Vui lòng chọn loại xét nghiệm trước --</option></select>');
     }
+
+    renderTrackingList();
 
 });

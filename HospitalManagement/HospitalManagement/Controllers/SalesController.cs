@@ -33,7 +33,6 @@ namespace HospitalManagement.Controllers
         //    var model = new CreateAppointmentViewModel
         //    {
         //        DoctorOptions = await GetDoctorListAsync(),
-        //        SlotOptions = await GetSlotListAsync(),
         //        ServiceOptions = await GetServiceListAsync()
         //    };
         //    return View(model);
@@ -44,7 +43,6 @@ namespace HospitalManagement.Controllers
         //{
         //    //Nếu không hợp lệ thì trả về View với các options luôn
         //    model.DoctorOptions = await GetDoctorListAsync();
-        //    model.SlotOptions = await GetSlotListAsync();
         //    model.ServiceOptions = await GetServiceListAsync();
         //    if (!ModelState.IsValid)
         //    {
@@ -145,18 +143,6 @@ namespace HospitalManagement.Controllers
         //                            Text = d.FullName
         //                        })
         //                        .ToListAsync();
-        //}
-
-        //[HttpGet]
-        //public async Task<IActionResult> ViewCompletedConsultations()
-        //{
-        //    var appointments = await _context.Appointments
-        //        .Include(a => a.Patient)
-        //        .Include(a => a.Doctor)
-        //        .Include(a => a.Slot)
-        //        .Include(a => a.Service)
-        //        .ToListAsync();
-        //    return View(appointments);
         //}
 
         [HttpGet]
