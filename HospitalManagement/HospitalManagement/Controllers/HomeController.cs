@@ -47,6 +47,9 @@ namespace HospitalFETemplate.Controllers
                             ViewBag.PatientCurrentRoom = $"Bạn đang có cuộc hẹn cần tới phòng: {tracking.Room.RoomName}";
                             ViewBag.PatientCurrentAppointmentId = appointment.AppointmentId;
                         }
+                        else{
+                            Console.WriteLine("Tracking is null!");
+                        }
                     }
                 }
             }

@@ -146,7 +146,7 @@ $(document).ready(function () {
         console.log("appointmentId:", appointmentId);
 
         $.ajax({
-            url: '/Tracking/AssignRoom',
+            url: '/Tracking/AssignTest',
             type: 'POST',
             data: { roomId, appointmentId, testId },
             success: function (response) {
