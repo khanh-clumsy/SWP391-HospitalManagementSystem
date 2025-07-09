@@ -268,7 +268,7 @@ namespace HospitalManagement.Controllers
             }
 
             // 6. Trả về DTO cho JS
-            var dto = new
+            var response = new
             {
                 testRecordId = testRecord.TestRecordId,
                 testId = testRecord.TestId,
@@ -279,23 +279,7 @@ namespace HospitalManagement.Controllers
                 roomType = room.RoomType,
                 status = room.Status
             };
-            return Json(dto);
-        }
-
-
-        public List<TrackingViewModel> ConvertToDto(List<Tracking> trackings)
-        {
-            return trackings.Select(t => new TrackingViewModel
-            {
-                TestRecordID = t.TestRecordId ?? 0,
-                TestID = t.TestRecord.Test.TestId,
-                TestName = t.TestRecord?.Test?.Name,
-                TestStatus = t.TestRecord?.TestStatus,
-                RoomID = t.Room.RoomId,
-                RoomName = t.Room.RoomName,
-                RoomType = t.Room.RoomType,
-                Status = t.Room.Status
-            }).ToList();
+            return Json(response);
         }
 
         [HttpPost]

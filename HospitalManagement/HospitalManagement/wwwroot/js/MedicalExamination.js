@@ -1,6 +1,8 @@
-﻿$(document).ready(function () {
-    renderTrackingList();
-
+﻿
+$(document).ready(function () {
+    console.log("Trackings hiện tại:", trackings);
+    const selectedTestIds = new Set(trackings.map(t => String(t.testID)));
+    console.log("Các testId đã được chọn:", selectedTestIds);
     $('#testSelector').on('change', function () {
         let testId = $(this).val();
         console.log("Đã chọn TestID:", testId);
@@ -172,23 +174,32 @@
     };
 
     function updateTestSelectOptions() {
-        const $select = $('#testSelector');
-        // Lấy tất cả testId đã được gán (ưu tiên testId, nếu không có thì testRecordId)
-        const selectedTestIds = trackings.map(t => parseInt(t.testId));
+        const $testSelect = $('#testSelector');
 
-        $select.find('option').each(function () {
-            const option = $(this);
-            const optionVal = parseInt(option.val());
+        // ⚠️ Chuyển toàn bộ testId sang chuỗi
+        const selectedTestIds = new Set(trackings.map(t => String(t.testID)));
 
-            if (isNaN(optionVal)) return; // Bỏ qua option "-- Chọn loại xét nghiệm --"
+        $testSelect.find('option').each(function () {
+            const $option = $(this);
+            const val = $option.val();
 
-            if (selectedTestIds.includes(optionVal)) {
-                option.hide();
+            if (!val) {
+                $option.prop('disabled', false).show();
+                return;
+            }
+
+            // 🔍 So sánh đúng kiểu string
+            if (selectedTestIds.has(val)) {
+                $option.prop('disabled', true).hide();
             } else {
-                option.show();
+                $option.prop('disabled', false).show();
             }
         });
-        $select.prop('selectedIndex', 0);
+
+        $testSelect.val('');
+        $('#availableRoomListContainer').html('<select class="medical-form-select form-control flex-grow-1" id="roomSelector"><option value="">-- Vui lòng chọn loại xét nghiệm trước --</option></select>');
     }
+
+    renderTrackingList();
 
 });

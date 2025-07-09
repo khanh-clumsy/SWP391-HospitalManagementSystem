@@ -1084,9 +1084,9 @@ namespace HospitalManagement.Controllers
 
 
         [Authorize(Roles = "Patient, Sales, Admin, Doctor, Receptionist")]
-        public IActionResult Detail(int appId)
+        public async Task<IActionResult> Detail(int appId)
         {
-            var appointment = _context.Appointments
+            var appointment = await _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
                                 .Include(a => a.Staff)
@@ -1095,7 +1095,7 @@ namespace HospitalManagement.Controllers
                                 .Include(a => a.Package)
                                 .Include(a => a.TestRecords).ThenInclude(tr => tr.Test)
                                 .Include(a => a.Trackings).ThenInclude(t => t.Room)
-                                .FirstOrDefault(a => a.AppointmentId == appId);
+                                .FirstOrDefaultAsync(a => a.AppointmentId == appId);
             if (appointment == null)
             {
                 TempData["error"] = "Trang không tồn tại";
@@ -1137,7 +1137,6 @@ namespace HospitalManagement.Controllers
             }
 
             TempData["error"] = "Bạn không có quyền truy cập";
-
             return RedirectToAction("Index", "Home");
         }
         public static string NormalizeName(string? input)

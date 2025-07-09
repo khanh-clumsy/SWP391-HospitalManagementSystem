@@ -67,7 +67,7 @@
 									<i class="fa fa-info-circle text-white"></i>
 								</div>
 								<div>
-									<h6 class="mb-1">Trạng thái</h6>
+									<h6 class="mb-1">Trạng thái cuộc hẹn</h6>
 									@{
 										string badgeClass = "badge ";
 										string badgeText = "";
@@ -172,10 +172,36 @@
 													<td>@tracking.Room?.RoomType</td>
 													<td>@tracking.Time.ToString("dd/MM/yyyy HH:mm")</td>
 													<td>@tracking.TestRecord?.Test?.Name</td>
-													<td>@tracking.TestRecord?.TestStatus</td>
-													<td>@tracking.TestRecord?.CreatedAt?.ToString("dd/MM/yyyy")</td>
 													<td>
 														@if (tracking.TestRecord != null)
+														{
+															string badgeClassTest = "badge ";
+															string badgeTextTest = "";
+															switch (tracking.TestRecord.TestStatus)
+															{
+																case "Waiting for payment":
+																	badgeClassTest += "bg-warning text-dark";
+																	badgeTextTest = "Chờ thanh toán";
+																	break;
+																case "Ongoing":
+																	badgeClassTest += "bg-info text-white";
+																	badgeTextTest = "Đang diễn ra";
+																	break;
+																case "Completed":
+																	badgeClass += "bg-primary";
+																	badgeTextTest = "Hoàn thành";
+																	break;
+																default:
+																	badgeClassTest += "bg-secondary";
+																	badgeTextTest = tracking.TestRecord.TestStatus ?? "Không xác định";
+																	break;
+															}
+															<span class="@badgeClassTest">@badgeTextTest</span>
+														}
+													</td>
+													<td>@tracking.TestRecord?.CreatedAt?.ToString("dd/MM/yyyy")</td>
+													<td>
+														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Complete")
 														{
 															<a class="btn btn-sm btn-outline-primary" asp-controller="TestPerform" asp-action="ViewOngoingTest" asp-route-id="@tracking.TestRecord.TestRecordId">Xem kết quả</a>
 														}
@@ -227,18 +253,6 @@
 							}
 						</div>
 					</div>
-
-					<!-- Payment Information -->
-					@if (Model.InvoiceDetails != null && Model.InvoiceDetails.Any())
-					{
-						<div class="row mb-4">
-							<div class="col-12 text-center">
-								<a class="btn btn-outline-primary" asp-controller="Invoice" asp-action="Detail" asp-route-id="@Model.InvoiceDetails.First().InvoiceDetailId">
-									<i class="fa fa-file-invoice me-2"></i> Xem hóa đơn
-								</a>
-							</div>
-						</div>
-					}
 
 					<!-- Additional Information -->
 					<div class="row mb-4">
