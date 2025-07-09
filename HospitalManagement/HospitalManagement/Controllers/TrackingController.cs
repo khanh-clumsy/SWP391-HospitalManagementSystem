@@ -209,32 +209,28 @@ namespace HospitalManagement.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Doctor")]
-        public IActionResult AssignRoom(int appointmentId, int roomId, int testId)
+        public async Task<IActionResult> AssignTest(int appointmentId, int roomId, int testId)
         {
             // 1. Kiểm tra test có tồn tại
-            var test = _context.Tests.FirstOrDefault(t => t.TestId == testId);
+            var test = await _context.Tests.FirstOrDefaultAsync(t => t.TestId == testId);
             if (test == null)
-            {
                 return BadRequest(new { message = "Xét nghiệm không tồn tại" });
-            }
 
             // 2. Kiểm tra xem đã có test này với phòng này chưa
-            bool exists = _context.Trackings
+            bool exists = await _context.Trackings
                 .Include(t => t.TestRecord)
-                .Any(t =>
+                .AnyAsync(t =>
                     t.AppointmentId == appointmentId &&
                     t.RoomId == roomId &&
                     t.TestRecord != null &&
                     t.TestRecord.TestId == testId);
 
             if (exists)
-            {
                 return BadRequest(new { message = "Test này đã được chỉ định cho phòng này." });
-            }
 
-            // 3. Tìm hoặc tạo mới TestList
-            var testRecord = _context.TestRecords
-                .FirstOrDefault(t => t.AppointmentId == appointmentId && t.TestId == testId);
+            // 3. Tìm hoặc tạo mới TestRecord
+            var testRecord = await _context.TestRecords
+                .FirstOrDefaultAsync(t => t.AppointmentId == appointmentId && t.TestId == testId);
 
             if (testRecord == null)
             {
@@ -245,29 +241,61 @@ namespace HospitalManagement.Controllers
                     CreatedAt = DateTime.Now,
                     TestStatus = "Waiting for payment"
                 };
-                _context.TestRecords.Add(testRecord);
-                _context.SaveChanges();
+                await _context.TestRecords.AddAsync(testRecord);
+
+                // Ghi chú: SaveChangesAsync ngay để lấy TestRecordId
+                await _context.SaveChangesAsync();
+
+                // Tạo hóa đơn cho test
+                var testInvoice = new InvoiceDetail
+                {
+                    AppointmentId = appointmentId,
+                    ItemType = "Test",
+                    ItemId = test.TestId,
+                    ItemName = test.Name,
+                    UnitPrice = test.Price,
+                    PaymentStatus = "Unpaid",
+                    CreatedAt = DateTime.Now
+                };
+                await _context.InvoiceDetails.AddAsync(testInvoice);
             }
 
-            // 4. Tạo mới Tracking
-            var tracking = new Tracking
+            // 4. Tracking tới phòng thanh toán (nếu chưa có)
+            var paymentRoom = await _context.Rooms
+                .Where(r => r.RoomType == "Thu ngân")
+                .OrderBy(r => Guid.NewGuid())
+                .FirstOrDefaultAsync();
+
+            if (paymentRoom != null)
+            {
+                var paymentTracking = new Tracking
+                {
+                    AppointmentId = appointmentId,
+                    RoomId = paymentRoom.RoomId,
+                    Time = DateTime.Now,
+                    TestRecordId = null
+                };
+                await _context.Trackings.AddAsync(paymentTracking);
+            }
+
+            // 5. Tracking test
+            var testTracking = new Tracking
             {
                 AppointmentId = appointmentId,
                 RoomId = roomId,
                 Time = DateTime.Now,
                 TestRecordId = testRecord.TestRecordId
             };
-            _context.Trackings.Add(tracking);
-            _context.SaveChanges();
+            await _context.Trackings.AddAsync(testTracking);
 
-            // 5. Lấy thông tin Room
-            var room = _context.Rooms.FirstOrDefault(r => r.RoomId == roomId);
+            // 6. Save toàn bộ
+            await _context.SaveChangesAsync();
+
+            // 7. Trả về room
+            var room = await _context.Rooms.FirstOrDefaultAsync(r => r.RoomId == roomId);
             if (room == null)
-            {
                 return BadRequest(new { message = "Phòng không tồn tại." });
-            }
 
-            // 6. Trả về DTO cho JS
             var response = new
             {
                 testRecordId = testRecord.TestRecordId,
@@ -279,8 +307,10 @@ namespace HospitalManagement.Controllers
                 roomType = room.RoomType,
                 status = room.Status
             };
+
             return Json(response);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

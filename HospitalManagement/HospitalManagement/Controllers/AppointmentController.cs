@@ -403,8 +403,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SlotFilter = SlotFilter;
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
-            ViewBag.Type = Type ?? "Today";
-            ViewBag.FilterType = Type ?? "Today";
+            
 
             // Truy vấn lọc
             var filteredList = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
@@ -414,28 +413,31 @@ namespace HospitalManagement.Controllers
             var now = TimeOnly.FromDateTime(DateTime.Now);
 
             if (string.IsNullOrEmpty(Type))
-                Type = "Today";
+                Type = "All";
+            ViewBag.Type = Type;
+            ViewBag.FilterType = Type;
             if (!string.IsNullOrEmpty(Type))
             {
                 switch (Type)
                 {
                     case "Today":
-                        filteredList = filteredList.Where(a => a.Date == today
-                        && (a.Status == "Pending" || a.Status == "Confirmed")).
-                        ToList();
+                        filteredList = filteredList.Where(a => a.Date == today).ToList();
                         break;
 
                     case "Ongoing":
-                        filteredList = filteredList.Where(a =>
-                          a.Date > today && (a.Status == "Confirmed") || a.Status == "Pending")
-                         .ToList();
+                        filteredList = filteredList.Where(a => a.Date > today).ToList();
                         break;
 
                     case "Completed":
-                        filteredList = filteredList.Where(a =>
-                            a.Status == "Completed" || a.Status == "Rejected").ToList();
+                        filteredList = filteredList.Where(a => a.Status == "Completed").ToList();
+                        break;
+
+                    case "All":
+                    default:
+                        // Không lọc thêm gì nữa
                         break;
                 }
+
             }
 
             // Phân trang
@@ -1093,6 +1095,7 @@ namespace HospitalManagement.Controllers
                                 .Include(a => a.Slot)
                                 .Include(a => a.Service)
                                 .Include(a => a.Package)
+                                .Include(a => a.InvoiceDetails)
                                 .Include(a => a.TestRecords).ThenInclude(tr => tr.Test)
                                 .Include(a => a.Trackings).ThenInclude(t => t.Room)
                                 .FirstOrDefaultAsync(a => a.AppointmentId == appId);
