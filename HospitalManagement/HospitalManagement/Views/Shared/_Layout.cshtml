@@ -204,16 +204,14 @@
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Quản lý tài khoản</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="ManageRoom">Quản lý phòng</a>
-
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Cuộc hẹn</a>
+								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Quản lý Cuộc hẹn</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
-
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="UpdateExpiredSlots">Kiểm soát lịch bỏ trống</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="ScheduleRequestList">Xem yêu cầu đổi lịch</a>
-
+								<a class="dropdown-item" asp-controller="Report" asp-action="RevenueStatistics">Báo cáo doanh thu</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
@@ -229,9 +227,9 @@
 							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
+								<a class="dropdown-item" asp-controller="Appointment" asp-action="ApproveAppointment">Xét duyệt cuộc hẹn</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>

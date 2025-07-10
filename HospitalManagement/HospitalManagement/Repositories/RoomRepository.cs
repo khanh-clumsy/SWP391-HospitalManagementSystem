@@ -265,7 +265,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<SelectListItem>> GetAvailableRoomsAsync(int slotId, DateOnly day)
         {
             var busyRoomIds = await _context.Schedules
-                .Where(s => s.SlotId == slotId && s.Day == day)
+                .Where(s => s.SlotId == slotId && s.Day == day || s.Status == "Maintain")
                 .Select(s => s.RoomId)
                 .ToListAsync();
 

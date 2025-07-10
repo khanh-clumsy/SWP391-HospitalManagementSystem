@@ -1,0 +1,212 @@
+﻿@model X.PagedList.IPagedList<HospitalManagement.ViewModels.InvoiceDetailDto>
+@using X.PagedList.Mvc.Core
+@{
+    ViewData["Title"] = "Chi tiết doanh thu tháng " + ViewBag.MonthDisplay;
+    var allDetails = ViewBag.AllMonthlyDetails as List<HospitalManagement.ViewModels.InvoiceDetailDto>;
+    var month = ViewBag.Month;
+     var groupedByType = allDetails
+        .GroupBy(i => i.ItemType)
+        .Select(g => new {
+            Type = g.Key,
+            Count = g.Count(),
+            TotalRevenue = g.Sum(i => i.UnitPrice)
+        })
+        .ToList();
+
+    var itemTypes = groupedByType.Select(g => g.Type).ToList();
+    var itemCounts = groupedByType.Select(g => g.Count).ToList();
+    var itemRevenues = groupedByType.Select(g => g.TotalRevenue).ToList();
+}
+
+<style>
+    #loadingOverlay {
+        display: none !important;
+    }
+</style>
+
+<div class="container mt-4">
+    <h3 class="text-primary">📄 Chi tiết doanh thu tháng @ViewBag.MonthDisplay</h3>
+    <div class="row mt-5">
+        <div class="col-md-6 d-flex justify-content-center">
+            <div class="text-center">
+                <h5 class="mb-3">🔢 Số lượng theo loại dịch vụ</h5>
+                <canvas id="serviceCountChart" style="max-width: 300px; max-height: 300px;"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6 d-flex justify-content-center">
+            <div class="text-center">
+                <h5 class="mb-3">💰 Doanh thu theo loại dịch vụ (VND)</h5>
+                <canvas id="serviceRevenueChart" style="max-width: 300px; max-height: 300px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Tên bệnh nhân</th>
+                <th>Loại dịch vụ</th>
+                <th>Tên dịch vụ</th>
+                <th>Đơn giá</th>
+                <th>Trạng thái</th>
+                <th>Thời gian thanh toán</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.PatientName</td>
+                    <td>@item.ItemType</td>
+                    <td>@item.ItemName</td>
+                    <td>@String.Format("{0:N0}", item.UnitPrice) VND</td>
+                    <td>@item.PaymentStatus</td>
+                    <td>@item.PaymentTime?.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-end mb-3">
+        <form asp-action="ExportMonthlyInvoiceToExcel" method="post">
+            <input type="hidden" name="month" value="@month" />
+            <button type="submit" class="btn btn-success">📥 Tải Excel</button>
+        </form>
+    </div>
+
+
+    <!-- Pagination start -->
+    @{
+    int maxPagesToShow = 5;
+    int startPage = Model.PageNumber - maxPagesToShow / 2;
+    if (startPage < 1) startPage = 1;
+
+    int endPage = startPage + maxPagesToShow - 1;
+    if (endPage > Model.PageCount)
+    {
+        endPage = Model.PageCount;
+        startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+    }
+    }
+    @if (Model.PageCount > 1)
+    {
+        <div class="d-flex justify-content-center mt-5">
+            <nav>
+                <ul class="pagination">
+
+                    @* Previous button *@
+                    <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("MonthlyInvoiceDetails", new {
+									page = Model.PageNumber - 1,
+									month = ViewBag.Month}) : "#")" tabindex="-1">Trước</a>
+                    </li>
+
+                    @* Trang đầu nếu startPage > 1 và dấu "..." *@
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("MonthlyInvoiceDetails", new {
+									page = 1,
+                                    month = ViewBag.Month})">1</a>
+                        </li>
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    @* Các trang hiển thị trong khoảng từ startPage đến endPage *@
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("MonthlyInvoiceDetails", new {
+									page = i,
+									month = ViewBag.Month})">@i</a>
+                                </li>
+                            }
+
+                    @* Trang cuối nếu endPage < total pages và dấu "..." *@
+                    @if (endPage < Model.PageCount)
+                    {
+                        if (endPage < Model.PageCount - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("MonthlyInvoiceDetails", new {
+									page = Model.PageCount,
+									month = ViewBag.Month})">@Model.PageCount</a>
+                                </li>
+                            }
+
+                            @* Next button *@
+                    <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                        <a class="page-link" href="@(Model.HasNextPage ? Url.Action("MonthlyInvoiceDetails", new {
+									page = Model.PageNumber + 1,
+									month = ViewBag.Month}) : "#")">Sau</a>
+                    </li>
+
+                </ul>
+            </nav>
+        </div>
+    }
+    <!-- Pagination end -->
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const itemTypes = @Html.Raw(Json.Serialize(itemTypes));
+    const itemCounts = @Html.Raw(Json.Serialize(itemCounts));
+    const itemRevenues = @Html.Raw(Json.Serialize(itemRevenues));
+
+    const colors = [
+        '#FF6384', '#36A2EB', '#FFCE56', '#8E44AD', '#2ECC71', '#E67E22', '#3498DB', '#E74C3C'
+    ];
+
+    // Biểu đồ số lượng
+    const ctxCount = document.getElementById('serviceCountChart').getContext('2d');
+    new Chart(ctxCount, {
+        type: 'pie',
+        data: {
+            labels: itemTypes,
+            datasets: [{
+                data: itemCounts,
+                backgroundColor: colors,
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Biểu đồ doanh thu
+    const ctxRevenue = document.getElementById('serviceRevenueChart').getContext('2d');
+    new Chart(ctxRevenue, {
+        type: 'pie',
+        data: {
+            labels: itemTypes,
+            datasets: [{
+                data: itemRevenues,
+                backgroundColor: colors,
+            }]
+        },
+        options: {
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+

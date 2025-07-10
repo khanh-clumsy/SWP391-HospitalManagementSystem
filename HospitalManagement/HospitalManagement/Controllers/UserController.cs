@@ -760,6 +760,12 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> OngoingPatientScreen()
         {
+            // 1. Lấy DoctorId từ claims
+            int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
+
+            // 2. Lấy thông tin bác sĩ
+            var doctor = await _doctorRepo.GetByIdAsync(doctorId);
+            ViewBag.DoctorName = doctor.FullName;
             return View();
         }
         [HttpGet]
@@ -770,7 +776,7 @@ namespace HospitalManagement.Controllers
             int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
 
             // 2. Lấy thông tin bác sĩ
-            var doctor = await _doctorRepo.GetByIdAsync(doctorId); // nên Include Department
+            var doctor = await _doctorRepo.GetByIdAsync(doctorId); 
             if (doctor == null)
                 return RedirectToAction("NotFound", "Home");
 
