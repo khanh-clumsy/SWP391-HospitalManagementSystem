@@ -12,6 +12,7 @@ using X.PagedList;
 using X.PagedList.Extensions;
 using X.PagedList.EF;
 using System.Threading.Tasks;
+using HospitalManagement.Helpers;
 
 namespace HospitalManagement.Controllers
 {
@@ -82,6 +83,7 @@ namespace HospitalManagement.Controllers
             // Trả về một partial view chứa quy trình khám
             return PartialView("_StartAppointmentPartial", appointment);
         }
+
         [HttpPost]
         public async Task<IActionResult> StartDiagnosis(int appointmentId)
         {
@@ -90,12 +92,12 @@ namespace HospitalManagement.Controllers
 
             if (appointment == null)
             {
-                TempData["error"] = "Không tìm thấy cuộc hẹn.";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return RedirectToAction("Index", "Home");
             }
 
             // Cập nhật trạng thái bắt đầu khám nếu cần
-            appointment.Status = "Ongoing";
+            appointment.Status = AppConstants.AppointmentStatus.Ongoing;
             var schedule = await _scheduleRepository.GetScheduleWithRoomAsync(appointment.DoctorId ?? 0, appointment.SlotId ?? 0, appointment.Date);
 
             if (schedule != null && schedule.Room != null)
@@ -109,12 +111,32 @@ namespace HospitalManagement.Controllers
                 };
                 _context.Trackings.Add(tracking);
             }
-            // Nếu không tìm thấy lịch hoặc phòng thì không lưu tracking
+            if (appointment.PackageId != null)
+            {
+                var package = await _context.Packages
+                    .Include(p => p.PackageTests).ThenInclude(pt => pt.Test) 
+                    .FirstOrDefaultAsync(p => p.PackageId == appointment.PackageId);
 
+                if (package?.PackageTests != null)
+                {
+                    foreach (var test in package.PackageTests)
+                    {
+                        var testRecord = new TestRecord
+                        {
+                            AppointmentId = appointment.AppointmentId,
+                            TestId = test.TestId,
+                            TestStatus = AppConstants.TestStatus.Pending,
+                            CreatedAt = DateTime.Now
+                        };
+                        _context.TestRecords.Add(testRecord);
+                    }
+                }
+            }
+            // Nếu không tìm thấy lịch hoặc phòng thì không lưu tracking
             await _context.SaveChangesAsync();
 
             // ✅ Gán thông báo thành công
-            TempData["success"] = "Bắt đầu quy trình thành công!";
+            TempData["success"] = AppConstants.Messages.Tracking.StartAppointmentProcessSuccess;
 
             // ✅ Chuyển hướng sang trang quy trình
             return RedirectToAction("StartAppointmentProcess", "Tracking");
@@ -125,7 +147,7 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor")]
         public async Task<IActionResult> DoctorTodayAppointment(int? page)
         {
-            var doctorClaim = User.FindFirst("DoctorID");
+            var doctorClaim = User.FindFirst(AppConstants.ClaimTypes.DoctorId);
             if (doctorClaim == null)
                 return RedirectToAction("Login", "Auth");
 
@@ -149,10 +171,14 @@ namespace HospitalManagement.Controllers
 
             var allTestsCompleted = await _context.TestRecords
                     .Where(t => t.AppointmentId == id)
-                    .AllAsync(t => t.TestStatus == "Completed");
+                    .AllAsync(t => t.TestStatus == AppConstants.TestStatus.Completed);
+            ViewBag.AllTestsCompleted = allTestsCompleted;
 
             if (appointment == null)
-                return NotFound();
+            {
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
+                return RedirectToAction("Index", "Home");
+            }
 
             // Lấy danh sách phòng đã chỉ định (Tracking + Room)
             var trackings = await _context.Trackings
@@ -166,6 +192,7 @@ namespace HospitalManagement.Controllers
             var examViewModel = new ExaminationViewModel
             {
                 AppointmentId = appointment.AppointmentId,
+                PatientID = appointment.PatientId,
                 PatientName = appointment.Patient.FullName,
                 DateOfBirth = appointment.Patient.Dob,
                 Gender = appointment.Patient.Gender,
@@ -182,10 +209,10 @@ namespace HospitalManagement.Controllers
                 ServiceName = appointment.Service?.ServiceType,
                 PackageName = appointment.Package?.PackageName
             };
-            ViewBag.AllTestsCompleted = allTestsCompleted;
+
             // Lọc chỉ lấy các phòng không phải là phòng khám
             var assignedRooms = examViewModel.AssignedRooms
-                .Where(tracking => tracking.Room?.RoomType != "Phòng khám")
+                .Where(tracking => tracking.Room?.RoomType != AppConstants.RoomTypes.Clinic && tracking.Room?.RoomType != AppConstants.RoomTypes.Cashier)
                 .Select(tracking => new TrackingViewModel
                 {
                     TestRecordID = tracking.TestRecordId ?? 0,
@@ -193,8 +220,8 @@ namespace HospitalManagement.Controllers
                     TestName = tracking.TestRecord?.Test?.Name,
                     TestStatus = tracking.TestRecord?.TestStatus,
                     RoomID = tracking.Room?.RoomId ?? 0,
-                    RoomName = tracking.Room?.RoomName ?? "Không xác định",
-                    RoomType = tracking.Room?.RoomType ?? "Không xác định"
+                    RoomName = tracking.Room?.RoomName ?? AppConstants.Messages.General.Undefined,
+                    RoomType = tracking.Room?.RoomType ?? AppConstants.Messages.General.Undefined
                 })
                 .ToList();
 
@@ -214,7 +241,7 @@ namespace HospitalManagement.Controllers
             // 1. Kiểm tra test có tồn tại
             var test = await _context.Tests.FirstOrDefaultAsync(t => t.TestId == testId);
             if (test == null)
-                return BadRequest(new { message = "Xét nghiệm không tồn tại" });
+                return BadRequest(new { message = AppConstants.Messages.Test.NotFound });
 
             // 2. Kiểm tra xem đã có test này với phòng này chưa
             bool exists = await _context.Trackings
@@ -226,7 +253,7 @@ namespace HospitalManagement.Controllers
                     t.TestRecord.TestId == testId);
 
             if (exists)
-                return BadRequest(new { message = "Test này đã được chỉ định cho phòng này." });
+                return BadRequest(new { message = AppConstants.Messages.Test.AlreadyAssigned });
 
             // 3. Tìm hoặc tạo mới TestRecord
             var testRecord = await _context.TestRecords
@@ -239,7 +266,7 @@ namespace HospitalManagement.Controllers
                     AppointmentId = appointmentId,
                     TestId = testId,
                     CreatedAt = DateTime.Now,
-                    TestStatus = "Waiting for payment"
+                    TestStatus = AppConstants.TestStatus.WaitingForPayment
                 };
                 await _context.TestRecords.AddAsync(testRecord);
 
@@ -254,7 +281,7 @@ namespace HospitalManagement.Controllers
                     ItemId = test.TestId,
                     ItemName = test.Name,
                     UnitPrice = test.Price,
-                    PaymentStatus = "Unpaid",
+                    PaymentStatus = AppConstants.PaymentStatus.Unpaid,
                     CreatedAt = DateTime.Now
                 };
                 await _context.InvoiceDetails.AddAsync(testInvoice);
@@ -262,7 +289,7 @@ namespace HospitalManagement.Controllers
 
             // 4. Tracking tới phòng thanh toán (nếu chưa có)
             var paymentRoom = await _context.Rooms
-                .Where(r => r.RoomType == "Thu ngân")
+                .Where(r => r.RoomType == AppConstants.RoomTypes.Cashier)
                 .OrderBy(r => Guid.NewGuid())
                 .FirstOrDefaultAsync();
 
@@ -294,7 +321,7 @@ namespace HospitalManagement.Controllers
             // 7. Trả về room
             var room = await _context.Rooms.FirstOrDefaultAsync(r => r.RoomId == roomId);
             if (room == null)
-                return BadRequest(new { message = "Phòng không tồn tại." });
+                return BadRequest(new { message = AppConstants.Messages.Room.NotFound });
 
             var response = new
             {
@@ -323,7 +350,7 @@ namespace HospitalManagement.Controllers
 
             if (appointment == null)
             {
-                TempData["error"] = "Cuộc hẹn không tồn tại.";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return RedirectToAction("AppointmentList");
             }
 
@@ -334,11 +361,11 @@ namespace HospitalManagement.Controllers
                 // Kiểm tra tất cả các xét nghiệm đã được hoàn thành
                 bool allTestsCompleted = await _context.TestRecords
                     .Where(t => t.AppointmentId == model.AppointmentId)
-                    .AllAsync(t => t.TestStatus == "Completed");
+                    .AllAsync(t => t.TestStatus == AppConstants.AppointmentStatus.Completed);
 
                 if (!allTestsCompleted)
                 {
-                    TempData["error"] = "Vui lòng hoàn thành tất cả xét nghiệm trước khi kết thúc khám bệnh.";
+                    TempData["error"] = AppConstants.Messages.Test.NotCompleted;
 
                     // Gán lại ViewBag và model để quay lại đúng trang
                     var assignedTrackings = await _context.Trackings
@@ -381,15 +408,15 @@ namespace HospitalManagement.Controllers
                 appointment.Symptoms = model.Symptoms?.Trim() ?? "";
                 appointment.Diagnosis = model.Diagnosis?.Trim() ?? "";
                 appointment.PrescriptionNote = model.PrescriptionNote?.Trim() ?? "";
-                appointment.Status = "Completed";
-                TempData["success"] = "Đã hoàn thành khám bệnh!";
+                appointment.Status = AppConstants.AppointmentStatus.Completed;
+                TempData["success"] = AppConstants.Messages.Tracking.SubmitExaminationSuccess;
             }
             else if (actionType.Equals("save"))
             {
                 appointment.Symptoms = model.Symptoms?.Trim() ?? "";
                 appointment.Diagnosis = model.Diagnosis?.Trim() ?? "";
                 appointment.PrescriptionNote = model.PrescriptionNote?.Trim() ?? "";
-                TempData["success"] = "Lưu thông tin thành công!";
+                TempData["success"] = AppConstants.Messages.Tracking.SaveExaminationSuccess;
             }
 
             await _context.SaveChangesAsync();
@@ -421,25 +448,60 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
+        // private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
+        // {
 
-        private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
+        //     if (user.IsInRole("Receptionist"))
+        //         return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
+
+        //     if (user.IsInRole("Doctor"))
+        //         return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
+
+        //     if (user.IsInRole("LabTechnician"))
+        //         return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
+        //     return default;
+        // }
+
+        // private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
+        // {
+        //     var claim = user.FindFirst(claimType);
+        //     return claim != null && int.TryParse(claim.Value, out var id) ? id : null;
+        // }
+        [HttpPost]
+        [Authorize(Roles = "Receptionist, Doctor, Patient")]
+        public async Task<IActionResult> UpdateDOB(int patientId, DateTime dob)
         {
+            // Kiểm tra ngày sinh hợp lệ
+            if (dob == default || dob > DateTime.Now)
+            {
+                TempData["error"] = AppConstants.Messages.General.InvalidDate;
+                return RedirectToAction("MedicalExam", new { id = patientId });
+            }
 
-            if (user.IsInRole("Receptionist"))
-                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
+            var patient = await _context.Patients.FindAsync(patientId);
+            if (patient == null)
+            {
+                TempData["error"] = AppConstants.Messages.User.PatientNotFound;
+                return RedirectToAction("MedicalExam", new { id = patientId });
+            }
 
-            if (user.IsInRole("Doctor"))
-                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
+            // Cập nhật ngày sinh
+            patient.Dob = dob;
+            await _context.SaveChangesAsync();
 
-            if (user.IsInRole("LabTechnician"))
-                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
-            return default;
-        }
+            // Tìm appointment đang diễn ra
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.PatientId == patientId && a.Status == AppConstants.AppointmentStatus.Ongoing);
 
-        private int? GetUserIdFromClaim(ClaimsPrincipal user, string claimType)
-        {
-            var claim = user.FindFirst(claimType);
-            return claim != null && int.TryParse(claim.Value, out var id) ? id : null;
+            TempData["success"] = AppConstants.Messages.User.UpdateDOBSuccess;
+
+            if (appointment != null)
+            {
+                return RedirectToAction("MedicalExam", "Tracking", new { id = appointment.AppointmentId });
+            }
+
+            // Nếu không có appointment, về lại trang chủ hoặc trang phù hợp
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet]
@@ -450,13 +512,13 @@ namespace HospitalManagement.Controllers
                                          .Select(t => t.RoomType)
                                          .FirstOrDefaultAsync();
 
-            if (string.IsNullOrEmpty(roomType)) // Ensure roomType is not null or empty
+            if (string.IsNullOrEmpty(roomType))
             {
-                return Json(new { success = false, message = "Không tìm thấy loại phòng cho xét nghiệm này." });
+                return Json(new { success = false, message = AppConstants.Messages.Room.InvalidRoomType });
             }
 
             var rooms = await _context.Rooms
-                                      .Where(r => r.RoomType != null && r.RoomType.Equals(roomType) && r.Status != "Maintain") // Add null check for RoomType
+                                      .Where(r => r.RoomType != null && r.RoomType.Equals(roomType) && r.Status != AppConstants.RoomStatus.Maintain) // Add null check for RoomType
                                       .Select(r => new
                                       {
                                           RoomId = r.RoomId,

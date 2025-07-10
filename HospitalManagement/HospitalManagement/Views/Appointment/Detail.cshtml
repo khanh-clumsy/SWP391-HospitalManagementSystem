@@ -126,11 +126,17 @@
 									<p class="mb-0 text-muted">
 										@if (Model.Service != null)
 										{
-											<span><strong>Gói dịch vụ:</strong> @Model.Service.ServiceType</span>
+											<span>
+												<strong>Gói dịch vụ:</strong> @Model.Service.ServiceType
+												- <strong class="text-success">@($"{Model.Service.ServicePrice:#,##0}₫")</strong>
+											</span>
 										}
 										else if (Model.Package != null)
 										{
-											<span><strong>Gói khám:</strong> @Model.Package.PackageName</span>
+											<span>
+												<strong>Gói khám:</strong> @Model.Package.PackageName
+												- <strong class="text-success">@($"{Model.Package.FinalPrice:#,##0}₫")</strong>
+											</span>
 										}
 										else
 										{
@@ -188,7 +194,7 @@
 																	badgeTextTest = "Đang diễn ra";
 																	break;
 																case "Completed":
-																	badgeClass += "bg-primary";
+																	badgeClassTest += "bg-primary";
 																	badgeTextTest = "Hoàn thành";
 																	break;
 																default:
@@ -201,7 +207,7 @@
 													</td>
 													<td>@tracking.TestRecord?.CreatedAt?.ToString("dd/MM/yyyy")</td>
 													<td>
-														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Complete")
+														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Completed")
 														{
 															<a class="btn btn-sm btn-outline-primary" asp-controller="TestPerform" asp-action="ViewOngoingTest" asp-route-id="@tracking.TestRecord.TestRecordId">Xem kết quả</a>
 														}
@@ -277,39 +283,43 @@
 						</div>
 					</div>
 
-					<!-- Action Buttons -->
-					@if (User.IsInRole("Receptionist"))
-					{
-						<div class="row">
-							<div class="col-12 text-center">
-								<a asp-controller="Tracking" asp-action="StartAppointmentProcess" class="btn btn-primary py-3 px-5 me-3">
-									<i class="fa fa-arrow-left me-2"></i>
-									Quay lại danh sách hôm nay
-								</a>
-							</div>
-						</div>
-					}
-					else
-					{
-						<div class="row">
-							<div class="col-12 text-center">
-								<a asp-action="MyAppointments" class="btn btn-primary py-3 px-5 me-3">
-									<i class="fa fa-arrow-left me-2"></i>
-									Quay lại lịch hẹn của tôi
-								</a>
-							</div>
-						</div>
-						@if (Model.InvoiceDetails != null && Model.InvoiceDetails.Any())
-						{
-							<div class="row mb-4">
-								<div class="col-12 text-center">
-									<a class="btn btn-outline-primary" asp-controller="Invoice" asp-action="Detail" asp-route-id="@Model.InvoiceDetails.First().InvoiceDetailId">
+					<!-- Action Buttons Start -->
+					<div class="row mb-4">
+						<div class="col-12 text-center">
+							<div class="d-inline-flex gap-3 flex-wrap justify-content-center">
+								@if (User.IsInRole("Receptionist"))
+								{
+									<a asp-controller="Tracking" asp-action="StartAppointmentProcess"
+									   class="btn btn-primary py-3 px-4">
+										<i class="fa fa-arrow-left me-2"></i>
+										Quay lại danh sách hôm nay
+									</a>
+								}
+								else
+								{
+									<a asp-action="MyAppointments"
+									   class="btn btn-primary py-3 px-4">
+										<i class="fa fa-arrow-left me-2"></i>
+										Quay lại lịch hẹn của tôi
+									</a>
+								}
+
+								@if ((User.IsInRole("Patient") || User.IsInRole("Receptionist") || User.IsInRole("Cashier"))
+																&& Model.InvoiceDetails != null
+																&& Model.InvoiceDetails.Any())
+								{
+									<a class="btn btn-outline-primary py-3 px-4"
+									   asp-controller="Invoice"
+									   asp-action="Detail"
+									   asp-route-id="@Model.InvoiceDetails.First().InvoiceDetailId">
 										<i class="fa fa-file-invoice me-2"></i> Xem hóa đơn
 									</a>
-								</div>
+								}
 							</div>
-						}
-					}
+						</div>
+					</div>
+					<!-- Action Buttons End -->
+
 				</div>
 			</div>
 		</div>
