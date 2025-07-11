@@ -12,7 +12,7 @@
 </style>
 
 <div class="container mt-5">
-    <h2 class="text-center mb-4 text-primary">📊 Thống kê doanh thu theo tháng</h2>
+    <h2 class="text-center mb-4 text-primary">📊 Thống kê doanh thu theo năm</h2>
     
     @if (!revenueData.Any())
     {
@@ -64,7 +64,7 @@
                                 </td>
                             </tr>
                         }
-                        <tr class="table-secondary fw-bold">
+                        <tr class="table-info fw-bold">
                             <td class="text-end">Tổng cộng</td>
                             <td>
                                 @String.Format("{0:N0}", revenueData.Sum(x => x.TotalRevenue)) VND

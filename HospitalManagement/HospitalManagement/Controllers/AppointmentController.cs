@@ -166,7 +166,7 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
@@ -585,7 +585,7 @@ namespace HospitalManagement.Controllers
                 Date = model.AppointmentDate,
                 Status = "Confirmed",
                 Note = model.Note,
-                StaffId = staffId
+                CreatedByStaffId = staffId
             };
 
             _context.Appointments.Add(appointment);
@@ -595,7 +595,7 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
@@ -718,7 +718,7 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
@@ -1084,7 +1084,7 @@ namespace HospitalManagement.Controllers
             var appointment = _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
-                                .Include(a => a.Staff)
+                                .Include(a => a.CreatedByStaff)
                                 .Include(a => a.Slot)
                                 .FirstOrDefault(a => a.AppointmentId == appId);
             if (appointment == null)
@@ -1122,7 +1122,7 @@ namespace HospitalManagement.Controllers
             {
                 return View(appointment);
             }
-            if (roleKey == "StaffID" && appointment.Staff != null && appointment.Staff.StaffId != null && appointment.Staff.StaffId == userId)
+            if (roleKey == "StaffID" && appointment.CreatedByStaff != null && appointment.CreatedByStaff.StaffId != null && appointment.CreatedByStaff.StaffId == userId)
             {
                 return View(appointment);
             }

@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Models;
+using HospitalManagement.ViewModels;
 
 namespace HospitalManagement.Repositories
 {
@@ -14,6 +15,8 @@ namespace HospitalManagement.Repositories
 
         Task<List<Appointment>> FilterApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter);
         Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day);
-
+        Task<List<MonthlyAppointmentUsageDto>> GetMonthlyUsageStatsAsync(int year);
+        Task<List<int>> GetAvailableYearsWithCompletedAppointmentsAsync();
+        Task<(List<AppointmentDetailDto> Details, int TotalCount)> GetMonthlyAppointmentDetailsAsync(int year, int month, int page, int pageSize);
     }
 }

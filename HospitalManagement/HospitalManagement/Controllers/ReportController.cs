@@ -1,12 +1,13 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Repositories;
+using HospitalManagement.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
+using System.Drawing;
 using X.PagedList;
-using HospitalManagement.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 
 namespace HospitalManagement.Controllers
 {
@@ -14,9 +15,11 @@ namespace HospitalManagement.Controllers
     public class ReportController : Controller
     {
         private readonly IInvoiceRepository _invoiceRepo;
-        public ReportController(IInvoiceRepository invoiceRepo)
+        private readonly IAppointmentRepository _appointmentRepo;
+        public ReportController(IInvoiceRepository invoiceRepo, IAppointmentRepository appointmentRepo)
         {
             _invoiceRepo = invoiceRepo;
+            _appointmentRepo = appointmentRepo;
         }
 
         public async Task<IActionResult> RevenueStatistics(int? year)
@@ -157,5 +160,113 @@ namespace HospitalManagement.Controllers
                 return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
         }
+        public async Task<IActionResult> AppointmentUsage(int? year)
+        {
+            int selectedYear = year ?? DateTime.Now.Year;
+
+            var stats = await _appointmentRepo.GetMonthlyUsageStatsAsync(selectedYear);
+            var years = await _appointmentRepo.GetAvailableYearsWithCompletedAppointmentsAsync();
+
+            var viewModel = new AppointmentUsageStatsViewModel
+            {
+                Year = selectedYear,
+                MonthlyStats = stats,
+                AvailableYears = years
+            };
+
+            return View(viewModel);
+        }
+        public async Task<IActionResult> MonthlyDetail(int year, int month, int? page)
+        {
+            int pageSize = 10;
+            int pageNumber = page ?? 1;
+
+            var (details, total) = await _appointmentRepo
+                .GetMonthlyAppointmentDetailsAsync(year, month, pageNumber, pageSize);
+
+            var pagedDetails = new StaticPagedList<AppointmentDetailDto>(details, pageNumber, pageSize, total);
+
+            // Dữ liệu aggregate cho biểu đồ:
+            var allDetails = await _appointmentRepo.GetMonthlyAppointmentDetailsAsync(year, month, 1, int.MaxValue);
+            var fullList = allDetails.Details;
+
+            ViewBag.ServiceGroups = fullList
+                .GroupBy(x => x.ServiceType ?? "N/A")
+                .Where(g => g.Key != "N/A")
+                .Select(g => new { Name = g.Key, Count = g.Count() })
+                .ToList();
+
+            ViewBag.PackageGroups = fullList
+                .GroupBy(x => x.PackageName ?? "N/A")
+                .Where(g => g.Key != "N/A")
+                .Select(g => new { Name = g.Key, Count = g.Count() })
+                .ToList();
+
+            var staffSalesCount = fullList
+                .Count(x => x.CreatedByStaffId != null && x.StaffRoleName == "Sales");
+            var staffTotal = fullList.Count;
+
+            ViewBag.SalesStats = new { SalesCount = staffSalesCount, Total = staffTotal };
+
+            ViewBag.Year = year;
+            ViewBag.Month = month;
+
+            return View(pagedDetails);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportMonthlyAppointmentsToExcel(int year, int month)
+        {
+            var (appointments, _) = await _appointmentRepo.GetMonthlyAppointmentDetailsAsync(year, month, 1, int.MaxValue);
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var package = new ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add($"Appointments_{month:D2}_{year}");
+
+            // 🔹 A1: Tiêu đề chính
+            string title = $"Chi tiết cuộc hẹn tháng {month:D2}/{year}";
+            ws.Cells["A1"].Value = title;
+            ws.Cells["A1:F1"].Merge = true;
+            ws.Cells["A1"].Style.Font.Bold = true;
+            ws.Cells["A1"].Style.Font.Size = 16;
+            ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+            // 🔹 Header ở dòng 3
+            string[] headers = { "ID", "Bệnh nhân", "Bác sĩ", "Dịch vụ", "Gói khám", "Nhân viên tư vấn", "Tiền (VND)", "Ngày" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                var cell = ws.Cells[3, i + 1];
+                cell.Value = headers[i];
+                cell.Style.Font.Bold = true;
+            }
+
+            // 🔹 Dữ liệu bắt đầu từ dòng 4
+            int startRow = 4;
+            for (int i = 0; i < appointments.Count; i++)
+            {
+                var a = appointments[i];
+                int row = startRow + i;
+
+                ws.Cells[row, 1].Value = a.AppointmentId;
+                ws.Cells[row, 2].Value = a.PatientName;
+                ws.Cells[row, 3].Value = a.DoctorName;
+                ws.Cells[row, 4].Value = a.ServiceType ?? "N/A";
+                ws.Cells[row, 5].Value = a.PackageName ?? "N/A";
+                ws.Cells[row, 6].Value = a.StaffRoleName == "Sales" ? a.StaffName : "N/A";
+                ws.Cells[row, 7].Value = a.TotalPrice.HasValue ? (double?)a.TotalPrice.Value : null;
+                ws.Cells[row, 8].Value = a.Date.ToString("dd/MM/yyyy");
+            }
+
+            ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+            var stream = new MemoryStream();
+            package.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = $"Appointments_{month:D2}_{year}.xlsx";
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
     }
 }

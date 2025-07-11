@@ -1091,8 +1091,54 @@ namespace HospitalManagement.Controllers
             // Trộn chuỗi để các ký tự không cố định vị trí
             return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
         }
-        
 
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ViewSchedule(int id, int? year, string? weekStart)
+        {
+            var doctor = await _doctorRepo.GetByIdAsync(id);
+            if (doctor == null) return NotFound();
+
+            // Nếu không truyền gì, dùng tuần hiện tại
+            int selectedYear = year ?? DateTime.Today.Year;
+
+            DateOnly selectedWeekStart;
+            if (!string.IsNullOrEmpty(weekStart) &&
+                DateOnly.TryParseExact(weekStart, "yyyy-MM-dd", out var parsed))
+            {
+                selectedWeekStart = parsed;
+            }
+            else
+            {
+                selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
+            }
+
+            DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+
+            var schedules = _context.Schedules
+                .Where(s => s.DoctorId == doctor.DoctorId && s.Day >= selectedWeekStart && s.Day <= selectedWeekEnd)
+                .Select(s => new DoctorScheduleViewModel.ScheduleItem
+                {
+                    ScheduleId = s.ScheduleId,
+                    Day = s.Day,
+                    SlotId = s.SlotId,
+                    StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
+                    EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
+                    RoomName = s.Room.RoomName,
+                    RoomId = s.Room.RoomId,
+                    DoctorId = doctor.DoctorId,
+                    DoctorName = doctor.FullName,
+                    Status = s.Status
+                })
+                .ToList();
+
+            ViewBag.SelectedYear = selectedYear;
+            ViewBag.SelectedWeekStart = selectedWeekStart;
+            var slots = _context.Slots.ToList();
+            ViewBag.SlotsPerDay = slots.Count();
+            // TempData["success"] = $"Size: {schedules.Capacity}";
+            //return Redirect("Home/NotFound");
+            return View(schedules);
+        }
 
         public List<SelectListItem> GetAllDepartmentName()
         {
@@ -1172,6 +1218,10 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("RoomDetail", new { id = room.RoomId, weekStart = selectedWeekStart });
         }
 
-
+        private DateOnly GetStartOfWeek(DateOnly date)
+        {
+            int diff = ((int)date.DayOfWeek + 6) % 7; // Monday = 0
+            return date.AddDays(-diff);
+        }
     }
 }
