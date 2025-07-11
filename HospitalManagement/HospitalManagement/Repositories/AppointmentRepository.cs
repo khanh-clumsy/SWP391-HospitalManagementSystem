@@ -24,7 +24,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Package)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
-                    (RoleKey == "StaffID" && a.StaffId == UserID) ||
+                    (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
                     (RoleKey == "DoctorID" && a.DoctorId == UserID))
                 .AsQueryable();
 
@@ -139,7 +139,7 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.DoctorId == DoctorID)
@@ -151,7 +151,7 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.PatientId == PatientID)
@@ -163,10 +163,10 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
-                .Where(a => a.StaffId == SalesID)
+                .Where(a => a.CreatedByStaffId == SalesID)
                 .OrderByDescending(a => a.AppointmentId);
         }
 

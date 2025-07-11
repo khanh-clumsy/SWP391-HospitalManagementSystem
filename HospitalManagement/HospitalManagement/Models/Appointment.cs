@@ -16,7 +16,7 @@ public partial class Appointment
 
     public int? PackageId { get; set; }
 
-    public int? StaffId { get; set; }
+    public int? CreatedByStaffId { get; set; }
 
     public int? SlotId { get; set; }
 
@@ -38,6 +38,8 @@ public partial class Appointment
 
     public DateTime? RecordCreatedAt { get; set; }
 
+    public virtual Staff? CreatedByStaff { get; set; }
+
     public virtual Doctor? Doctor { get; set; }
 
     public virtual ICollection<InvoiceDetail> InvoiceDetails { get; set; } = new List<InvoiceDetail>();
@@ -50,13 +52,10 @@ public partial class Appointment
 
     public virtual Slot? Slot { get; set; }
 
-    public virtual Staff? Staff { get; set; }
-
     public virtual ICollection<TestRecord> TestRecords { get; set; } = new List<TestRecord>();
 
     public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
 
     [NotMapped]
     public bool IsServiceOrPackagePaid { get; set; }
-
 }

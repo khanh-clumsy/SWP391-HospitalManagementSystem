@@ -25,12 +25,12 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> TestInput(int testRecordID)
         {
-            var testList = await _context.TestRecords
+            var testRecord = await _context.TestRecords
                 .Include(t => t.Test)
                 .Include(t => t.Appointment).ThenInclude(a => a.Patient)
                 .FirstOrDefaultAsync(t => t.TestRecordId == testRecordID);
 
-            if (testList == null)
+            if (testRecord == null)
             {
                 TempData["error"] = "Không tìm thấy xét nghiệm.";
                 return RedirectToAction("ViewOngoingTest", "TestPerform");
@@ -38,11 +38,11 @@ namespace HospitalManagement.Controllers
 
             var model = new TestResultInputViewModel
             {
-                TestRecordID = testList.TestRecordId,
-                TestName = testList.Test.Name,
-                PatientFullName = testList.Appointment.Patient.FullName,
-                Gender = testList.Appointment.Patient.Gender,
-                DOB = testList.Appointment.Patient.Dob ?? DateTime.MinValue
+                TestRecordID = testRecord.TestRecordId,
+                TestName = testRecord.Test.Name,
+                PatientFullName = testRecord.Appointment.Patient.FullName,
+                Gender = testRecord.Appointment.Patient.Gender,
+                DOB = testRecord.Appointment.Patient.Dob ?? DateTime.MinValue
             };
 
             return View(model);
@@ -53,8 +53,8 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> InputTestResult(TestResultInputViewModel model)
         {
             int doctorId = int.Parse(User.FindFirst(AppConstants.ClaimTypes.DoctorId)?.Value ?? "0");
-            var test = await _context.TestRecords.FindAsync(model.TestRecordID);
-            if (test == null)
+            var testRecord = await _context.TestRecords.FindAsync(model.TestRecordID);
+            if (testRecord == null)
             {
                 TempData["error"] = "Không tìm thấy xét nghiệm.";
                 return NotFound();
@@ -80,11 +80,11 @@ namespace HospitalManagement.Controllers
                 }
             }
             // Add các trường vào DB
-            test.TestNote = model.Note;
-            test.Result = model.ResultFileName;
-            test.TestStatus = "Completed";
-            test.CreatedAt = DateTime.Now;
-            test.DoctorId = doctorId;
+            testRecord.TestNote = model.Note;
+            testRecord.Result = model.ResultFileName;
+            testRecord.TestStatus = "Completed";
+            testRecord.CompletedAt = DateTime.Now;
+            testRecord.DoctorId = doctorId;
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Lưu kết quả xét nghiệm thành công.";
@@ -99,21 +99,21 @@ namespace HospitalManagement.Controllers
             int doctorId = int.Parse(User.FindFirst(AppConstants.ClaimTypes.DoctorId)?.Value ?? "0");
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            var roomList = await _roomRepo.GetRoomSlotInfosByDoctorAndDateAsync(doctorId, today); // nhiều phòng
-            ViewBag.RoomSlotsToday = roomList;
+            var roomSlotsToday = await _roomRepo.GetRoomSlotInfosByDoctorAndDateAsync(doctorId, today); // nhiều phòng
+            ViewBag.RoomSlotsToday = roomSlotsToday;
 
-            var allOngoingTests = new Dictionary<int, List<TestPatientViewModel>>();
-            foreach (var room in roomList)
+            var ongoingTestsByRoom = new Dictionary<int, List<TestPatientViewModel>>();
+            foreach (var roomSlots in roomSlotsToday)
             {
-                var tests = await _context.Trackings
+                var ongoingTestsInRoom = await _context.Trackings
                     .Include(t => t.TestRecord).ThenInclude(tr => tr.Test)
                     .Include(t => t.Appointment).ThenInclude(a => a.Patient)
-                    .Where(t => t.RoomId == room.RoomId &&
+                    .Where(t => t.RoomId == roomSlots.RoomId &&
                                 t.TestRecordId != null && t.TestRecord != null &&
                                 t.TestRecord.TestStatus == AppConstants.TestStatus.Ongoing &&
                                 t.Time.Date == DateTime.Today &&
-                                t.Time.TimeOfDay >= room.StartTime.ToTimeSpan() &&
-                                t.Time.TimeOfDay <= room.EndTime.ToTimeSpan())
+                                t.Time.TimeOfDay >= roomSlots.StartTime.ToTimeSpan() &&
+                                t.Time.TimeOfDay <= roomSlots.EndTime.ToTimeSpan())
                     .Select(t => new TestPatientViewModel
                     {
                         PatientID = t.Appointment.PatientId,
@@ -124,9 +124,9 @@ namespace HospitalManagement.Controllers
                         AssignedTime = t.Time
                     })
                     .ToListAsync();
-                allOngoingTests[room.RoomId] = tests;
+                ongoingTestsByRoom[roomSlots.RoomId] = ongoingTestsInRoom;
             }
-            return View(allOngoingTests);
+            return View(ongoingTestsByRoom);
         }
     }
 }

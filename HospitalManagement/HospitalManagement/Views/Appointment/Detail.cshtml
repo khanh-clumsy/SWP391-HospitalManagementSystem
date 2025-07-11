@@ -1,6 +1,7 @@
 ﻿@model Appointment
 @{
 	ViewData["Title"] = "Chi tiết cuộc hẹn";
+	var sortedTrackings = ViewBag.SortedTrackings as List<Tracking>;
 }
 
 <!-- Appointment Details Start -->
@@ -164,14 +165,14 @@
 											<th>Thời gian chỉ định</th>
 											<th>Tên xét nghiệm</th>
 											<th>Trạng thái</th>
-											<th>Ngày thực hiện</th>
+											<th>Giờ thực hiện</th>
 											<th>Kết quả</th>
 										</tr>
 									</thead>
 									<tbody>
-										@if (Model.Trackings != null && Model.Trackings.Any())
+										@if (sortedTrackings != null && sortedTrackings.Any())
 										{
-											foreach (var tracking in Model.Trackings.OrderBy(t => t.Time))
+											foreach (var tracking in sortedTrackings)
 											{
 												<tr>
 													<td>@tracking.Room?.RoomName</td>
@@ -205,7 +206,7 @@
 															<span class="@badgeClassTest">@badgeTextTest</span>
 														}
 													</td>
-													<td>@tracking.TestRecord?.CreatedAt?.ToString("dd/MM/yyyy")</td>
+													<td>@tracking.TestRecord?.CompletedAt</td>
 													<td>
 														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Completed")
 														{
@@ -268,11 +269,11 @@
 								Thông tin bổ sung
 							</h5>
 							<div class="row">
-								@if (Model.Staff != null)
+								@if (Model.CreatedByStaff != null)
 								{
 									<div class="col-md-4 mb-3">
 										<h6 class="text-muted">Nhân viên hỗ trợ</h6>
-										<p class="mb-0">@Model.Staff.FullName</p>
+										<p class="mb-0">@Model.CreatedByStaff.FullName</p>
 									</div>
 								}
 								<div class="col-md-4 mb-3">

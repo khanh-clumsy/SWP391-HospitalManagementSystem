@@ -41,6 +41,9 @@ namespace HospitalManagement.ViewModels
         // Có kết quả test hay chưa
         public bool AllTestsCompleted { get; set; }
 
-        public List<TestRecord> TestRecords { get; set; } = new();
+        public List<TestRecordViewModel> TestRecords { get; set; } = new();
+
+        public Dictionary<int, List<Room>> AvailableRoomsPerTest { get; set; } = new();
+
     }
 }

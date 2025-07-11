@@ -166,7 +166,7 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
@@ -574,7 +574,7 @@ namespace HospitalManagement.Controllers
                 Date = model.AppointmentDate,
                 Status = AppConstants.AppointmentStatus.Confirmed,
                 Note = model.Note,
-                StaffId = staffId
+                CreatedByStaffId = staffId
             };
 
             _context.Appointments.Add(appointment);
@@ -584,7 +584,7 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
@@ -706,7 +706,7 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
@@ -765,8 +765,13 @@ namespace HospitalManagement.Controllers
                         var package = await _context.Packages
                             .Include(p => p.PackageTests).ThenInclude(pt => pt.Test)
                             .FirstOrDefaultAsync(p => p.PackageId == appointment.PackageId);
+                        if (package == null)
+                        {
+                            TempData["error"] = AppConstants.Messages.Package.NotFound;
+                            return RedirectToAction("ApproveAppointment");
+                        }
 
-                        if (package?.PackageTests != null)
+                        if (package.PackageTests != null)
                         {
                             foreach (var test in package.PackageTests)
                             {
@@ -775,10 +780,10 @@ namespace HospitalManagement.Controllers
                                     AppointmentId = appointment.AppointmentId,
                                     TestId = test.TestId,
                                     TestStatus = AppConstants.TestStatus.Pending,
-                                    CreatedAt = DateTime.Now
                                 };
                                 _context.TestRecords.Add(testRecord);
                             }
+                            Console.WriteLine("Tạo các test record thành công!");
                         }
                     }
                     await _context.SaveChangesAsync();
@@ -1092,7 +1097,7 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
-                                .Include(a => a.Staff)
+                                .Include(a => a.CreatedByStaff)
                                 .Include(a => a.Slot)
                                 .Include(a => a.Service)
                                 .Include(a => a.Package)
@@ -1119,6 +1124,57 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
+            // Lấy toàn bộ trackings
+            var allTrackings = appointment.Trackings?
+                .OrderBy(t => t.Time)
+                .ToList() ?? new List<Tracking>();
+
+            // 1. Phòng khám
+            var clinic = allTrackings
+                .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
+                .OrderBy(t => t.Time)
+                .FirstOrDefault();
+
+            // 2. Gom theo batch (nhóm các tracking theo đợt)
+            var groupedByBatch = allTrackings
+                .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Clinic)
+                .GroupBy(t => t.TrackingBatch)
+                .OrderBy(g => g.Key)
+                .ToList();
+
+            var finalOrderedTrackings = new List<Tracking>();
+
+            // 3. Thêm phòng khám lên đầu 
+            if (clinic != null)
+                finalOrderedTrackings.Add(clinic);
+
+            // 4. Duyệt từng batch
+            foreach (var batchGroup in groupedByBatch)
+            {
+                var cashier = batchGroup
+                    .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier)
+                    .FirstOrDefault();
+
+                var unpaidTests = batchGroup
+                    .Where(t => t.TestRecord != null && t.TestRecord.TestStatus == AppConstants.TestStatus.WaitingForPayment)
+                    .ToList();
+
+                var others = batchGroup
+                    .Except(unpaidTests)
+                    .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Cashier)
+                    .ToList();
+
+                if (cashier != null)
+                {
+                    finalOrderedTrackings.Add(cashier);
+                }
+
+                finalOrderedTrackings.AddRange(unpaidTests);
+                finalOrderedTrackings.AddRange(others);
+            }
+
+            // Gán vào ViewBag để view hiển thị
+            ViewBag.SortedTrackings = finalOrderedTrackings;
             if (roleKey == "")
             {
                 TempData["error"] = AppConstants.Messages.General.Undefined;
@@ -1133,7 +1189,7 @@ namespace HospitalManagement.Controllers
             {
                 return View(appointment);
             }
-            if (roleKey == AppConstants.ClaimTypes.StaffId && appointment.Staff != null && appointment.Staff.StaffId != null && appointment.Staff.StaffId == userId)
+            if (roleKey == AppConstants.ClaimTypes.StaffId && appointment.CreatedByStaff != null && appointment.CreatedByStaff.StaffId != null && appointment.CreatedByStaff.StaffId == userId)
             {
                 return View(appointment);
             }

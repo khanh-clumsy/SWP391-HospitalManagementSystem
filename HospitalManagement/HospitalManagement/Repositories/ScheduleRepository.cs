@@ -89,7 +89,6 @@ namespace HospitalManagement.Repositories
             return schedule?.RoomId;
         }
             
-
         public async Task<List<ScheduleViewModel>> GetDoctorSchedulesInRangeAsync(int doctorId, DateOnly startDate, DateOnly endDate)
         {
             return await _context.Schedules

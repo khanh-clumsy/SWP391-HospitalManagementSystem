@@ -84,20 +84,36 @@
 		</div>
 		<!-- Topbar End -->
 		<!-- Notifications-->
-		@if (TempData["error"] != null)
-		{
-			<div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
-				<div>@TempData["error"]</div>
-			</div>
-		}
-		else if (TempData["success"] != null)
-		{
-			<div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center"
-				 role="alert" style="z-index: 1055; border-radius: 8px;">
-				<div>@TempData["success"]</div>
-			</div>
-		}
+		<div id="notifications-container" class="popup-alert" style="z-index: 1055; border-radius: 8px;">
+			@if (TempData["error"] != null)
+			{
+				<div class="alert alert-danger alert-dismissible fade show text-center mb-2" role="alert">
+					<div>@TempData["error"]</div>
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+			}
+			@if (TempData["success"] != null)
+			{
+				<div class="alert alert-success alert-dismissible fade show text-center mb-2" role="alert">
+					<div>@TempData["success"]</div>
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+			}
+			@if (TempData["warning"] != null)
+			{
+				<div class="alert alert-warning alert-dismissible fade show text-center mb-2" role="alert">
+					<div>@TempData["warning"]</div>
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+			}
+			@if (TempData["info"] != null)
+			{
+				<div class="alert alert-info alert-dismissible fade show text-center mb-2" role="alert">
+					<div>@TempData["info"]</div>
+					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+				</div>
+			}
+		</div>
 
 
 		<!-- Navbar Start -->
@@ -352,14 +368,25 @@
 
 	<script>
 		window.setTimeout(function () {
-			const alertBox = document.getElementById('popup-alert');
-			if (alertBox) {
-				alertBox.classList.remove('show');
-				alertBox.classList.add('hide');
-				setTimeout(() => alertBox.remove(), 500);
-				// popup animation
+			const notificationsContainer = document.getElementById('notifications-container');
+			if (notificationsContainer) {
+				const alerts = notificationsContainer.querySelectorAll('.alert');
+				alerts.forEach(function(alert, index) {
+					setTimeout(function() {
+						alert.classList.remove('show');
+						alert.classList.add('hide');
+						setTimeout(() => alert.remove(), 500);
+					}, index * 500); // Stagger the animations
+				});
+				
+				// Remove the container after all alerts are gone
+				setTimeout(() => {
+					if (notificationsContainer.children.length === 0) {
+						notificationsContainer.remove();
+					}
+				}, alerts.length * 500 + 500);
 			}
-		}, 3000);
+		}, 5000);
 
 
 		document.addEventListener("DOMContentLoaded", function () {

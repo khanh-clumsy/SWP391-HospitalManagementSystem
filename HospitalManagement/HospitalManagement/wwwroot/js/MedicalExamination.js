@@ -34,33 +34,47 @@ $(document).ready(function () {
         console.log("Đã chọn RoomID:", roomId);
     });
 
-    $('form').on('submit', function (e) {
-        if (trackings.length === 0) {
-            e.preventDefault();
-            alert('Vui lòng chỉ định ít nhất một xét nghiệm và phòng!');
-        }
-    });
+    //$('#MedicalForm').on('submit', function (e) {
+    //    if (trackings.length === 0) {
+    //        e.preventDefault();
+    //        alert('Vui lòng chỉ định ít nhất một xét nghiệm và phòng!');
+    //    }
+    //});
 
     function renderTrackingList() {
         const $container = $('#assignedRoomList');
 
         if (trackings.length === 0) {
             $container.html(`
-                <p class="text-muted text-center py-4">Chưa có phòng được chỉ định.</p>
-            `);
+            <p class="text-muted text-center py-4">Chưa có phòng được chỉ định.</p>
+        `);
             return;
         }
 
         let html = '<ul class="list-group">';
         trackings.forEach(tracking => {
-            const testStatus = tracking.testStatus || 'Chưa rõ';
+            const testStatus = tracking.testStatus || 'Unknown';
+
+            // Gán class màu sắc theo trạng thái
             let badgeClass = 'bg-secondary';
             switch (testStatus) {
                 case 'Waiting for payment':
                     badgeClass = 'bg-warning text-dark';
                     break;
+                case 'Paid':
+                    badgeClass = 'bg-success';
+                    break;
+                case 'Pending':
+                    badgeClass = 'bg-light text-dark border';
+                    break;
                 case 'Ongoing':
                     badgeClass = 'bg-info text-white';
+                    break;
+                case 'Failed':
+                    badgeClass = 'bg-danger';
+                    break;
+                case 'Cancelled':
+                    badgeClass = 'bg-dark';
                     break;
                 case 'Completed':
                     badgeClass = 'bg-primary';
@@ -68,53 +82,68 @@ $(document).ready(function () {
                 default:
                     badgeClass = 'bg-secondary';
             }
+
+            // Gán nhãn tiếng Việt tương ứng
+            let statusText = 'Không rõ';
+            switch (testStatus) {
+                case 'Waiting for payment':
+                    statusText = 'Chờ thanh toán';
+                    break;
+                case 'Paid':
+                    statusText = 'Đã thanh toán';
+                    break;
+                case 'Pending':
+                    statusText = 'Chưa bắt đầu';
+                    break;
+                case 'Ongoing':
+                    statusText = 'Đang thực hiện';
+                    break;
+                case 'Failed':
+                    statusText = 'Thất bại';
+                    break;
+                case 'Cancelled':
+                    statusText = 'Đã huỷ';
+                    break;
+                case 'Completed':
+                    statusText = 'Hoàn thành';
+                    break;
+                default:
+                    statusText = testStatus;
+            }
+
             if (tracking.roomType === 'Phòng khám') {
                 html += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${tracking.roomName} - ${tracking.roomType}</strong>
-                        </div>
-                    </li>
-                `;
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${tracking.roomName} - ${tracking.roomType}</strong>
+                    </div>
+                </li>
+            `;
             } else {
-                // Hiển thị trạng thái tiếng Việt
-                let statusText = testStatus;
-                switch (testStatus) {
-                    case 'Waiting for payment':
-                        statusText = 'Chờ thanh toán';
-                        break;
-                    case 'Ongoing':
-                        statusText = 'Đang diễn ra';
-                        break;
-                    case 'Completed':
-                        statusText = 'Hoàn thành';
-                        break;
-                    default:
-                        statusText = testStatus;
-                }
                 html += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>${tracking.roomName} - ${tracking.roomType} - ${tracking.testName || ''}</strong>
-                            <br>
-                            <span class="badge ${badgeClass}">Trạng thái: ${statusText}</span>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            ${testStatus === 'Completed' ? `
-                                <a href="/Tracking/TestDetail/${tracking.testListId}" class="btn btn-sm btn-outline-primary me-2">
-                                    Xem kết quả
-                                </a>
-                            ` : ''}
-                            
-                        </div>
-                    </li>
-                `;
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${tracking.roomName} - ${tracking.roomType} - ${tracking.testName || ''}</strong>
+                        <br>
+                        <span class="badge ${badgeClass}">Trạng thái: ${statusText}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        ${testStatus === 'Completed' ? `
+                            <a href="/Tracking/TestDetail/${tracking.testListId}" class="btn btn-sm btn-outline-primary me-2">
+                                Xem kết quả
+                            </a>
+                        ` : ''}
+                    </div>
+                </li>
+            `;
             }
         });
+
         html += '</ul>';
         $container.html(html);
         updateTestSelectOptions();
     }
+
     //<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeTest(${tracking.testListId})">
     //    <i class="fas fa-times"></i>
     //</button>
@@ -172,6 +201,85 @@ $(document).ready(function () {
             }
         });
     };
+    
+    window.assignPackageTest = function (testRecordId, testId, appointmentId) {
+        const $roomSelect = $(`#room-selector-${testRecordId}`);
+        const roomId = $roomSelect.val();
+
+        if (!roomId || roomId === '') {
+            alert("Vui lòng chọn phòng xét nghiệm!");
+            return;
+        }
+
+        if (trackings.find(t => t.testRecordId === testRecordId)) {
+            alert("Test này đã được chỉ định rồi.");
+            return;
+        }
+
+        $.ajax({
+            url: '/Tracking/AssignTest',
+            type: 'POST',
+            data: {
+                testId: testId,
+                roomId: parseInt(roomId),
+                appointmentId: appointmentId
+            },
+            success: function (response) {
+                const newTracking = {
+                    testRecordId: response.testRecordId,
+                    testId: response.testId,
+                    roomId: response.roomId,
+                    roomName: response.roomName,
+                    roomType: response.roomType,
+                    testName: response.testName,
+                    testStatus: response.testStatus
+                };
+
+                // Gán nhãn tiếng Việt tương ứng cho testStatus
+                let statusText = 'Không rõ';
+                switch (response.testStatus) {
+                    case 'Waiting for payment':
+                        statusText = 'Chờ thanh toán';
+                        break;
+                    case 'Paid':
+                        statusText = 'Đã thanh toán';
+                        break;
+                    case 'Pending':
+                        statusText = 'Chưa bắt đầu';
+                        break;
+                    case 'Ongoing':
+                        statusText = 'Đang thực hiện';
+                        break;
+                    case 'Failed':
+                        statusText = 'Thất bại';
+                        break;
+                    case 'Cancelled':
+                        statusText = 'Đã huỷ';
+                        break;
+                    case 'Completed':
+                        statusText = 'Hoàn thành';
+                        break;
+                    default:
+                        statusText = response.testStatus;
+                }
+
+                // Cập nhật UI dòng tương ứng
+                $(`#test-row-${testRecordId} td:nth-child(2)`).html(`<span>${response.roomName}</span>`);
+                $(`#test-row-${testRecordId} td:nth-child(3)`).text(statusText);
+                $(`#test-row-${testRecordId} td:nth-child(4)`).html(`<span class="text-success">Đã chỉ định</span>`);
+
+                // Thêm vào danh sách trackings nếu cần dùng lại
+                trackings.push(newTracking);
+                renderTrackingList();
+                alert("Chỉ định phòng thành công!");
+            },
+            error: function (xhr) {
+                console.error("Lỗi khi chỉ định:", xhr.responseText);
+                const msg = xhr.responseJSON?.message || "Lỗi hệ thống khi chỉ định phòng.";
+                alert("❌ " + msg);
+            }
+        });
+    };
 
     function updateTestSelectOptions() {
         const $testSelect = $('#testSelector');
@@ -188,7 +296,7 @@ $(document).ready(function () {
                 return;
             }
 
-            // 🔍 So sánh đúng kiểu string
+            //  So sánh đúng kiểu string
             if (selectedTestIds.has(val)) {
                 $option.prop('disabled', true).hide();
             } else {

@@ -1,4 +1,5 @@
 ﻿@using System.Text.Json
+@using HospitalManagement.Helpers
 @model HospitalManagement.ViewModels.ExaminationViewModel
 @{
 	ViewData["Title"] = "Khám bệnh";
@@ -66,7 +67,7 @@
 		</div>
 
 
-		<form asp-controller="Tracking" asp-action="SaveExamination" method="post">
+		<form asp-controller="Tracking" asp-action="SaveExamination" id="MedicalForm" method="post">
 			@Html.AntiForgeryToken()
 			<input type="hidden" asp-for="AppointmentId" value="@Model.AppointmentId" />
 
@@ -116,7 +117,11 @@
 								<option value="">-- Chọn loại xét nghiệm --</option>
 								@foreach (var test in Model.AvailableTests)
 								{
-									<option value="@test.TestId">@test.Name</option>
+									var isFromPackage = Model.TestRecords.Any(r => r.TestId == test.TestId);
+									if (!isFromPackage)
+									{
+										<option value="@test.TestId">@test.Name</option>
+									}
 								}
 							</select>
 						</div>
@@ -154,7 +159,7 @@
 				<div class="medical-form-card medical-mt-4">
 					<div class="medical-section-header">
 						<i class="fas fa-vials medical-section-icon"></i>
-						<h3 class="medical-section-title">Các xét nghiệm từ gói khám</h3>
+						<h3 class="medical-section-title">Các xét nghiệm từ gói khám. Vui lòng chỉ định phòng ở bảng bên dưới.</h3>
 					</div>
 
 					@if (Model.TestRecords != null && Model.TestRecords.Any())
@@ -171,19 +176,65 @@
 							<tbody>
 								@foreach (var test in Model.TestRecords)
 								{
-									<tr>
-										<td>@test.Test.Name</td>
-										<td>@test.RoomName</td>
-										<td>@test.TestStatus</td>
+									<tr id="test-row-@test.TestRecordId">
+										<td>@test.TestName</td>
 										<td>
-											<button type="button" class="btn btn-sm btn-outline-primary"
-													onclick="openAssignRoomModal(@test.TestRecordId)">
-												<i class="fas fa-door-open"></i> Chỉ định phòng
-											</button>
+											@if (!test.IsAssigned)
+											{
+												<select class="form-select form-select-sm"
+														id="room-selector-@test.TestRecordId">
+													<option value="">-- Chọn phòng --</option>
+													@if (Model.AvailableRoomsPerTest.ContainsKey(test.TestId))
+													{
+														foreach (var room in Model.AvailableRoomsPerTest[test.TestId])
+														{
+															<option value="@room.RoomId">@room.RoomName</option>
+														}
+													}
+												</select>
+											}
+											else
+											{
+												<span id="assigned-room-@test.TestRecordId">@test.RoomName</span>
+											}
+										</td>
+										<td id="test-status-@test.TestRecordId">
+											@{
+												var status = test.TestStatus;
+												// Debug: Hiển thị giá trị thực tế
+												string displayStatus = status switch
+												{
+													AppConstants.TestStatus.WaitingForPayment => "Chờ thanh toán",
+													AppConstants.TestStatus.Paid => "Đã thanh toán",
+													AppConstants.TestStatus.Pending => "Chưa bắt đầu",
+													AppConstants.TestStatus.Ongoing => "Đang thực hiện",
+													AppConstants.TestStatus.Failed => "Thất bại",
+													AppConstants.TestStatus.Canceled => "Đã huỷ",
+													AppConstants.TestStatus.Completed => "Hoàn thành",
+													_ => "Không rõ"
+												};
+											}
+											@displayStatus
+										</td>
+										<td>
+											@if (!test.IsAssigned)
+											{
+												<button type="button"
+														class="btn btn-sm btn-outline-primary"
+														onclick="assignPackageTest(@test.TestRecordId, @test.TestId, @Model.AppointmentId)">
+													<i class="fas fa-door-open"></i> Chỉ định phòng
+												</button>
+											}
+											else
+											{
+												<span class="text-success">Đã chỉ định</span>
+											}
 										</td>
 									</tr>
 								}
+
 							</tbody>
+
 						</table>
 					}
 					else
