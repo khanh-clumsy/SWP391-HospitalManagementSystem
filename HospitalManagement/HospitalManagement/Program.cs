@@ -8,6 +8,7 @@ using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HospitalManagement.Filters;
+using OfficeOpenXml;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
