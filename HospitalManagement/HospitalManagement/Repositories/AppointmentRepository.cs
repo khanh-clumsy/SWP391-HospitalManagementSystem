@@ -139,7 +139,7 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                // .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.DoctorId == DoctorID)
@@ -151,7 +151,7 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                // .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.PatientId == PatientID)
@@ -163,7 +163,7 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                // .Include(a => a.Staff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.StaffId == SalesID)

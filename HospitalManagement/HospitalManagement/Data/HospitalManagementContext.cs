@@ -26,8 +26,6 @@ public partial class HospitalManagementContext : DbContext
 
     public virtual DbSet<News> News { get; set; }
 
-    public virtual DbSet<Notification> Notifications { get; set; }
-
     public virtual DbSet<Package> Packages { get; set; }
 
     public virtual DbSet<PackageCategory> PackageCategories { get; set; }

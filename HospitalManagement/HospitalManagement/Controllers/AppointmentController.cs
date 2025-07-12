@@ -1091,7 +1091,7 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
-                                .Include(a => a.Staff)
+                                // .Include(a => a.Staff)
                                 .Include(a => a.Slot)
                                 .Include(a => a.Service)
                                 .Include(a => a.Package)
