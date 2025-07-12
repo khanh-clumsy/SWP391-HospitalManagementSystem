@@ -30,5 +30,14 @@ namespace HospitalManagement.Repositories
                 .Where(r => r.RoomType != "Phòng khám" && r.RoomType != "Khác")
                 .ToListAsync();
         }
+        public async Task<List<Tracking>> GetTrackingsByAppointmentIdWithDetailsAsync(int appointmentId)
+        {
+            return await _context.Trackings
+                .Include(t => t.TestRecord)
+                    .ThenInclude(tl => tl.Test)
+                .Include(t => t.Room)
+                .Where(t => t.AppointmentId == appointmentId)
+                .ToListAsync();
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Models;
+using HospitalManagement.ViewModels;
 
 namespace HospitalManagement.Repositories
 {
@@ -11,7 +12,6 @@ namespace HospitalManagement.Repositories
         Task DeleteAsync(Appointment appointment);
         Task<List<Appointment>> Filter(string RoleKey, int UserID, string? Name, string? Slot, string? Date, string? Status);
         Task<List<Appointment>> FilterForAdmin(string? Name, string? slotId, string? Date, string? Status);
-
         Task<List<Appointment>> FilterApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter);
         Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day);
         Task<List<Appointment>> GetAppointmentsAsync(string phone);
@@ -19,5 +19,8 @@ namespace HospitalManagement.Repositories
         Task<List<Appointment>> GetTodayAppointmentsAsync(string? phone);
         Task<List<Appointment>> GetOngoingAppointmentsByDoctorIdAsync(int doctorId);
         Task<Appointment> GetAppointmentByIdAsync(int appointmentId);
+        Task<List<MonthlyAppointmentUsageDto>> GetMonthlyUsageStatsAsync(int year);
+        Task<List<int>> GetAvailableYearsWithCompletedAppointmentsAsync();
+        Task<(List<AppointmentDetailDto> Details, int TotalCount)> GetMonthlyAppointmentDetailsAsync(int year, int month, int page, int pageSize);
     }
 }

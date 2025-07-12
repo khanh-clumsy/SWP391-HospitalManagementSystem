@@ -34,6 +34,13 @@
 
 			<a asp-action="MyAppointments" asp-route-Type="Completed"
 			   class="btn @(ViewBag.Type == "Completed" ? "btn-danger fw-bold" : "btn-outline-danger")">Hoàn thành</a>
+
+			@if (User.IsInRole("Doctor"))
+			{
+				<a asp-controller="User" asp-action="OngoingPatientScreen" class="btn btn-primary ms-3">
+					Xem bệnh nhân sắp tới
+				</a>
+			}
 		</div>
 
 		<form method="get" asp-action="MyAppointments" asp-controller="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">
@@ -123,7 +130,7 @@
 								<td>@item.Note</td>
 								<td>@(item.Doctor?.FullName ?? "N/A")</td>
 								<td>@(item.Doctor?.DepartmentName ?? "N/A")</td>
-								<td>@(item.Staff?.FullName ?? "N/A")</td>
+								<td>@(item.CreatedByStaff?.FullName ?? "N/A")</td>
 								<td>@item.Date</td>
 								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
 								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>

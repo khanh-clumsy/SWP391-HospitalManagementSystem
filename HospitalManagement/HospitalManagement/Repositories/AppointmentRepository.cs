@@ -1,5 +1,6 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -24,7 +25,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Package)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
-                    (RoleKey == "StaffID" && a.StaffId == UserID) ||
+                    (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
                     (RoleKey == "DoctorID" && a.DoctorId == UserID))
                 .AsQueryable();
 
@@ -139,7 +140,7 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.DoctorId == DoctorID)
@@ -151,7 +152,7 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Where(a => a.PatientId == PatientID)
@@ -163,10 +164,10 @@ namespace HospitalManagement.Repositories
             return _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
-                .Include(a => a.Staff)
+                .Include(a => a.CreatedByStaff)
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
-                .Where(a => a.StaffId == SalesID)
+                .Where(a => a.CreatedByStaffId == SalesID)
                 .OrderByDescending(a => a.AppointmentId);
         }
 
@@ -188,6 +189,64 @@ namespace HospitalManagement.Repositories
                 a.Date == day
             );
         }
+        public async Task<List<MonthlyAppointmentUsageDto>> GetMonthlyUsageStatsAsync(int year)
+        {
+            return await _context.Appointments
+                .Where(a => a.Status == "Completed" && a.Date.Year == year)
+                .GroupBy(a => a.Date.Month)
+                .Select(g => new MonthlyAppointmentUsageDto
+                {
+                    Month = g.Key,
+                    ServiceCount = g.Count(x => x.ServiceId != null && x.PackageId == null),
+                    PackageCount = g.Count(x => x.PackageId != null && x.ServiceId == null)
+                })
+                .OrderBy(x => x.Month)
+                .ToListAsync();
+        }
+
+        public async Task<List<int>> GetAvailableYearsWithCompletedAppointmentsAsync()
+        {
+            return await _context.Appointments
+                .Where(a => a.Status == "Completed")
+                .Select(a => a.Date.Year)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToListAsync();
+        }
+        public async Task<(List<AppointmentDetailDto> Details, int TotalCount)> GetMonthlyAppointmentDetailsAsync(int year, int month, int page, int pageSize)
+        {
+            var query = _context.Appointments
+                .Where(a => a.Status == "Completed" && a.Date.Year == year && a.Date.Month == month)
+                .Include(a => a.Patient)
+                .Include(a => a.Doctor)
+                .Include(a => a.CreatedByStaff)
+                .Include(a => a.Service)
+                .Include(a => a.Package);
+
+            var total = await query.CountAsync();
+
+            var list = await query
+                .OrderBy(a => a.Date)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(a => new AppointmentDetailDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    PatientName = a.Patient.FullName,
+                    DoctorName = a.Doctor.FullName,
+                    ServiceType = a.Service != null ? a.Service.ServiceType : null,
+                    PackageName = a.Package != null ? a.Package.PackageName : null,
+                    CreatedByStaffId = a.CreatedByStaffId,
+                    StaffName = a.CreatedByStaff != null ? a.CreatedByStaff.FullName : null,
+                    StaffRoleName = a.CreatedByStaff != null ? a.CreatedByStaff.RoleName : null,
+                    TotalPrice = a.TotalPrice,
+                    Date = a.Date // vì a.Date là DateTime
+                })
+                .ToListAsync();
+
+            return (list, total);
+        }
+
 
         public async Task<List<Appointment>> GetAppointmentsAsync(string phone)
         {
@@ -247,7 +306,7 @@ namespace HospitalManagement.Repositories
             return await _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
-                .Where(a => a.DoctorId == doctorId && a.Status == "Ongoing")
+                .Where(a => a.DoctorId == doctorId && a.Status == "Ongoing" && a.Date == DateOnly.FromDateTime(DateTime.Today))
                 .OrderBy(a => a.Date).ThenBy(a => a.Slot.StartTime)
                 .ToListAsync();
         }
