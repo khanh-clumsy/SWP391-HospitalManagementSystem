@@ -15,8 +15,6 @@ public partial class Tracking
 
     public DateTime Time { get; set; }
 
-    public int? TrackingBatch { get; set; }
-
     public virtual Appointment Appointment { get; set; } = null!;
 
     public virtual Room Room { get; set; } = null!;

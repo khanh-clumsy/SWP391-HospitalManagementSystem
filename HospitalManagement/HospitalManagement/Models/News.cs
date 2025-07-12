@@ -21,8 +21,6 @@ public partial class News
 
     public int? DoctorId { get; set; }
 
-    public bool IsDeleted { get; set; }
-
     public virtual Doctor? Doctor { get; set; }
 
     public virtual Staff? Staff { get; set; }

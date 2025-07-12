@@ -7,13 +7,8 @@ using HospitalManagement.Services;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging;
-using OfficeOpenXml;
-using System.ComponentModel;
 using HospitalManagement.Filters;
 using HospitalManagement.Services.VnPay;
-Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 
 var builder = WebApplication.CreateBuilder(args);
