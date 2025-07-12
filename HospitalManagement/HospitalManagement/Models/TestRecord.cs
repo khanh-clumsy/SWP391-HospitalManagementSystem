@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HospitalManagement.Models;
 
@@ -29,7 +28,4 @@ public partial class TestRecord
     public virtual Test Test { get; set; } = null!;
 
     public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
-
-    [NotMapped]
-    public string RoomName { get; set; } = "";
 }

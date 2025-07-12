@@ -26,19 +26,4 @@ public partial class Staff
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual ICollection<News> News { get; set; } = new List<News>();
-    public string GetFullGender()
-    {
-        if (this.Gender == "M")
-        {
-            return "Male";
-        }
-        else if (this.Gender == "F")
-        {
-            return "Female";
-        }
-        else
-        {
-            return "Other";
-        }
-    }
 }

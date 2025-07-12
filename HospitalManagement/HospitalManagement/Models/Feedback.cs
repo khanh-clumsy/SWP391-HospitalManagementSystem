@@ -19,6 +19,8 @@ public partial class Feedback
 
     public DateTime CreatedAt { get; set; }
 
+    public bool IsSpecial { get; set; }
+
     public virtual Package? Package { get; set; }
 
     public virtual Patient Patient { get; set; } = null!;
