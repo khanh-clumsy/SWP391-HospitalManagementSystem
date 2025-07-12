@@ -1,0 +1,75 @@
+﻿@using HospitalManagement.ViewModels
+@model Dictionary<int, List<HospitalManagement.ViewModels.TestPatientViewModel>>
+
+@{
+	var roomSlots = ViewBag.RoomSlotsToday as List<RoomSlotInfo>;
+}
+
+<div class="container my-5">
+	<h2 class="text-primary mb-4 text-center">Danh sách bệnh nhân cần thực hiện xét nghiệm</h2>
+
+	@if (roomSlots == null || !roomSlots.Any())
+	{
+		<div class="alert alert-warning text-center">
+			Bạn không có lịch trực hôm nay.
+		</div>
+	}
+	else
+	{
+		foreach (var info in roomSlots)
+		{
+			<div class="card mb-4 shadow-sm" style="background-color: #fff8e1;">
+				<div class="card-header bg-primary text-white">
+					<strong>Phòng: @info.RoomName</strong> - <strong>Ca trực: @info.SlotTime</strong>
+				</div>
+				<div class="card-body">
+					@{
+						var tests = Model.ContainsKey(info.RoomId)
+						? Model[info.RoomId]
+						: new List<HospitalManagement.ViewModels.TestPatientViewModel>();
+					}
+
+					@if (tests.Count == 0)
+					{
+						<div class="alert alert-info text-center mb-0">
+							Không có bệnh nhân nào trong phòng này.
+						</div>
+					}
+					
+					else
+					{
+						<div class="table-responsive">
+							<table class="table table-bordered table-striped table-hover text-center align-middle">
+								<thead class="table-light">
+									<tr>
+										<th>Tên bệnh nhân</th>
+										<th>Tên xét nghiệm</th>
+										<th>Thời gian chỉ định</th>
+										<th>Thao tác</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var item in tests)
+									{
+										<tr>
+											<td>@item.PatientName</td>
+											<td>@item.TestName</td>
+											<td>@item.AssignedTime</td>
+											<td>
+												<a asp-action="TestInput"
+												   asp-route-testRecordID="@item.TestRecordID"
+												   class="btn btn-sm btn-outline-primary">
+													<i class="fas fa-vial me-1"></i> Bắt đầu test
+												</a>
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
+				</div>
+			</div>
+		}
+	}
+</div>

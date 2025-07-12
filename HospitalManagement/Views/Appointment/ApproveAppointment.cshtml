@@ -1,0 +1,259 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<Appointment>
+@{
+	ViewData["Title"] = "Xét duyệt cuộc hẹn";
+	var startTime = new TimeSpan(7, 0, 0);
+	var endTime = new TimeSpan(17, 0, 0);
+	var slotDuration = new TimeSpan(1, 0, 0);
+	var status = ViewData["StatusFilter"]?.ToString() ?? "All";
+
+}
+@section Styles {
+	<link rel="stylesheet" href="~/css/booking.css" asp-append-version="true" />
+	<style>
+		table td, table th {
+			padding: 10px !important;
+			vertical-align: middle;
+		}
+	</style>
+}
+<div class="container-xxl" style="max-width: 100%;">
+	<div class="container" style="max-width: 100%;">
+		<div class="mb-4">
+			<h2 class="text-primary">Danh Sách Cuộc Hẹn</h2>
+		</div>
+		<div class="row g-4 mb-4">
+			<div class="col-12">
+				<div class="bg-light rounded p-4">
+					<ul class="nav nav-pills justify-content-center mb-0">
+						<li class="nav-item me-2">
+							<a class="nav-link @(status == "All" ? "active" : "") fw-medium px-4 py-2" href="?statusFilter=All">
+								<i class="fas fa-list me-2"></i>Tất cả
+							</a>
+						</li>
+						<li class="nav-item me-2">
+							<a class="nav-link @(status == "Pending" ? "active" : "") fw-medium px-4 py-2" href="?statusFilter=Pending">
+								<i class="fas fa-clock me-2 text-warning"></i>Cần xét duyệt
+							</a>
+						</li>
+						<li class="nav-item me-2">
+							<a class="nav-link @(status == "Confirmed" ? "active" : "") fw-medium px-4 py-2" href="?statusFilter=Confirmed">
+								<i class="fas fa-check me-2 text-success"></i>Đã xác nhận
+							</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link @(status == "Rejected" ? "active" : "") fw-medium px-4 py-2" href="?statusFilter=Rejected">
+								<i class="fas fa-times me-2 text-danger"></i>Từ chối
+							</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-- Filter Form -->
+		<form method="get" asp-action="ApproveAppointment" asp-asp-controller="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">
+			<input type="hidden" name="statusFilter" value="@ViewData["StatusFilter"]" />
+			<div class="input-group" style="width: 250px;">
+				<input type="text" name="searchName" value="@ViewBag.SearchName" class="form-control" placeholder="Tìm kiếm theo tên bệnh nhân" />
+				<span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+			</div>
+
+			<select name="timeFilter" class="form-select" style="width: 150px;">
+				<option value="">Chọn khung giờ</option>
+				@if (ViewBag.SlotOptions != null)
+				{
+					foreach (var slot in ViewBag.SlotOptions)
+					{
+						var isSelected = ViewBag.SlotFilter != null && ViewBag.SlotFilter == slot.SlotId.ToString();
+						var timeLabel = $"{slot.StartTime:hh\\:mm} - {slot.EndTime:hh\\:mm}";
+						<option value="@slot.SlotId" selected="@(isSelected ? "selected" : null)">@timeLabel</option>
+					}
+				}
+				else
+				{
+					<option disabled selected>Không có khung giờ</option>
+				}
+			</select>
+
+			<input type="date" id="dateFilter" name="dateFilter" value="@ViewBag.DateFilter" class="form-control" style="width: 180px;" />
+
+			<button type="submit" class="btn btn-primary">Lọc</button>
+			<a asp-action="ApproveAppointment" asp-controller="Appointment" asp-route-statusFilter="@ViewBag.StatusFilter" class="btn btn-secondary">Xóa lọc</a>
+
+		</form>
+
+		<!-- Appointment Table -->
+		<div class="table-responsive" style="min-width: 100%;">
+			<table class="table table-bordered table-hover text-center align-middle text-center w-100">
+				<thead class="table-light">
+					<tr>
+						<th>Mã lịch hẹn</th>
+						<th>Tên bệnh nhân</th>
+						<th>Email</th>
+						<th>Số điện thoại</th>
+						<th>Mô tả</th>
+						<th>Tên bác sĩ</th>
+						<th>Khoa</th>
+						<th>Tên nhân viên</th>
+						<th>Ngày</th>
+						<th>Giờ bắt đầu</th>
+						<th>Giờ kết thúc</th>
+						<th>Dịch vụ</th>
+						<th>Trạng thái</th>
+						<th style="width: 200px;">Hành động</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (Model != null && Model.Any())
+					{
+						foreach (var item in Model)
+						{
+							<tr>
+								<td>@item.AppointmentId</td>
+								<td>@item.Patient.FullName</td>
+								<td>@item.Patient.Email</td>
+								<td>@item.Patient.PhoneNumber</td>
+								<td>@item.Note</td>
+								<td>
+									@if (item.Doctor != null)
+									{
+										@item.Doctor.FullName
+									}
+									else if (item.Status != "Rejected")
+									{
+										<a href="#" class="text-primary open-assign-modal"
+										   data-appointment-id="@item.AppointmentId"
+										   data-appointment-date="@item.Date.ToString("yyyy-MM-dd")"
+										   title="Click để phân công bác sĩ">
+											<i class="fas fa-plus-circle me-1"></i>Phân công bác sĩ
+										</a>
+									}
+								</td>
+								<td>@(item.Doctor?.DepartmentName ?? "N/A")</td>
+								<td>@(item.CreatedByStaff?.FullName ?? "N/A")</td>
+								<td>@item.Date</td>
+								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
+								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>
+								<td>
+									@if (item.ServiceId != null)
+									{
+										@:Gói khám cơ bản: @item.Service?.ServiceType
+									}
+									else if (item.PackageId != null)
+									{
+										@:Gói khám nâng cao: @item.Package?.PackageName
+									}
+								</td>
+								<td>
+									@if (item.Status == "Pending")
+									{
+										<span class="badge bg-warning text-dark">Chờ xác nhận</span>
+									}
+									else if (item.Status == "Ongoing")
+									{
+										<span class="badge bg-info text-white">Đang diễn ra</span>
+									}
+									else if (item.Status == "Rejected")
+									{
+										<span class="badge bg-danger">Từ chối</span>
+									}
+									else if (item.Status == "Confirmed")
+									{
+										<span class="badge bg-success">Đã xác nhận</span>
+									}
+									else if (item.Status == "Completed")
+									{
+										var isPaid = item.PaymentStatus;
+										<span class="badge @(isPaid == "Paid" ? "bg-primary" : "bg-secondary")">
+											@(isPaid == "Paid" ? "Hoàn thành - Đã thanh toán" : "Hoàn thành - Chưa thanh toán")
+										</span>
+									}
+									else
+									{
+										<span class="badge bg-secondary">@item.Status</span>
+									}
+								</td>
+								<td>
+									<div class="d-flex flex-column gap-1">
+										<!-- Chi tiết button -->
+										<a asp-action="Detail"
+										   asp-controller="Appointment"
+										   asp-route-appId="@item.AppointmentId"
+										   class="btn btn-sm btn-primary w-100">
+											<i class="fas fa-eye me-1"></i>Chi tiết
+										</a>
+
+										<!-- Approval buttons -->
+										@if (item.Status == "Pending")
+										{
+											<div class="d-flex gap-1">
+												<form method="post"
+													  asp-action="Review"
+													  asp-controller="Appointment"
+													  class="flex-fill">
+													<input type="hidden" name="id" value="@item.AppointmentId" />
+													<button name="action" value="Accept" class="btn btn-sm btn-success w-100" title="Chấp nhận">
+														<i class="fas fa-check me-1"></i>Duyệt
+													</button>
+												</form>
+												<form method="post"
+													  asp-action="Review"
+													  asp-controller="Appointment"
+													  class="flex-fill">
+													<input type="hidden" name="id" value="@item.AppointmentId" />
+													<button name="action" value="Reject" class="btn btn-sm btn-danger w-100" title="Từ chối">
+														<i class="fas fa-times me-1"></i>Từ chối
+													</button>
+												</form>
+											</div>
+										}
+									</div>
+								</td>
+							</tr>
+						}
+					}
+					else
+					{
+						<tr>
+							<td colspan="13" class="text-center text-muted">Không có cuộc hẹn nào.</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<div class="modal fade" id="assignDoctorModal" tabindex="-1" aria-labelledby="assignDoctorModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-xl modal-dialog-centered">
+		<div class="modal-content" id="assignDoctorModalBody">
+		</div>
+	</div>
+</div>
+@if (Model != null && Model.PageCount > 1)
+{
+	<div class="d-flex justify-content-center mt-4">
+		@Html.PagedListPager(Model, page => Url.Action("ApproveAppointment", new
+			{
+				page,
+				searchName = ViewBag.SearchName,
+				slotFilter = ViewBag.SlotFilter,
+				dateFilter = ViewBag.DateFilter,
+				statusFilter = ViewBag.StatusFilter
+			}), new PagedListRenderOptions
+{
+	DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+	DisplayLinkToLastPage = PagedListDisplayMode.Always,
+	DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+	DisplayLinkToNextPage = PagedListDisplayMode.Always,
+	DisplayLinkToIndividualPages = true,
+	MaximumPageNumbersToDisplay = 5,
+	UlElementClasses = new[] { "pagination" },
+	LiElementClasses = new[] { "page-item" },
+	PageClasses = new[] { "page-link" }
+})
+	</div>
+}
+@section Scripts {
+	<script src="~/js/Appointment/AssignDoctor.js" asp-append-version="true"></script>
+}
