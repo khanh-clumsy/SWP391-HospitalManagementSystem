@@ -1,7 +1,6 @@
 ﻿@model Appointment
 @{
 	ViewData["Title"] = "Chi tiết cuộc hẹn";
-	var sortedTrackings = ViewBag.SortedTrackings as List<Tracking>;
 }
 
 <!-- Appointment Details Start -->
@@ -127,7 +126,7 @@
 									<p class="mb-0 text-muted">
 										@if (Model.Service != null)
 										{
-											@* <span><strong>Loại dịch vụ:</strong> @Model.Service.ServiceType</span><br>
+											<span><strong>Loại dịch vụ:</strong> @Model.Service.ServiceType</span><br>
 											<span><strong>Giá dịch vụ:</strong> @Model.Service.ServicePrice vnd</span>
 
 										}
@@ -135,18 +134,6 @@
 										{
 											<span><strong>Gói khám:</strong> @Model.Package.PackageName</span><br>
 											<span><strong>Giá khám:</strong> @Model.Package.FinalPrice vnd</span>
-
-											<span> *@
-												<strong>Gói dịch vụ:</strong> @Model.Service.ServiceType
-												- <strong class="text-success">@($"{Model.Service.ServicePrice:#,##0}₫")</strong>
-											</span>
-										}
-										else if (Model.Package != null)
-										{
-											<span>
-												<strong>Gói khám:</strong> @Model.Package.PackageName
-												- <strong class="text-success">@($"{Model.Package.FinalPrice:#,##0}₫")</strong>
-											</span>
 										}
 										else
 										{
@@ -174,14 +161,14 @@
 											<th>Thời gian chỉ định</th>
 											<th>Tên xét nghiệm</th>
 											<th>Trạng thái</th>
-											<th>Giờ thực hiện</th>
+											<th>Ngày thực hiện</th>
 											<th>Kết quả</th>
 										</tr>
 									</thead>
 									<tbody>
-										@if (sortedTrackings != null && sortedTrackings.Any())
+										@if (Model.Trackings != null && Model.Trackings.Any())
 										{
-											foreach (var tracking in sortedTrackings)
+											foreach (var tracking in Model.Trackings.OrderBy(t => t.Time))
 											{
 												<tr>
 													<td>@tracking.Room?.RoomName</td>
@@ -204,7 +191,7 @@
 																	badgeTextTest = "Đang diễn ra";
 																	break;
 																case "Completed":
-																	badgeClassTest += "bg-primary";
+																	badgeClass += "bg-primary";
 																	badgeTextTest = "Hoàn thành";
 																	break;
 																default:
@@ -215,11 +202,11 @@
 															<span class="@badgeClassTest">@badgeTextTest</span>
 														}
 													</td>
-													<td>@tracking.TestRecord?.CompletedAt</td>
+													<td>@tracking.TestRecord?.CreatedAt?.ToString("dd/MM/yyyy")</td>
 													<td>
-														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Completed")
+														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Complete")
 														{
-															<a class="btn btn-sm btn-outline-primary" asp-controller="Test" asp-action="ViewTestResult" asp-route-id="@tracking.TestRecord.TestRecordId">Xem kết quả</a>
+															<a class="btn btn-sm btn-outline-primary" asp-controller="TestPerform" asp-action="ViewOngoingTest" asp-route-id="@tracking.TestRecord.TestRecordId">Xem kết quả</a>
 														}
 													</td>
 												</tr>
@@ -278,18 +265,11 @@
 								Thông tin bổ sung
 							</h5>
 							<div class="row">
-								@if (Model.CreatedByStaff != null)
+								@if (Model.Staff != null)
 								{
 									<div class="col-md-4 mb-3">
 										<h6 class="text-muted">Nhân viên hỗ trợ</h6>
-										<p class="mb-0">@Model.Service.ServiceType</p>
-									</div>
-								}
-								@if (Model.CreatedByStaff != null)
-								{
-									<div class="col-md-4 mb-3">
-										<h6 class="text-muted">Staff Member</h6>
-										<p class="mb-0">@Model.CreatedByStaff.FullName</p>
+										<p class="mb-0">@Model.Staff.FullName</p>
 									</div>
 								}
 								<div class="col-md-4 mb-3">
@@ -300,43 +280,39 @@
 						</div>
 					</div>
 
-					<!-- Action Buttons Start -->
-					<div class="row mb-4">
-						<div class="col-12 text-center">
-							<div class="d-inline-flex gap-3 flex-wrap justify-content-center">
-								@if (User.IsInRole("Receptionist"))
-								{
-									<a asp-controller="Tracking" asp-action="StartAppointmentProcess"
-									   class="btn btn-primary py-3 px-4">
-										<i class="fa fa-arrow-left me-2"></i>
-										Quay lại danh sách hôm nay
-									</a>
-								}
-								else
-								{
-									<a asp-action="MyAppointments"
-									   class="btn btn-primary py-3 px-4">
-										<i class="fa fa-arrow-left me-2"></i>
-										Quay lại lịch hẹn của tôi
-									</a>
-								}
-
-								@if ((User.IsInRole("Patient") || User.IsInRole("Receptionist") || User.IsInRole("Cashier"))
-																&& Model.InvoiceDetails != null
-																&& Model.InvoiceDetails.Any())
-								{
-									<a class="btn btn-outline-primary py-3 px-4"
-									   asp-controller="Invoice"
-									   asp-action="Detail"
-									   asp-route-id="@Model.InvoiceDetails.First().InvoiceDetailId">
-										<i class="fa fa-file-invoice me-2"></i> Xem hóa đơn
-									</a>
-								}
+					<!-- Action Buttons -->
+					@if (User.IsInRole("Receptionist"))
+					{
+						<div class="row">
+							<div class="col-12 text-center">
+								<a asp-controller="Tracking" asp-action="StartAppointmentProcess" class="btn btn-primary py-3 px-5 me-3">
+									<i class="fa fa-arrow-left me-2"></i>
+									Quay lại danh sách hôm nay
+								</a>
 							</div>
 						</div>
-					</div>
-					<!-- Action Buttons End -->
-
+					}
+					else
+					{
+						<div class="row">
+							<div class="col-12 text-center">
+								<a asp-action="MyAppointments" class="btn btn-primary py-3 px-5 me-3">
+									<i class="fa fa-arrow-left me-2"></i>
+									Quay lại lịch hẹn của tôi
+								</a>
+							</div>
+						</div>
+						@if (Model.InvoiceDetails != null && Model.InvoiceDetails.Any())
+						{
+							<div class="row mb-4">
+								<div class="col-12 text-center">
+									<a class="btn btn-outline-primary" asp-controller="Invoice" asp-action="Detail" asp-route-id="@Model.InvoiceDetails.First().InvoiceDetailId">
+										<i class="fa fa-file-invoice me-2"></i> Xem hóa đơn
+									</a>
+								</div>
+							</div>
+						}
+					}
 				</div>
 			</div>
 		</div>

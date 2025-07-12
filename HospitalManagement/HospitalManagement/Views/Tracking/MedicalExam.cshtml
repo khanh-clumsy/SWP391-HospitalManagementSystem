@@ -1,5 +1,4 @@
 ﻿@using System.Text.Json
-@using HospitalManagement.Helpers
 @model HospitalManagement.ViewModels.ExaminationViewModel
 @{
 	ViewData["Title"] = "Khám bệnh";
@@ -29,33 +28,8 @@
 		<!-- Patient Info -->
 		<div class="medical-patient-info medical-mb-4">
 			<p><strong>Họ tên:</strong> @Model.PatientName</p>
-
-			@* Kiểm tra và xử lý ngày sinh *@
-			@if (!Model.DateOfBirth.HasValue || Model.DateOfBirth == DateTime.MinValue)
-			{
-				<form asp-action="UpdateDOB" method="post" class="mb-3">
-					<input type="hidden" name="patientId" value="@Model.PatientID" />
-					<div class="row g-2 align-items-center">
-						<div class="col-auto">
-							<label for="dob" class="col-form-label fw-bold">Ngày sinh:</label>
-						</div>
-						<div class="col-auto">
-							<input type="date" id="dob" name="dob" class="form-control" required />
-						</div>
-						<div class="col-auto">
-							<button type="submit" class="btn btn-sm btn-primary">Lưu ngày sinh</button>
-						</div>
-					</div>
-					<div class="form-text text-danger">Ngày sinh chưa có. Vui lòng nhập!</div>
-				</form>
-			}
-			else
-			{
-				<p><strong>Ngày sinh:</strong>@Model.DateOfBirth.Value.ToString("dd/MM/yyyy")</p>
-			}
-
+			<p><strong>Ngày sinh:</strong> @(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd/MM/yyyy") : "")</p>
 			<p><strong>Giới tính:</strong> @(Model.Gender == "M" ? "Nam" : Model.Gender == "F" ? "Nữ" : "Khác")</p>
-
 			@if (!string.IsNullOrWhiteSpace(Model.ServiceName))
 			{
 				<p><strong>Dịch vụ:</strong> @Model.ServiceName</p>
@@ -66,8 +40,7 @@
 			}
 		</div>
 
-
-		<form asp-controller="Tracking" asp-action="SaveExamination" id="MedicalForm" method="post">
+		<form asp-controller="Tracking" asp-action="SaveExamination" method="post">
 			@Html.AntiForgeryToken()
 			<input type="hidden" asp-for="AppointmentId" value="@Model.AppointmentId" />
 
@@ -117,11 +90,7 @@
 								<option value="">-- Chọn loại xét nghiệm --</option>
 								@foreach (var test in Model.AvailableTests)
 								{
-									var isFromPackage = Model.TestRecords.Any(r => r.TestId == test.TestId);
-									if (!isFromPackage)
-									{
-										<option value="@test.TestId">@test.Name</option>
-									}
+									<option value="@test.TestId">@test.Name</option>
 								}
 							</select>
 						</div>
@@ -155,94 +124,6 @@
 					</label>
 					<ul class="medical-room-list" id="assignedRoomList"></ul>
 				</div>
-				<!-- Danh sách các xét nghiệm cần chỉ định phòng -->
-				<div class="medical-form-card medical-mt-4">
-					<div class="medical-section-header">
-						<i class="fas fa-vials medical-section-icon"></i>
-						<h3 class="medical-section-title">Các xét nghiệm từ gói khám. Vui lòng chỉ định phòng ở bảng bên dưới.</h3>
-					</div>
-
-					@if (Model.TestRecords != null && Model.TestRecords.Any())
-					{
-						<table class="table table-bordered table-hover">
-							<thead class="table-light">
-								<tr>
-									<th>Tên xét nghiệm</th>
-									<th>Phòng đã chỉ định</th>
-									<th>Trạng thái</th>
-									<th>Thao tác</th>
-								</tr>
-							</thead>
-							<tbody>
-								@foreach (var test in Model.TestRecords)
-								{
-									<tr id="test-row-@test.TestRecordId">
-										<td>@test.TestName</td>
-										<td>
-											@if (!test.IsAssigned)
-											{
-												<select class="form-select form-select-sm"
-														id="room-selector-@test.TestRecordId">
-													<option value="">-- Chọn phòng --</option>
-													@if (Model.AvailableRoomsPerTest.ContainsKey(test.TestId))
-													{
-														foreach (var room in Model.AvailableRoomsPerTest[test.TestId])
-														{
-															<option value="@room.RoomId">@room.RoomName</option>
-														}
-													}
-												</select>
-											}
-											else
-											{
-												<span id="assigned-room-@test.TestRecordId">@test.RoomName</span>
-											}
-										</td>
-										<td id="test-status-@test.TestRecordId">
-											@{
-												var status = test.TestStatus;
-												// Debug: Hiển thị giá trị thực tế
-												string displayStatus = status switch
-												{
-													AppConstants.TestStatus.WaitingForPayment => "Chờ thanh toán",
-													AppConstants.TestStatus.Paid => "Đã thanh toán",
-													AppConstants.TestStatus.Pending => "Chưa bắt đầu",
-													AppConstants.TestStatus.Ongoing => "Đang thực hiện",
-													AppConstants.TestStatus.Failed => "Thất bại",
-													AppConstants.TestStatus.Canceled => "Đã huỷ",
-													AppConstants.TestStatus.Completed => "Hoàn thành",
-													_ => "Không rõ"
-												};
-											}
-											@displayStatus
-										</td>
-										<td>
-											@if (!test.IsAssigned)
-											{
-												<button type="button"
-														class="btn btn-sm btn-outline-primary"
-														onclick="assignPackageTest(@test.TestRecordId, @test.TestId, @Model.AppointmentId)">
-													<i class="fas fa-door-open"></i> Chỉ định phòng
-												</button>
-											}
-											else
-											{
-												<span class="text-success">Đã chỉ định</span>
-											}
-										</td>
-									</tr>
-								}
-
-							</tbody>
-
-						</table>
-					}
-					else
-					{
-						<p class="text-muted">Không có xét nghiệm nào.</p>
-					}
-				</div>
-
 			</div>
 
 			<!-- Action Buttons -->

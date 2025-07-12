@@ -1,7 +1,5 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace HospitalManagement.Repositories
 {
@@ -75,24 +73,6 @@ namespace HospitalManagement.Repositories
             }
 
             return query.ToList();
-        }
-
-        public async Task<List<Test>> GetAvailableTestsAsync()
-        {
-            return await _context.Tests
-                .AsNoTracking()
-                .Select(t => new Test { TestId = t.TestId, Name = t.Name })
-                .ToListAsync();
-        }
-
-        public async Task<List<TestRecord>> GetUnassignedTestRecordsAsync(int appointmentId)
-        {
-            return await _context.TestRecords
-                .Where(tr => tr.AppointmentId == appointmentId)
-                .Where(tr =>
-                    !_context.Trackings.Any(t => t.TestRecordId == tr.TestRecordId && t.AppointmentId == appointmentId)
-                )
-                .ToListAsync();
         }
     }
 }

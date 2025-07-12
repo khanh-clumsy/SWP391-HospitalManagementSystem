@@ -35,23 +35,13 @@
             </div>
         }
     </div>
-    <div style="display: flex; align-items: center;">
-        <h1 id="currentPatient"
-            class="text-danger fw-bold mb-4"
-            style="font-size: 4rem; flex: 0 0 70%; margin: 50px;">
-            Đang tải...
-        </h1>
-        <h2 style="flex: 0 0 30%; margin: 0;">
-            Bác sĩ: @ViewBag.DoctorName
-        </h2>
-    </div>
+    <h1 id="currentPatient" class="text-center text-danger fw-bold mb-4" style="font-size: 4rem;">
+        Đang tải...
+    </h1>
 
-    @if (User.IsInRole("Doctor"))
-    {
-        <div class="text-center mb-4">
-            <button onclick="nextPatient()" class="btn btn-lg btn-success px-5 py-2">Tiếp theo</button>
-        </div>
-    }
+    <div class="text-center mb-4">
+        <button onclick="nextPatient()" class="btn btn-lg btn-success px-5 py-2">Tiếp theo</button>
+    </div>
 
     <div class="row">
         <!-- Bảng bên trái -->

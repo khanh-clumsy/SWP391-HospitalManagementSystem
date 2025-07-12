@@ -11,8 +11,6 @@ public partial class Service
 
     public decimal ServicePrice { get; set; }
 
-    public bool IsDeleted { get; set; }
-
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();

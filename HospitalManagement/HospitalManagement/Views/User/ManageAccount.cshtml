@@ -345,10 +345,7 @@
                                     <input type="hidden" name="doctors[@i].IsActive" value="false" />
                                 </td>
                                 <td>
-                                    <div class="d-inline-flex">
-                                        <a href="/User/DoctorDetail?id=@Model.Doctors[i].DoctorId" class="btn btn-sm btn-outline-secondary me-2">Chi tiết</a>
-                                        <a asp-action="ViewSchedule" asp-route-id="@Model.Doctors[i].DoctorId" class="btn btn-sm btn-outline-secondary">Lịch làm việc</a>
-                                    </div>
+                                    <a href="/User/DoctorDetail?id=@Model.Doctors[i].DoctorId" class="btn btn-sm btn-outline-secondary">Detail</a>
                                 </td>
                             </tr>
                         }

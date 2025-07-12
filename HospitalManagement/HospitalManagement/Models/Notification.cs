@@ -9,18 +9,9 @@ public partial class Notification
 
     public string? Role { get; set; }
 
+    public int? RefId { get; set; }
 
-    public string Role { get; set; } = null!;
-
-    public int RefId { get; set; }
-
-    public string? Title { get; set; }
-
-    public bool? IsRead { get; set; }
-
-    public string? Link { get; set; }
-
-    public string? NotificationType { get; set; }
+    public string? Message { get; set; }
 
     public bool? IsRead { get; set; }
 

@@ -74,9 +74,9 @@ namespace HospitalManagement.Services
                 builder.AppendLine($"<p><strong>Ghi chú:</strong> {appointment.Note}</p>");
             }
 
-            if (appointment.CreatedByStaff != null)
+            if (appointment.Staff != null)
             {
-                builder.AppendLine($"<p><strong>Nhân viên tạo lịch:</strong> {appointment.CreatedByStaff.FullName}</p>");
+                builder.AppendLine($"<p><strong>Nhân viên tạo lịch:</strong> {appointment.Staff.FullName}</p>");
             }
         }
     }

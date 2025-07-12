@@ -2,6 +2,8 @@
 // Initialize
 $(function () {
     // Populate selectedTests from model data
+    
+
     renderSelectedTests();
     calculatePricing();
 

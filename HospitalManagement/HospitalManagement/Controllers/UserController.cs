@@ -87,7 +87,7 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status, string? roomType)
         {
             name = UserController.NormalizeName(name);
-            int pageSize = 9;
+            int pageSize = 10;
             int pageNumber = page ?? 1;
 
             List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, roomType, pageNumber, pageSize);
@@ -271,8 +271,8 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("ManageRoom");
             }
 
-            // Nếu muốn chuyển sang "Maintain", kiểm tra có lịch trong tương lai không
-            if (room.Status == "Maintain")
+            // Nếu muốn chuyển sang "Bảo trì", kiểm tra có lịch trong tương lai không
+            if (room.Status == "Bảo trì")
             {
                 var now = DateTime.Now;
                 bool hasFutureSchedule = roomInDb.Schedules.Any(s =>
@@ -286,6 +286,7 @@ namespace HospitalManagement.Controllers
             }
 
             // Cập nhật thông tin
+            roomInDb.RoomName = room.RoomName.Trim();
             roomInDb.RoomType = room.RoomType.Trim();
             roomInDb.Status = room.Status.Trim();
 
@@ -411,7 +412,7 @@ namespace HospitalManagement.Controllers
             }
 
             // Lưu phòng mới
-            room.Status = "Active"; // Hoặc null nếu bạn không cần trạng thái
+            room.Status = "Hoạt động"; // Hoặc null nếu bạn không cần trạng thái
             _context.Rooms.Add(room);
             _context.SaveChanges();
 
@@ -760,12 +761,6 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> OngoingPatientScreen()
         {
-            // 1. Lấy DoctorId từ claims
-            int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
-
-            // 2. Lấy thông tin bác sĩ
-            var doctor = await _doctorRepo.GetByIdAsync(doctorId);
-            ViewBag.DoctorName = doctor.FullName;
             return View();
         }
         [HttpGet]
@@ -776,7 +771,7 @@ namespace HospitalManagement.Controllers
             int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
 
             // 2. Lấy thông tin bác sĩ
-            var doctor = await _doctorRepo.GetByIdAsync(doctorId); 
+            var doctor = await _doctorRepo.GetByIdAsync(doctorId); // nên Include Department
             if (doctor == null)
                 return RedirectToAction("NotFound", "Home");
 
@@ -1091,54 +1086,8 @@ namespace HospitalManagement.Controllers
             // Trộn chuỗi để các ký tự không cố định vị trí
             return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
         }
+        
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ViewSchedule(int id, int? year, string? weekStart)
-        {
-            var doctor = await _doctorRepo.GetByIdAsync(id);
-            if (doctor == null) return NotFound();
-
-            // Nếu không truyền gì, dùng tuần hiện tại
-            int selectedYear = year ?? DateTime.Today.Year;
-
-            DateOnly selectedWeekStart;
-            if (!string.IsNullOrEmpty(weekStart) &&
-                DateOnly.TryParseExact(weekStart, "yyyy-MM-dd", out var parsed))
-            {
-                selectedWeekStart = parsed;
-            }
-            else
-            {
-                selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
-            }
-
-            DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
-
-            var schedules = _context.Schedules
-                .Where(s => s.DoctorId == doctor.DoctorId && s.Day >= selectedWeekStart && s.Day <= selectedWeekEnd)
-                .Select(s => new DoctorScheduleViewModel.ScheduleItem
-                {
-                    ScheduleId = s.ScheduleId,
-                    Day = s.Day,
-                    SlotId = s.SlotId,
-                    StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
-                    EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
-                    RoomName = s.Room.RoomName,
-                    RoomId = s.Room.RoomId,
-                    DoctorId = doctor.DoctorId,
-                    DoctorName = doctor.FullName,
-                    Status = s.Status
-                })
-                .ToList();
-
-            ViewBag.SelectedYear = selectedYear;
-            ViewBag.SelectedWeekStart = selectedWeekStart;
-            var slots = _context.Slots.ToList();
-            ViewBag.SlotsPerDay = slots.Count();
-            // TempData["success"] = $"Size: {schedules.Capacity}";
-            //return Redirect("Home/NotFound");
-            return View(schedules);
-        }
 
         public List<SelectListItem> GetAllDepartmentName()
         {
@@ -1218,10 +1167,6 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("RoomDetail", new { id = room.RoomId, weekStart = selectedWeekStart });
         }
 
-        private DateOnly GetStartOfWeek(DateOnly date)
-        {
-            int diff = ((int)date.DayOfWeek + 6) % 7; // Monday = 0
-            return date.AddDays(-diff);
-        }
+
     }
 }

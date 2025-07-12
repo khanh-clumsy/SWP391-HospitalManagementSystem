@@ -9,8 +9,6 @@ namespace HospitalManagement.ViewModels
         public int AppointmentId { get; set; }
 
         // Thông tin bệnh nhân
-        public int PatientID { get; set; }
-
         public string PatientName { get; set; }
 
         public string TestStatus { get; set; }
@@ -40,10 +38,5 @@ namespace HospitalManagement.ViewModels
         public List<Test> AvailableTests { get; set; } = new List<Test>();
         // Có kết quả test hay chưa
         public bool AllTestsCompleted { get; set; }
-
-        public List<TestRecordViewModel> TestRecords { get; set; } = new();
-
-        public Dictionary<int, List<Room>> AvailableRoomsPerTest { get; set; } = new();
-
     }
 }

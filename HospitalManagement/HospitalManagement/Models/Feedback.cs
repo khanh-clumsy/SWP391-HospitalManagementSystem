@@ -21,9 +21,7 @@ public partial class Feedback
 
     public virtual Package? Package { get; set; }
 
-    public bool IsSpecial { get; set; }
-
-    public virtual Package? Package { get; set; }
+    public virtual Patient Patient { get; set; } = null!;
 
     public virtual Service? Service { get; set; }
 }

@@ -1,43 +1,33 @@
-﻿using HospitalManagement.Data;
-using HospitalManagement.Filters;
-using HospitalManagement.Models;
+﻿using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Repositories;
-using HospitalManagement.Services;
+using HospitalManagement.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
+using HospitalManagement.Services;
+using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HospitalManagement.Filters;
 using HospitalManagement.Services.VnPay;
 
-using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging;
-using OfficeOpenXml;
-using System.ComponentModel;
-
-Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
-// Đăng ký các Repository
-builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
-builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<ITestRepository, TestRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
 builder.Services.AddScoped<ISlotRepository, SlotRepository>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IScheduleChangeRepository, ScheduleChangeRepository>();
 builder.Services.AddScoped<InvoiceService>();
-builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-
 
 // Add services to the container
 builder.Services.AddCors(options =>
@@ -145,11 +135,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
     }
 }
-using (var scope = app.Services.CreateScope())
-{
-    var repo = scope.ServiceProvider.GetRequiredService<IScheduleRepository>();
-    repo.PrintDoctorRoomsToday();
-}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

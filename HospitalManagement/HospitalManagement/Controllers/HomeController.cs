@@ -8,7 +8,6 @@ using System.Security.Claims;
 using X.PagedList;
 using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Data;
-using HospitalManagement.Helpers;
 
 namespace HospitalFETemplate.Controllers
 {
@@ -25,136 +24,37 @@ namespace HospitalFETemplate.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Nếu là bệnh nhân
+            // Nếu là bệnh nhân, lấy phòng cần tới
             if (User.Identity.IsAuthenticated && User.IsInRole("Patient"))
             {
                 var patientIdClaim = User.FindFirst("PatientID")?.Value;
                 if (int.TryParse(patientIdClaim, out int patientId))
                 {
-                    Console.WriteLine($"patientId: {patientId}");
-                    // Tìm appointment đang diễn ra
+                    // Lấy duy nhất 1 appointment Ongoing của bệnh nhân
                     var appointment = await _context.Appointments
-                        .Where(a => a.PatientId == patientId && a.Status == AppConstants.AppointmentStatus.Ongoing)
-                        .Include(a => a.Trackings)
-                            .ThenInclude(t => t.Room)
-                        .Include(a => a.Trackings)
-                            .ThenInclude(t => t.TestRecord)
+                        .Where(a => a.PatientId == patientId && a.Status == "Ongoing")
                         .FirstOrDefaultAsync();
-
-                    Console.WriteLine($"appointment: {(appointment != null ? appointment.AppointmentId.ToString() : "null")}");
-
                     if (appointment != null)
                     {
-                        var allTrackings = appointment.Trackings
-                            .OrderBy(t => t.Time)
-                            .ToList();
-                        Console.WriteLine($"allTrackings.Count: {allTrackings.Count}");
-
-                        // 1. Phòng khám đầu tiên
-                        var clinic = allTrackings
-                            .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
-                            .OrderBy(t => t.Time)
-                            .FirstOrDefault();
-                        Console.WriteLine($"clinic: {(clinic != null ? clinic.Room?.RoomName : "null")}, TrackingBatch: {(clinic != null ? clinic.TrackingBatch.ToString() : "null")}");
-
-                        // 2. Gom theo batch
-                        var groupedByBatch = allTrackings
-                            .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Clinic)
-                            .GroupBy(t => t.TrackingBatch)
-                            .OrderBy(g => g.Key)
-                            .ToList();
-                        Console.WriteLine($"groupedByBatch.Count: {groupedByBatch.Count}");
-
-                        var sortedTrackings = new List<Tracking>();
-                        if (clinic != null)
-                            sortedTrackings.Add(clinic);
-
-                        foreach (var batch in groupedByBatch)
+                        // Lấy tracking mới nhất của appointment này (có phòng)
+                        var tracking = await _context.Trackings
+                            .Include(t => t.Room)
+                            .Where(t => t.AppointmentId == appointment.AppointmentId)
+                            .OrderByDescending(t => t.Time)
+                            .FirstOrDefaultAsync();
+                        if (tracking?.Room != null)
                         {
-                            var cashier = batch
-                                .FirstOrDefault(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier);
-
-                            var unpaid = batch
-                                .Where(t => t.TestRecord?.TestStatus == AppConstants.TestStatus.WaitingForPayment)
-                                .ToList();
-
-                            var others = batch
-                                .Except(unpaid)
-                                .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Cashier)
-                                .ToList();
-
-                            if (cashier != null && unpaid.Any())
-                                sortedTrackings.Add(cashier);
-
-                            sortedTrackings.AddRange(unpaid);
-                            sortedTrackings.AddRange(others);
-                        }
-                        Console.WriteLine("sortedTrackings:");
-                        foreach (var t in sortedTrackings)
-                        {
-                            Console.WriteLine($"  Room: {t.Room?.RoomName}, RoomType: {t.Room?.RoomType}, Batch: {t.TrackingBatch}, TestStatus: {t.TestRecord?.TestStatus}");
-                        }
-                        bool isClinicDone = clinic != null && groupedByBatch.Any(g =>
-                                g.Key == clinic.TrackingBatch &&
-                                g.Any(t =>
-                                    t.Room?.RoomType == AppConstants.RoomTypes.Cashier ||
-                                    t.TestRecord != null 
-                                )
-                            );
-                        Console.WriteLine($"isClinicDone: {isClinicDone}");
-
-                        // 3. Tìm tracking kế tiếp (chưa hoàn thành)
-                        Tracking nextTracking = null;
-
-                        if (clinic != null && !isClinicDone)
-                        {
-                            // Bệnh nhân chưa đi khám
-                            nextTracking = clinic;
-                        }
-                        else
-                        {
-                            // Sau khi khám xong
-                            foreach (var batch in groupedByBatch)
-                            {
-                                var cashier = batch.FirstOrDefault(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier);
-                                var unpaid = batch
-                                    .Where(t => t.TestRecord?.TestStatus == AppConstants.TestStatus.WaitingForPayment)
-                                    .ToList();
-
-                                var testSteps = batch
-                                    .Where(t => t.TestRecord != null &&
-                                                t.TestRecord.TestStatus != AppConstants.TestStatus.Completed)
-                                    .ToList();
-
-                                if (cashier != null && unpaid.Any())
-                                {
-                                    nextTracking = cashier;
-                                    break;
-                                }
-
-                                nextTracking = testSteps.FirstOrDefault();
-                                if (nextTracking != null)
-                                    break;
-                            }
-                        }
-                        Console.WriteLine($"nextTracking: {(nextTracking != null ? nextTracking.Room?.RoomName : "null")}, RoomType: {(nextTracking != null ? nextTracking.Room?.RoomType : "null")}");
-
-                        if (nextTracking?.Room != null)
-                        {
-                            ViewBag.PatientCurrentRoom = $"Bạn đang có cuộc hẹn cần tới phòng: {nextTracking.Room.RoomName}";
+                            ViewBag.PatientCurrentRoom = $"Bạn đang có cuộc hẹn cần tới phòng: {tracking.Room.RoomName}";
                             ViewBag.PatientCurrentAppointmentId = appointment.AppointmentId;
                         }
-                        else
-                        {
-                            ViewBag.PatientCurrentRoom = $"Không có phòng nào cần tới lúc này.";
+                        else{
+                            Console.WriteLine("Tracking is null!");
                         }
                     }
                 }
             }
-       
             return View();
         }
-
         public IActionResult About()
         {
             return View();
