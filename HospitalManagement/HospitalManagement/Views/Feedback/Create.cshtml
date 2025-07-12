@@ -1,0 +1,85 @@
+﻿@model HospitalManagement.ViewModels.FeedbackCreateViewModel
+@{
+    ViewData["Title"] = "Đánh giá dịch vụ";
+}
+
+<style>
+    #loadingOverlay {
+        display: none !important;
+    }
+
+    .custom-back-btn {
+        background-color: #006eff;
+        border-color: #006eff;
+        border-radius: 7px; /* 👈 Bo tròn rất nhẹ */
+        font-weight: 500;
+    }
+
+    .custom-back-btn:hover {
+        background-color: #005be0;
+        border-color: #005be0;
+    }
+</style>
+<div class="container mt-4">
+    <div class="col-12">
+        <a asp-controller="Appointment" asp-action="MyAppointments" asp-route-type="Completed" class="btn btn-primary custom-back-btn px-3 py-2">
+            <i class="fas fa-arrow-left"></i> Trở về
+        </a>
+    </div>
+    <br />
+    <h2>@ViewData["Title"]</h2>
+
+    <form asp-action="Create" method="post">
+        <div class="mb-3">
+            <label class="form-label d-block">Đánh giá</label>
+            <div id="star-rating" class="mb-2 d-flex gap-1">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    <input type="radio" name="Rating" value="@i" id="star-@i" class="d-none" />
+                    <label for="star-@i" class="star" data-value="@i" style="cursor: pointer; font-size: 2rem;">
+                        <i class="far fa-star"></i>
+                    </label>
+                }
+            </div>
+            <span asp-validation-for="Rating" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Nhận xét</label>
+            <textarea asp-for="Comment" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Comment" class="text-danger"></span>
+        </div>
+
+        <input type="hidden" asp-for="PackageId" />
+        <input type="hidden" asp-for="ServiceId" />
+
+        <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.querySelectorAll(".star").forEach(star => {
+            star.addEventListener("click", function () {
+                const value = parseInt(this.getAttribute("data-value"));
+                document.querySelectorAll(".star").forEach(s => {
+                    const i = parseInt(s.getAttribute("data-value"));
+                    const icon = s.querySelector("i");
+                    if (i <= value) {
+                        icon.classList.remove("far");
+                        icon.classList.add("fas", "text-warning");
+                    } else {
+                        icon.classList.remove("fas", "text-warning");
+                        icon.classList.add("far");
+                    }
+                });
+                // Đánh dấu radio tương ứng
+                const radio = document.getElementById("star-" + value);
+                if (radio) {
+                    radio.checked = true;
+                }
+            });
+        });
+    </script>
+}

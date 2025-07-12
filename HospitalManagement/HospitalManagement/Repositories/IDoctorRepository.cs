@@ -14,5 +14,6 @@ namespace HospitalManagement.Repositories
         Task<List<string>> GetDistinctDepartment(bool? containTestDoc);
         Task<List<Doctor>> GetDoctorsBySchedule(List<int> ids);
         Task<List<SelectListItem>> GetAvailableDoctorsAsync(string departmentName, int slotId, DateOnly day, int excludeDoctorId);
+        Task<(int xetNghiemCount, int otherCount)> CountDoctorsByDepartmentAsync();
     }
 }

@@ -35,6 +35,7 @@ builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IScheduleChangeRepository, ScheduleChangeRepository>();
 builder.Services.AddScoped<InvoiceService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
 ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
 
