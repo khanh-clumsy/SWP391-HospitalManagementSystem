@@ -32,4 +32,20 @@ public partial class Patient
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
+    public string GetFullGender()
+    {
+        if (this.Gender == "M")
+        {
+            return "Male";
+        }
+        else if (this.Gender == "F")
+        {
+            return "Female";
+        }
+        else
+        {
+            return "Other";
+        }
+    }
 }

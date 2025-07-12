@@ -1216,6 +1216,10 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("RoomDetail", new { id = room.RoomId, weekStart = selectedWeekStart });
         }
 
-
+        private DateOnly GetStartOfWeek(DateOnly date)
+        {
+            int diff = ((int)date.DayOfWeek + 6) % 7; // Monday = 0
+            return date.AddDays(-diff);
+        }
     }
 }
