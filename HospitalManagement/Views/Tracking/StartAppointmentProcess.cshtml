@@ -1,0 +1,153 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<Appointment>
+
+@{
+	ViewBag.Title = "Danh Sách Cuộc Hẹn";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-xxl py-5">
+	<div class="container">
+		<div class="text-center mb-4">
+			<h1 class="text-primary">
+				<i class="fas fa-calendar-check"></i> Quản Lý Cuộc Hẹn
+			</h1>
+			<p class="text-muted">Danh sách tất cả các cuộc hẹn hiện tại</p>
+		</div>
+
+		<div class="card">
+			<div class="card-body px-4 py-4">
+				@if (Model == null || !Model.Any())
+				{
+					<div class="text-center text-muted p-4">
+						<i class="fas fa-exclamation-circle fa-3x mb-3 text-muted"></i>
+						<h4>Không tìm thấy cuộc hẹn nào</h4>
+						<p>Hiện không có cuộc hẹn nào trong hệ thống.</p>
+					</div>
+				}
+				else
+				{
+					<div class="table-responsive">
+						<table class="table table-bordered table-hover text-center align-middle w-100">
+							<thead class="table-light">
+								<tr>
+									<th>Bệnh nhân</th>
+									<th>Ngày hẹn</th>
+									<th>Thời gian bắt đầu</th>
+									<th>Trạng thái cuộc hẹn</th>
+									<th>Trạng thái thanh toán</th>
+									<th>Thao tác</th>
+								</tr>
+							</thead>
+							<tbody>
+								@foreach (var appointment in Model)
+								{
+									var openInvoice = appointment.InvoiceDetails
+										.OrderBy(i => i.InvoiceDetailId)
+										.FirstOrDefault();
+									var invoiceId = openInvoice?.InvoiceDetailId ?? 0;
+
+									<tr id="row-@appointment.AppointmentId">
+										<td>@appointment.Patient?.FullName</td>
+										<td>@appointment.Date.ToString("dd/MM/yyyy")</td>
+										<td>@(appointment.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
+										<td>
+											<span class="badge
+												@(appointment.Status == "Confirmed"
+													? "bg-success"
+													: "bg-secondary")">
+												@(appointment.Status == "Confirmed" ? "Đã xác nhận" : appointment.Status)
+											</span>
+										</td>
+
+										<td>
+											<span class="badge
+												@(openInvoice.PaymentStatus=="Paid" ? "bg-success"	: "bg-warning text-dark")">
+												@(openInvoice.PaymentStatus=="Paid" ? "Đã thanh toán" : "Chưa thanh toán")
+											</span>
+										</td>
+
+
+										<td>
+											<div class="d-flex flex-wrap justify-content-center gap-2">
+												<a class="btn btn-sm btn-info"
+												   asp-controller="Appointment" asp-action="Detail" asp-route-appId="@appointment.AppointmentId">
+													<i class="fas fa-eye"></i> Chi tiết
+												</a>
+												<a class="btn btn-sm btn-warning @(openInvoice.PaymentStatus=="Paid" ? "disabled" : "")"
+													asp-controller="Payment" asp-action="PayStartAppointment" asp-route-invoiceId="@invoiceId">
+													<i class="fas fa-credit-card"></i> Thanh toán
+												</a>
+												<button type="button"
+														class="btn btn-sm btn-success btn-start"
+														data-id="@appointment.AppointmentId"
+												@(openInvoice.PaymentStatus=="Paid" ? "" : "disabled")>
+													<i class="fas fa-play"></i> Bắt đầu
+												</button>
+
+												@* <p>
+													@invoiceId
+												</p> *@
+											</div>
+										</td>
+									</tr>
+								}
+							</tbody>
+						</table>
+					</div>
+				}
+			</div>
+		</div>
+
+		@if (Model != null && Model.PageCount > 1)
+		{
+			<div class="d-flex justify-content-center mt-4">
+				@Html.PagedListPager(Model, page => Url.Action("MyAppointments", new
+					{
+						page,
+						phone = ViewBag.phone
+					}),
+								new PagedListRenderOptions
+			{
+				DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+				DisplayLinkToLastPage = PagedListDisplayMode.Always,
+				DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+				DisplayLinkToNextPage = PagedListDisplayMode.Always,
+				DisplayLinkToIndividualPages = true,
+				MaximumPageNumbersToDisplay = 5,
+				UlElementClasses = new[] { "pagination" },
+				LiElementClasses = new[] { "page-item" },
+				PageClasses = new[] { "page-link" }
+			})
+			</div>
+		}
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="startModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content" id="startModalContent">
+			<!-- AJAX content -->
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		$(document).ready(function () {
+			$('.btn-start').click(function () {
+				var id = $(this).data('id');
+
+				// Tránh bấm nếu đang disable
+				if ($(this).is(':disabled')) return;
+
+				$.get('/Tracking/StartAppointment', { id: id }, function (html) {
+					$('#startModalContent').html(html);
+					$('#startModal').modal('show');
+				});
+			});
+		});
+	</script>
+}

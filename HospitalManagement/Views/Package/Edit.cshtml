@@ -1,0 +1,281 @@
+﻿@using HospitalManagement.ViewModels.Package
+@model EditPackageViewModel
+@{
+	ViewBag.Title = "Chỉnh sửa gói khám";
+}
+
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/EditPackage.css">
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
+
+<div class="admin-container">
+	<div class="container">
+		<div class="admin-card">
+			<!-- Header -->
+			<div class="admin-header text-center py-3">
+				<h1 class="h2 text-primary"><i class="fas fa-edit me-2"></i>Chỉnh sửa gói khám</h1>
+			</div>
+
+			<!-- Form Content -->
+			<div class="form-container">
+				<form asp-action="Edit" method="post" enctype="multipart/form-data" id="editPackageForm">
+					@Html.AntiForgeryToken()
+					@Html.HiddenFor(m => m.PackageId)
+
+					<!-- Basic Information Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-info-circle"></i>
+							Thông tin cơ bản
+						</h3>
+
+						<div class="row">
+							<div class="col-md-8">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-tag"></i>
+										Tên gói khám <span class="required">*</span>
+									</label>
+									<input asp-for="PackageName" class="form-control" placeholder="Nhập tên gói khám..." value="@Model.PackageName" />
+									<span asp-validation-for="PackageName" class="invalid-feedback"></span>
+								</div>
+
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-folder"></i>
+										Danh mục gói khám <span class="required">*</span>
+									</label>
+									<select asp-for="SelectedCategoryId" class="form-select" asp-items="@Model.Categories">
+										<option value="">Chọn danh mục</option>
+									</select>
+									<span asp-validation-for="SelectedCategoryId" class="invalid-feedback"></span>
+								</div>
+
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-align-left"></i>
+										Mô tả gói khám <span class="required">*</span>
+									</label>
+									<textarea asp-for="Description" class="form-control" rows="4"
+											  placeholder="Mô tả chi tiết về gói khám, ý nghĩa và lợi ích...">@Model.Description</textarea>
+									<span asp-validation-for="Description" class="invalid-feedback"></span>
+								</div>
+							</div>
+
+							<div class="col-md-4">
+								<div class="form-group">
+									<label class="form-label fw-bold d-block">
+										Hình ảnh gói khám
+									</label>
+									<div id="imagePreviewWrapper" class="border rounded p-3 mb-3 bg-light"
+										 style="height: 250px; display: flex; align-items: center; justify-content: center;">
+										<img id="thumbnailPreview"
+											 src="@(string.IsNullOrEmpty(Model.CurrentThumbnail)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/Package/"+Model.CurrentThumbnail))"
+											 alt="@Model.PackageName"
+											 class="img-fluid rounded"
+											 style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+									</div>
+									<input type="file" id="thumbnailInput" asp-for="ThumbnailFile"
+										   class="d-none" accept=".jpg,.jpeg,.png,.gif" />
+									<button type="button" class="btn btn-outline-secondary w-100"
+											onclick="document.getElementById('thumbnailInput').click()">
+										<i class="fas fa-upload me-2"></i>@(Model.CurrentThumbnail != null ? "Thay đổi hình ảnh" : "Chọn hình ảnh")
+									</button>
+									<small class="text-muted">Định dạng: JPG, PNG (Max: 5MB)</small>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Target Demographics Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-users"></i>
+							Đối tượng khám
+						</h3>
+
+						<div class="row">
+							<div class="col-md-4">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-venus-mars"></i>
+										Giới tính <span class="required">*</span>
+									</label>
+									<select asp-for="TargetGender" class="form-select">
+										<option value="A" selected="@(Model.TargetGender == "A" ? "selected" : "")">Tất cả</option>
+										<option value="M" selected="@(Model.TargetGender == "M" ? "selected" : "")">Nam</option>
+										<option value="F" selected="@(Model.TargetGender == "F" ? "selected" : "")">Nữ</option>
+									</select>
+									<span asp-validation-for="TargetGender" class="invalid-feedback"></span>
+								</div>
+							</div>
+
+							<div class="col-md-8">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-calendar-alt"></i>
+										Khoảng tuổi <span class="required">*</span>
+									</label>
+									<select asp-for="AgeRange" class="form-select" asp-items="@Model.AgeOptions">
+										<option value="">Chọn khoảng tuổi</option>
+									</select>
+									<span asp-validation-for="AgeRange" class="invalid-feedback"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Tests Management Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-flask"></i>
+							Quản lý xét nghiệm
+						</h3>
+
+						<div class="row mb-3">
+							<div class="col-md-8">
+								<select id="availableTests" class="form-select">
+									<option value="">-- Chọn xét nghiệm để thêm --</option>
+									@if (Model.AvailableTests != null)
+									{
+										@foreach (var test in Model.AvailableTests)
+										{
+											<option value="@test.TestId" data-name="@test.Name" data-price="@test.Price" data-description="@test.Description">
+												@test.Name - @test.Price.ToString("N0") đ
+											</option>
+										}
+									}
+								</select>
+							</div>
+							<div class="col-md-4">
+								<button type="button" class="btn btn-primary w-100" onclick="addTest()">
+									<i class="fas fa-plus me-2"></i>Thêm xét nghiệm
+								</button>
+							</div>
+						</div>
+
+						<div class="tests-manager">
+							<div id="selectedTests">
+								@if (Model.SelectedTestIds != null && Model.SelectedTestIds.Any())
+								{
+									foreach (var testId in Model.SelectedTestIds)
+									{
+										var test = Model.AvailableTests?.FirstOrDefault(t => t.TestId == testId);
+										if (test != null)
+										{
+											<div class="test-item" data-test-id="@test.TestId">
+												<div class="test-info">
+													<h6>@test.Name</h6>
+													<span>Mã: XN@test.TestId.ToString("D3")</span>
+												</div>
+												<div class="d-flex align-items-center">
+													<span class="test-price me-3">@test.Price.ToString("N0") đ</span>
+													<button type="button" class="btn-remove-test" onclick="removeTest(@test.TestId)">
+														<i class="fas fa-times"></i>
+													</button>
+												</div>
+											</div>
+										}
+									}
+								}
+								else
+								{
+									<div class="text-center py-4 text-muted">
+										<i class="fas fa-flask fa-2x mb-2"></i>
+										<p>Chưa có xét nghiệm nào được chọn</p>
+									</div>
+								}
+							</div>
+						</div>
+					</div>
+
+					<!-- Pricing Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-calculator"></i>
+							Tính giá và khuyến mại
+						</h3>
+
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-percentage"></i>
+										Phần trăm giảm giá (%)
+									</label>
+									<input asp-for="DiscountPercent" type="number" class="form-control"
+										   min="0" max="100" step="5" asp-format="{0:0}" onchange="calculatePricing()" />
+									<span asp-validation-for="DiscountPercent" class="invalid-feedback"></span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Pricing Calculator -->
+						<div class="pricing-calculator">
+							<h5 class="mb-3"><i class="fas fa-calculator me-2"></i>Tính toán giá</h5>
+							<div class="price-row">
+								<span>Tổng giá xét nghiệm:</span>
+								<span id="totalTestsPrice">@Model.OriginalPrice?.ToString("N0") đ</span>
+							</div>
+							<div class="price-row">
+								<span>Giảm giá:</span>
+								<span id="discountAmount">@((Model.OriginalPrice - Model.FinalPrice)?.ToString("N0")) đ</span>
+							</div>
+							<div class="price-row">
+								<span>Giá cuối cùng:</span>
+								<span id="finalPrice" class="total-price">@Model.FinalPrice?.ToString("N0") đ</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Hidden fields for selected tests -->
+					<div id="hiddenTestFields">
+						@if (Model.SelectedTestIds != null)
+						{
+							for (int i = 0; i < Model.SelectedTestIds.Count; i++)
+							{
+								<input type="hidden" name="SelectedTestIds[@i]" value="@Model.SelectedTestIds[i]" />
+							}
+						}
+					</div>
+
+					<!-- Action Buttons -->
+					<div class="action-buttons">
+						<a href="@Url.Action("Index", "Package")" class="btn btn-outline-secondary btn-admin">
+							<i class="fas fa-arrow-left me-2"></i>Hủy bỏ
+						</a>
+						<button type="submit" class="btn btn-success-admin btn-admin">
+							<i class="fas fa-save me-2"></i>Cập nhật gói khám
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+@{
+	var selectedTestDetails = Model.SelectedTestIds
+		.Select(id => Model.AvailableTests.FirstOrDefault(t => t.TestId == id))
+		.Where(t => t != null)
+		.Select(t => new
+		{
+			id = t.TestId,
+			name = t.Name,
+			price = t.Price,
+			description = t.Description
+		});
+}
+@section Scripts
+{
+	<script src="~/js/EditPackage.js"></script>
+	<script>
+		let selectedTests = @Html.Raw(Json.Serialize(selectedTestDetails));
+	</script>
+}
