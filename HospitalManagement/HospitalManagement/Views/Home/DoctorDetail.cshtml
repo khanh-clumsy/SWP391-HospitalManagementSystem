@@ -43,9 +43,9 @@
 				<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
 					<div class="profile-card text-center">
 						<div class="profile-image">
-							<img src="@(Model.ProfileImage != null
-									 			? $"data:image/png;base64,{Model.ProfileImage}"
-									 			: Url.Content("~/img/logo.jpg"))" alt="Doctor's Photo">
+							<img src="@(string.IsNullOrEmpty(Model.ProfileImage)
+										? Url.Content("~/img/logo.jpg")
+										: Url.Content("~/img/" + Model.ProfileImage))" alt="Doctor's Photo">
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">

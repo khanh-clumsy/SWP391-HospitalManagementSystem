@@ -9,5 +9,6 @@ namespace HospitalManagement.Repositories
         Task<Patient> GetByIdAsync(int id);
         Task<List<Patient>> GetOngoingPatients(int? doctordId);
         Task<List<Patient>> GetOngoingLabPatientsByRoom(int roomId);
+        Task<int> CountActivePatientsAsync();
     }
 }

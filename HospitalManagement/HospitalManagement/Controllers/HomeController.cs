@@ -17,14 +17,27 @@ namespace HospitalFETemplate.Controllers
     {
         private readonly IDoctorRepository _doctorRepo;
         private readonly HospitalManagementContext _context;
-        public HomeController(IDoctorRepository doctorRepo, HospitalManagementContext context)
+        private readonly IPatientRepository _patientRepo;
+        private readonly IFeedbackRepository _feedbackRepo;
+        public HomeController(IDoctorRepository doctorRepo, HospitalManagementContext context, IPatientRepository patientRepo, IFeedbackRepository feedbackRepo)
         {
             _doctorRepo = doctorRepo;
             _context = context;
+            _patientRepo = patientRepo;
+            _feedbackRepo = feedbackRepo;
         }
 
         public async Task<IActionResult> Index()
         {
+            var (xetNghiem, doctors) = await _doctorRepo.CountDoctorsByDepartmentAsync();
+            ViewBag.XetNghiemCount = xetNghiem;
+            ViewBag.OtherCount = doctors;
+            var patientCount = await _patientRepo.CountActivePatientsAsync();
+            ViewBag.PatientCount = patientCount;
+            var specialFeedbacks = await _feedbackRepo.GetSpecialFeedbacksAsync();
+            ViewBag.SpecialFeedbacks = specialFeedbacks;
+
+
             // Nếu là bệnh nhân
             if (User.Identity.IsAuthenticated && User.IsInRole("Patient"))
             {

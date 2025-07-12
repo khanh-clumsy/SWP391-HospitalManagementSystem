@@ -29,6 +29,10 @@ builder.Services.AddScoped<ISlotRepository, SlotRepository>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IScheduleChangeRepository, ScheduleChangeRepository>();
 builder.Services.AddScoped<InvoiceService>();
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IFeedbackRepository, FeedbackRepository>();
+ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
 
 // Add services to the container
 builder.Services.AddCors(options =>
