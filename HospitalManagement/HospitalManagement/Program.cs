@@ -11,9 +11,10 @@ using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging;
 using OfficeOpenXml;
 using System.ComponentModel;
-Console.OutputEncoding = System.Text.Encoding.UTF8;
 using HospitalManagement.Filters;
 using HospitalManagement.Services.VnPay;
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
