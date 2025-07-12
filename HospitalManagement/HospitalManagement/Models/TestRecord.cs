@@ -17,7 +17,7 @@ public partial class TestRecord
 
     public string? TestNote { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 
     public string TestStatus { get; set; } = null!;
 

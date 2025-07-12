@@ -26,8 +26,6 @@ public partial class HospitalManagementContext : DbContext
 
     public virtual DbSet<News> News { get; set; }
 
-    public virtual DbSet<Notification> Notifications { get; set; }
-
     public virtual DbSet<Package> Packages { get; set; }
 
     public virtual DbSet<PackageCategory> PackageCategories { get; set; }
@@ -64,9 +62,11 @@ public partial class HospitalManagementContext : DbContext
     {
         modelBuilder.Entity<Appointment>(entity =>
         {
-            entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA23DF2B495");
+            entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA2A7DB6855");
 
             entity.ToTable("Appointment");
+
+            entity.HasIndex(e => e.CreatedByStaffId, "IX_Appointment_CreatedByStaffID");
 
             entity.HasIndex(e => e.Date, "IX_Appointment_Date");
 
@@ -97,39 +97,39 @@ public partial class HospitalManagementContext : DbContext
 
             entity.HasOne(d => d.CreatedByStaff).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.CreatedByStaffId)
-                .HasConstraintName("FK__Appointme__Creat__59FA5E80");
+                .HasConstraintName("FK__Appointme__Creat__5CD6CB2B");
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.DoctorId)
-                .HasConstraintName("FK__Appointme__Docto__5629CD9C");
+                .HasConstraintName("FK__Appointme__Docto__59063A47");
 
             entity.HasOne(d => d.Package).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.PackageId)
-                .HasConstraintName("FK__Appointme__Packa__59063A47");
+                .HasConstraintName("FK__Appointme__Packa__5BE2A6F2");
 
             entity.HasOne(d => d.Patient).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.PatientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Appointme__Patie__571DF1D5");
+                .HasConstraintName("FK__Appointme__Patie__59FA5E80");
 
             entity.HasOne(d => d.Service).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.ServiceId)
-                .HasConstraintName("FK__Appointme__Servi__5812160E");
+                .HasConstraintName("FK__Appointme__Servi__5AEE82B9");
 
             entity.HasOne(d => d.Slot).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.SlotId)
-                .HasConstraintName("FK__Appointme__SlotI__5AEE82B9");
+                .HasConstraintName("FK__Appointme__SlotI__5DCAEF64");
         });
 
         modelBuilder.Entity<Doctor>(entity =>
         {
-            entity.HasKey(e => e.DoctorId).HasName("PK__Doctor__2DC00EDF025334DF");
+            entity.HasKey(e => e.DoctorId).HasName("PK__Doctor__2DC00EDF599069F2");
 
             entity.ToTable("Doctor");
 
             entity.HasIndex(e => e.FullName, "IX_Doctor_FullName");
 
-            entity.HasIndex(e => e.Email, "UQ__Doctor__A9D105341E6A7B85").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Doctor__A9D10534D17E2586").IsUnique();
 
             entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
             entity.Property(e => e.Degree).HasMaxLength(20);
@@ -149,7 +149,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Feedback>(entity =>
         {
-            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDF66162FFF7");
+            entity.HasKey(e => e.FeedbackId).HasName("PK__Feedback__6A4BEDF64CC3762A");
 
             entity.ToTable("Feedback");
 
@@ -168,21 +168,21 @@ public partial class HospitalManagementContext : DbContext
 
             entity.HasOne(d => d.Package).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.PackageId)
-                .HasConstraintName("FK__Feedback__Packag__656C112C");
+                .HasConstraintName("FK__Feedback__Packag__693CA210");
 
             entity.HasOne(d => d.Patient).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.PatientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Feedback__Patien__6383C8BA");
+                .HasConstraintName("FK__Feedback__Patien__6754599E");
 
             entity.HasOne(d => d.Service).WithMany(p => p.Feedbacks)
                 .HasForeignKey(d => d.ServiceId)
-                .HasConstraintName("FK__Feedback__Servic__6477ECF3");
+                .HasConstraintName("FK__Feedback__Servic__68487DD7");
         });
 
         modelBuilder.Entity<InvoiceDetail>(entity =>
         {
-            entity.HasKey(e => e.InvoiceDetailId).HasName("PK__InvoiceD__1F1578F1B09B2CB1");
+            entity.HasKey(e => e.InvoiceDetailId).HasName("PK__InvoiceD__1F1578F115BF6E18");
 
             entity.ToTable("InvoiceDetail");
 
@@ -209,7 +209,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<News>(entity =>
         {
-            entity.HasKey(e => e.NewsId).HasName("PK__News__954EBDD3BBF6BA49");
+            entity.HasKey(e => e.NewsId).HasName("PK__News__954EBDD3A5E0D9B1");
 
             entity.HasIndex(e => e.DoctorId, "IX_News_DoctorID");
 
@@ -226,35 +226,16 @@ public partial class HospitalManagementContext : DbContext
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.News)
                 .HasForeignKey(d => d.DoctorId)
-                .HasConstraintName("FK__News__DoctorID__787EE5A0");
+                .HasConstraintName("FK__News__DoctorID__797309D9");
 
             entity.HasOne(d => d.Staff).WithMany(p => p.News)
                 .HasForeignKey(d => d.StaffId)
-                .HasConstraintName("FK__News__StaffID__778AC167");
-        });
-
-        modelBuilder.Entity<Notification>(entity =>
-        {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E3225FB536E");
-
-            entity.ToTable("Notification");
-
-            entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.IsRead).HasDefaultValue(false);
-            entity.Property(e => e.Link).HasMaxLength(255);
-            entity.Property(e => e.Message).HasMaxLength(255);
-            entity.Property(e => e.NotificationType).HasMaxLength(50);
-            entity.Property(e => e.RefId).HasColumnName("RefID");
-            entity.Property(e => e.Role).HasMaxLength(20);
-            entity.Property(e => e.Title).HasMaxLength(100);
+                .HasConstraintName("FK__News__IsDeleted__787EE5A0");
         });
 
         modelBuilder.Entity<Package>(entity =>
         {
-            entity.HasKey(e => e.PackageId).HasName("PK__Package__322035ECFC869C02");
+            entity.HasKey(e => e.PackageId).HasName("PK__Package__322035EC0A04A228");
 
             entity.ToTable("Package");
 
@@ -273,12 +254,12 @@ public partial class HospitalManagementContext : DbContext
             entity.HasOne(d => d.PackageCategory).WithMany(p => p.Packages)
                 .HasForeignKey(d => d.PackageCategoryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Package__Package__4D94879B");
+                .HasConstraintName("FK__Package__IsDelet__4F7CD00D");
         });
 
         modelBuilder.Entity<PackageCategory>(entity =>
         {
-            entity.HasKey(e => e.PackageCategoryId).HasName("PK__PackageC__BAB8ED7E9C13B976");
+            entity.HasKey(e => e.PackageCategoryId).HasName("PK__PackageC__BAB8ED7E7BFFFBA8");
 
             entity.ToTable("PackageCategory");
 
@@ -288,7 +269,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<PackageTest>(entity =>
         {
-            entity.HasKey(e => e.PackageTestId).HasName("PK__PackageT__DB90EDCE9CDF851B");
+            entity.HasKey(e => e.PackageTestId).HasName("PK__PackageT__DB90EDCE9050EA49");
 
             entity.ToTable("PackageTest");
 
@@ -299,17 +280,17 @@ public partial class HospitalManagementContext : DbContext
             entity.HasOne(d => d.Package).WithMany(p => p.PackageTests)
                 .HasForeignKey(d => d.PackageId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PackageTe__Packa__52593CB8");
+                .HasConstraintName("FK__PackageTe__Packa__5535A963");
 
             entity.HasOne(d => d.Test).WithMany(p => p.PackageTests)
                 .HasForeignKey(d => d.TestId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__PackageTe__TestI__534D60F1");
+                .HasConstraintName("FK__PackageTe__TestI__5629CD9C");
         });
 
         modelBuilder.Entity<PasswordReset>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Password__3214EC079EA9C5F8");
+            entity.HasKey(e => e.Id).HasName("PK__Password__3214EC071699E42E");
 
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.ExpireAt).HasColumnType("datetime");
@@ -318,13 +299,13 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Patient>(entity =>
         {
-            entity.HasKey(e => e.PatientId).HasName("PK__Patient__970EC346D9322591");
+            entity.HasKey(e => e.PatientId).HasName("PK__Patient__970EC3460BD134D2");
 
             entity.ToTable("Patient");
 
             entity.HasIndex(e => e.FullName, "IX_Patient_FullName");
 
-            entity.HasIndex(e => e.Email, "UQ__Patient__A9D10534B943D146").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Patient__A9D10534EC05565E").IsUnique();
 
             entity.Property(e => e.PatientId).HasColumnName("PatientID");
             entity.Property(e => e.Address).HasMaxLength(666);
@@ -350,7 +331,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Room>(entity =>
         {
-            entity.HasKey(e => e.RoomId).HasName("PK__Room__32863919CE383A97");
+            entity.HasKey(e => e.RoomId).HasName("PK__Room__328639191B7397E6");
 
             entity.ToTable("Room");
 
@@ -362,7 +343,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Schedule>(entity =>
         {
-            entity.HasKey(e => e.ScheduleId).HasName("PK__Schedule__9C8A5B69B080DDBD");
+            entity.HasKey(e => e.ScheduleId).HasName("PK__Schedule__9C8A5B699BBDBE4C");
 
             entity.ToTable("Schedule");
 
@@ -383,22 +364,22 @@ public partial class HospitalManagementContext : DbContext
             entity.HasOne(d => d.Doctor).WithMany(p => p.Schedules)
                 .HasForeignKey(d => d.DoctorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Schedule__Doctor__45F365D3");
+                .HasConstraintName("FK__Schedule__Doctor__46E78A0C");
 
             entity.HasOne(d => d.Room).WithMany(p => p.Schedules)
                 .HasForeignKey(d => d.RoomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Schedule__RoomID__47DBAE45");
+                .HasConstraintName("FK__Schedule__RoomID__48CFD27E");
 
             entity.HasOne(d => d.Slot).WithMany(p => p.Schedules)
                 .HasForeignKey(d => d.SlotId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Schedule__SlotID__46E78A0C");
+                .HasConstraintName("FK__Schedule__SlotID__47DBAE45");
         });
 
         modelBuilder.Entity<ScheduleChangeRequest>(entity =>
         {
-            entity.HasKey(e => e.RequestId).HasName("PK__Schedule__33A8519A72A6224E");
+            entity.HasKey(e => e.RequestId).HasName("PK__Schedule__33A8519A716DA520");
 
             entity.ToTable("ScheduleChangeRequest");
 
@@ -418,26 +399,26 @@ public partial class HospitalManagementContext : DbContext
             entity.HasOne(d => d.Doctor).WithMany(p => p.ScheduleChangeRequests)
                 .HasForeignKey(d => d.DoctorId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__Docto__7D439ABD");
+                .HasConstraintName("FK__ScheduleC__Docto__7E37BEF6");
 
             entity.HasOne(d => d.FromSchedule).WithMany(p => p.ScheduleChangeRequests)
                 .HasForeignKey(d => d.FromScheduleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__FromS__7E37BEF6");
+                .HasConstraintName("FK__ScheduleC__FromS__7F2BE32F");
 
             entity.HasOne(d => d.ToRoom).WithMany(p => p.ScheduleChangeRequests)
                 .HasForeignKey(d => d.ToRoomId)
-                .HasConstraintName("FK__ScheduleC__ToRoo__00200768");
+                .HasConstraintName("FK__ScheduleC__ToRoo__01142BA1");
 
             entity.HasOne(d => d.ToSlot).WithMany(p => p.ScheduleChangeRequests)
                 .HasForeignKey(d => d.ToSlotId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ScheduleC__ToSlo__7F2BE32F");
+                .HasConstraintName("FK__ScheduleC__ToSlo__00200768");
         });
 
         modelBuilder.Entity<Service>(entity =>
         {
-            entity.HasKey(e => e.ServiceId).HasName("PK__Service__C51BB0EA7DD54815");
+            entity.HasKey(e => e.ServiceId).HasName("PK__Service__C51BB0EA19C9C9BD");
 
             entity.ToTable("Service");
 
@@ -448,7 +429,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Slot>(entity =>
         {
-            entity.HasKey(e => e.SlotId).HasName("PK__Slot__0A124A4F289D48FF");
+            entity.HasKey(e => e.SlotId).HasName("PK__Slot__0A124A4F67FADB48");
 
             entity.ToTable("Slot");
 
@@ -457,11 +438,11 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Staff>(entity =>
         {
-            entity.HasKey(e => e.StaffId).HasName("PK__Staff__96D4AAF7AFA11EC1");
+            entity.HasKey(e => e.StaffId).HasName("PK__Staff__96D4AAF76B30DB26");
 
             entity.HasIndex(e => e.FullName, "IX_Staff_FullName");
 
-            entity.HasIndex(e => e.Email, "UQ__Staff__A9D10534AA265556").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Staff__A9D1053487031B14").IsUnique();
 
             entity.Property(e => e.StaffId).HasColumnName("StaffID");
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -478,7 +459,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<Test>(entity =>
         {
-            entity.HasKey(e => e.TestId).HasName("PK__Tests__8CC331003E17EBD9");
+            entity.HasKey(e => e.TestId).HasName("PK__Tests__8CC33100F50AAEA8");
 
             entity.Property(e => e.TestId).HasColumnName("TestID");
             entity.Property(e => e.Description).HasMaxLength(255);
@@ -489,7 +470,7 @@ public partial class HospitalManagementContext : DbContext
 
         modelBuilder.Entity<TestRecord>(entity =>
         {
-            entity.HasKey(e => e.TestRecordId).HasName("PK__TestReco__1FA0FE961ABFD316");
+            entity.HasKey(e => e.TestRecordId).HasName("PK__TestReco__1FA0FE96F05FB0BA");
 
             entity.ToTable("TestRecord");
 
@@ -499,7 +480,7 @@ public partial class HospitalManagementContext : DbContext
 
             entity.Property(e => e.TestRecordId).HasColumnName("TestRecordID");
             entity.Property(e => e.AppointmentId).HasColumnName("AppointmentID");
-            entity.Property(e => e.CreatedAt).HasColumnType("datetime");
+            entity.Property(e => e.CompletedAt).HasColumnType("datetime");
             entity.Property(e => e.DoctorId).HasColumnName("DoctorID");
             entity.Property(e => e.Result).HasMaxLength(255);
             entity.Property(e => e.TestId).HasColumnName("TestID");
@@ -511,21 +492,21 @@ public partial class HospitalManagementContext : DbContext
             entity.HasOne(d => d.Appointment).WithMany(p => p.TestRecords)
                 .HasForeignKey(d => d.AppointmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TestRecor__Appoi__5FB337D6");
+                .HasConstraintName("FK__TestRecor__Appoi__628FA481");
 
             entity.HasOne(d => d.Doctor).WithMany(p => p.TestRecords)
                 .HasForeignKey(d => d.DoctorId)
-                .HasConstraintName("FK__TestRecor__Docto__60A75C0F");
+                .HasConstraintName("FK__TestRecor__Docto__6383C8BA");
 
             entity.HasOne(d => d.Test).WithMany(p => p.TestRecords)
                 .HasForeignKey(d => d.TestId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TestRecor__TestI__5EBF139D");
+                .HasConstraintName("FK__TestRecor__TestI__619B8048");
         });
 
         modelBuilder.Entity<Tracking>(entity =>
         {
-            entity.HasKey(e => e.TrackingId).HasName("PK__Tracking__3C19EDD13FF247C3");
+            entity.HasKey(e => e.TrackingId).HasName("PK__Tracking__3C19EDD10FF9580A");
 
             entity.ToTable("Tracking");
 
@@ -542,16 +523,16 @@ public partial class HospitalManagementContext : DbContext
             entity.HasOne(d => d.Appointment).WithMany(p => p.Trackings)
                 .HasForeignKey(d => d.AppointmentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Tracking__Appoin__68487DD7");
+                .HasConstraintName("FK__Tracking__Appoin__6C190EBB");
 
             entity.HasOne(d => d.Room).WithMany(p => p.Trackings)
                 .HasForeignKey(d => d.RoomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Tracking__RoomID__6A30C649");
+                .HasConstraintName("FK__Tracking__RoomID__6E01572D");
 
             entity.HasOne(d => d.TestRecord).WithMany(p => p.Trackings)
                 .HasForeignKey(d => d.TestRecordId)
-                .HasConstraintName("FK__Tracking__TestRe__693CA210");
+                .HasConstraintName("FK__Tracking__TestRe__6D0D32F4");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -173,7 +173,7 @@ namespace HospitalManagement.Controllers
                 {
                     AppointmentId = appointmentId,
                     TestId = testId,
-                    CreatedAt = DateTime.Now,
+                    CompletedAt = DateTime.Now,
                     TestStatus = "Ongoing"
                 };
                 _context.TestRecords.Add(testRecord);

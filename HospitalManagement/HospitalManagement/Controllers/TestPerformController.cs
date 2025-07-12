@@ -82,7 +82,7 @@ namespace HospitalManagement.Controllers
             test.TestNote = model.Note;
             test.Result = model.ResultFileName;
             test.TestStatus = "Completed";
-            test.CreatedAt = DateTime.Now;
+            test.CompletedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
 
