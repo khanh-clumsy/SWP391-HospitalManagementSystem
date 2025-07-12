@@ -22,10 +22,10 @@ public partial class Room
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 
     public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
-    
+
     public string GetFullRoomStatus()
     {
-        if(this.Status == "Active")
+        if (this.Status == "Active")
         {
             return "Hoạt động";
         }
