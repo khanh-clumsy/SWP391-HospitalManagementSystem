@@ -96,6 +96,19 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Kiểm tra xem bệnh nhân đã có cuộc hẹn Ongoing nào khác chưa
+            var existingOngoingAppointment = await _context.Appointments
+                .Where(a => a.PatientId == appointment.PatientId && 
+                           a.AppointmentId != appointmentId &&
+                           a.Status == AppConstants.AppointmentStatus.Ongoing)
+                .FirstOrDefaultAsync();
+
+            if (existingOngoingAppointment != null)
+            {
+                TempData["error"] = AppConstants.Messages.Appointment.PatientHasOngoingAppointment;
+                return RedirectToAction("StartAppointmentProcess", "Tracking");
+            }
+
             // Cập nhật trạng thái bắt đầu khám
             if (appointment.Status == AppConstants.AppointmentStatus.Completed ||
                 appointment.Status == AppConstants.AppointmentStatus.Rejected)
@@ -344,38 +357,6 @@ namespace HospitalManagement.Controllers
             int? openBatch = await BatchHelper.GetOpenBatchAsync(_context, appointmentId);
             int batch = openBatch ?? await BatchHelper.GetOpenOrNewBatchAsync(_context, appointmentId);
 
-            // Chỉ tạo tracking đến phòng thu ngân khi tạo test record mới
-            if (isNewTestRecord)
-            {
-                var cashierRoom = await _context.Rooms
-                    .Where(r => r.RoomType == AppConstants.RoomTypes.Cashier)
-                    .OrderBy(r => Guid.NewGuid())
-                    .FirstOrDefaultAsync();
-
-                if (cashierRoom != null)
-                {
-                    //Check nếu đã tồn tại phòng thu ngân trong đợt này
-                    bool cashierExistsInBatch = await _context.Trackings.AnyAsync(t =>
-                            t.AppointmentId == appointmentId &&
-                            t.RoomId == cashierRoom.RoomId &&
-                            t.TrackingBatch == batch &&
-                            t.TestRecordId == null);
-
-                    if (!cashierExistsInBatch)
-                    {
-                        var cashierTracking = new Tracking
-                        {
-                            AppointmentId = appointmentId,
-                            RoomId = cashierRoom.RoomId,
-                            Time = DateTime.Now,
-                            TestRecordId = null,
-                            TrackingBatch = batch
-                        };
-                        await _context.Trackings.AddAsync(cashierTracking);
-                    }
-                }
-            }
-
             // 5. Tracking test
             var testTracking = new Tracking
             {
@@ -421,9 +402,7 @@ namespace HospitalManagement.Controllers
             Console.WriteLine($"RoomType: {room.RoomType}");
             Console.WriteLine($"Tracking Batch: {batch}");
             Console.WriteLine($"Open Batch: {batch}");
-            Console.WriteLine($"CashierTrackingCreated: {isNewTestRecord && openBatch == null}");
             Console.WriteLine("=== END DEBUG ===");
-
             return Json(response);
         }
 
@@ -445,42 +424,41 @@ namespace HospitalManagement.Controllers
             if (!trackings.Any())
                 return NotFound(new { message = "No tracking data found." });
 
-            // Kiểm tra hóa đơn chưa thanh toán
-            var hasUnpaid = await _context.InvoiceDetails
-                .Where(i => i.AppointmentId == appointmentId &&
-                            i.PaymentStatus == AppConstants.PaymentStatus.Unpaid)
-                .AnyAsync();
+            // Kiểm tra test cần thanh toán
+            var unpaidTests = trackings
+                .Where(t => t.TestRecord != null && 
+                           t.TestRecord.TestStatus == AppConstants.TestStatus.WaitingForPayment)
+                .ToList();
 
-            foreach (var tracking in trackings)
+            if (unpaidTests.Any())
             {
-                // Bước 1: Nếu là thu ngân
-                if (tracking.Room.RoomType == AppConstants.RoomTypes.Cashier)
+                return Json(new
                 {
-                    if (hasUnpaid)
-                        return Json(new
-                        {
-                            roomId = tracking.RoomId,
-                            roomName = tracking.Room.RoomName,
-                            roomType = tracking.Room.RoomType,
-                            message = "Please proceed to cashier"
-                        });
-                }
-
-                // Bước 2: Nếu là test chưa làm xong
-                if (tracking.TestRecord != null &&
-                    tracking.TestRecord.TestStatus != AppConstants.TestStatus.Completed)
-                {
-                    return Json(new
-                    {
-                        roomId = tracking.RoomId,
-                        roomName = tracking.Room.RoomName,
-                        roomType = tracking.Room.RoomType,
-                        message = "Please proceed to the test room"
-                    });
-                }
+                    message = "Bạn hãy tới lễ tân để thanh toán"
+                });
             }
 
-            // Bước 3: Không còn gì
+            // Kiểm tra test đang diễn ra (theo thứ tự thời gian)
+            var ongoingTests = trackings
+                .Where(t => t.TestRecord != null &&
+                           t.TestRecord.TestStatus != AppConstants.TestStatus.Completed &&
+                           t.TestRecord.TestStatus != AppConstants.TestStatus.WaitingForPayment)
+                .OrderBy(t => t.Time)
+                .ToList();
+
+            if (ongoingTests.Any())
+            {
+                var nextTest = ongoingTests.First();
+                return Json(new
+                {
+                    roomId = nextTest.RoomId,
+                    roomName = nextTest.Room.RoomName,
+                    roomType = nextTest.Room.RoomType,
+                    message = "Please proceed to the test room"
+                });
+            }
+
+            // Tất cả test đã hoàn thành
             return Json(new
             {
                 message = "All steps completed in current batch."

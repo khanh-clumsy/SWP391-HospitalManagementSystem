@@ -9,9 +9,9 @@ namespace HospitalManagement.Helpers
         public static async Task<int?> GetOpenBatchAsync(HospitalManagementContext context, int appointmentId)
         {
             return await context.Trackings
-                .Where(t => t.AppointmentId == appointmentId && t.TestRecordId != null)
+                .Where(t => t.AppointmentId == appointmentId)
                 .GroupBy(t => t.TrackingBatch)
-                .Where(g => g.All(x => x.TestRecord != null && x.TestRecord.TestStatus != AppConstants.TestStatus.Completed))
+                .Where(g => g.Where(x => x.TestRecord != null).All(x => x.TestRecord != null && x.TestRecord.TestStatus != AppConstants.TestStatus.Completed))
                 .OrderByDescending(g => g.Key)
                 .Select(g => (int?)g.Key)
                 .FirstOrDefaultAsync();

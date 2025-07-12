@@ -9,6 +9,7 @@
         gender = "Tất cả";
     }
     else { gender = "Nam"; }
+    var isAdmin = User.IsInRole("Admin");
 }
 @section Styles {
     <link rel="stylesheet" href="~/css/Package/PackageDetail.css" />
@@ -52,12 +53,15 @@
                             <div class="final-price">@Model.Package.FinalPrice.ToString("N0") đ</div>
                         </div>
 
-                        <div class="package-actions">
-                            <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
-                               class="btn btn-primary btn-lg w-100">
-                                <i class="fas fa-calendar-plus me-2"></i>Đặt lịch ngay
-                            </a>
-                        </div>
+                        @if (!isAdmin)
+                        {
+                            <div class="package-actions">
+                                <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
+                                   class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-calendar-plus me-2"></i>Đặt lịch ngay
+                                </a>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -161,10 +165,13 @@
             <a href="@Url.Action("Index", "Package")" class="btn btn-outline-secondary btn-lg me-3">
                 <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
             </a>
-            <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
-               class="btn btn-primary btn-lg">
-                <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám ngay
-            </a>
+            @if (!isAdmin)
+            {
+                <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
+                   class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám ngay
+                </a>
+            }
         </div>
     </div>
 </div>

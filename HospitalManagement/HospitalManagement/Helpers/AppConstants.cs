@@ -25,6 +25,8 @@ namespace HospitalManagement.Helpers
             public const string Clinic = "Phòng khám";
             public const string Lab = "Xét nghiệm";
             public const string Imaging = "Chẩn đoán hình ảnh";
+            public const string Ultrasound = "Siêu âm";
+            public const string Endoscopy = "Nội soi";
             public const string Cashier = "Thu ngân";
             public const string Other = "Khác";
         }
@@ -103,6 +105,7 @@ namespace HospitalManagement.Helpers
                 public const string Processing = "Hệ thống đang xử lý đặt lịch của bạn. Vui lòng kiểm tra lịch hẹn sau vài phút.";
                 public const string CanNotStartMedicalExam = "Cuộc hẹn này không thể bắt đầu!";
                 public const string CanNotFindDoctorSchedule = "Không tìm thấy lịch làm việc của bác sĩ!";
+                public const string PatientHasOngoingAppointment = "Bệnh nhân đã có cuộc hẹn đang diễn ra. Không thể bắt đầu cuộc hẹn mới.";
             }
 
             public static class Tracking

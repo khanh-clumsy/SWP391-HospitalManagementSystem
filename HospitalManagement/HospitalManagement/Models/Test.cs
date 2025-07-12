@@ -24,9 +24,6 @@ public partial class Test
     [Display(Name = "Mô tả")]
     public string? Description { get; set; }
 
-    [Display(Name = "Đã xóa")]
-    public bool IsDeleted { get; set; } = false;
-
     public virtual ICollection<PackageTest> PackageTests { get; set; } = new List<PackageTest>();
 
     public virtual ICollection<TestRecord> TestRecords { get; set; } = new List<TestRecord>();

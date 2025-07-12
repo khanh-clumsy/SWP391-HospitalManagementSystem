@@ -1,9 +1,11 @@
 ﻿using HospitalManagement.Data;
+using HospitalManagement.Helpers;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagement.Controllers
@@ -29,9 +31,11 @@ namespace HospitalManagement.Controllers
 
             return View(tests);
         }
+
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
+            ViewBag.RoomTypes = GetAvailableRoomTypes();
             return View();
         }
 
@@ -42,22 +46,36 @@ namespace HospitalManagement.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (test.Price < 0)
+                {
+                    ModelState.AddModelError("Price", "Giá tiền phải lớn hơn hoặc bằng 0");
+                    ViewBag.RoomTypes = GetAvailableRoomTypes();
+
+                    return View(test);
+                }
+
                 _testRepository.Add(test);
                 _testRepository.Save();
+                TempData["success"] = "Thêm xét nghiệm thành công!";
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewBag.RoomTypes = GetAvailableRoomTypes();
+
             return View(test);
         }
 
         [Authorize(Roles = "Admin")]
         public IActionResult Update(int id)
         {
-            
             var test = _testRepository.GetById(id);
-         
+
             if (test == null)
                 return NotFound();
-          
+
+            ViewBag.RoomTypes = GetAvailableRoomTypes();
+
+
             return View(test);
         }
 
@@ -67,16 +85,23 @@ namespace HospitalManagement.Controllers
         public IActionResult Update(Test test)
         {
             if (ModelState.IsValid)
-            {              
+            {
                 if (test.Price < 0)
                 {
-                    TempData["error"] = "Price must equal or greater than o";
+                    ModelState.AddModelError("Price", "Giá tiền phải lớn hơn hoặc bằng 0");
+                    ViewBag.RoomTypes = GetAvailableRoomTypes();
+
                     return View(test);
                 }
+
                 _testRepository.Update(test);
                 _testRepository.Save();
+                TempData["success"] = "Cập nhật xét nghiệm thành công!";
                 return RedirectToAction(nameof(Index));
             }
+
+            ViewBag.RoomTypes = GetAvailableRoomTypes();
+
             return View(test);
         }
 
@@ -94,7 +119,7 @@ namespace HospitalManagement.Controllers
             {
                 return NotFound();
             }
-            
+
             var viewModel = new TestResultViewModel
             {
                 PatientFullName = testRecord.Appointment?.Patient?.FullName,
@@ -108,7 +133,18 @@ namespace HospitalManagement.Controllers
 
             return View(viewModel);
         }
+        // Get available room types for dropdown
+        public List<SelectListItem> GetAvailableRoomTypes()
+        {
+            return new List<SelectListItem>
+                {
+                    new SelectListItem { Value = AppConstants.RoomTypes.Lab, Text = AppConstants.RoomTypes.Lab },
+                    new SelectListItem { Value = AppConstants.RoomTypes.Imaging, Text = AppConstants.RoomTypes.Imaging },
+                    new SelectListItem { Value = AppConstants.RoomTypes.Endoscopy, Text = AppConstants.RoomTypes.Endoscopy },
+                    new SelectListItem { Value = AppConstants.RoomTypes.Ultrasound, Text = AppConstants.RoomTypes.Ultrasound },
+                    new SelectListItem { Value = AppConstants.RoomTypes.Imaging, Text = AppConstants.RoomTypes.Imaging }
+                };
+        }
     }
-
 }
 

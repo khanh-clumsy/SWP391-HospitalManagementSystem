@@ -112,13 +112,7 @@ $(document).ready(function () {
             }
 
             if (tracking.roomType === 'Phòng khám') {
-                html += `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${tracking.roomName} - ${tracking.roomType}</strong>
-                    </div>
-                </li>
-            `;
+
             } else {
                 html += `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -129,7 +123,7 @@ $(document).ready(function () {
                     </div>
                     <div class="d-flex align-items-center">
                         ${testStatus === 'Completed' ? `
-                            <a href="/Tracking/TestDetail/${tracking.testListId}" class="btn btn-sm btn-outline-primary me-2">
+                            <a href="/Test/ViewTestResult/${tracking.testRecordID}" class="btn btn-sm btn-outline-primary me-2">
                                 Xem kết quả
                             </a>
                         ` : ''}

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using HospitalManagement.Services;
 
 namespace HospitalManagement.Models;
 
-public partial class Package
+public partial class Package : ISoftDelete
 {
     public int PackageId { get; set; }
 
