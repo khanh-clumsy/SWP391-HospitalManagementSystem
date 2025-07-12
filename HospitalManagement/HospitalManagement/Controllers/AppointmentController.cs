@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Newtonsoft.Json;
 using X.PagedList.Extensions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using HospitalManagement.Helpers;
 
 namespace HospitalManagement.Controllers
 {
@@ -26,15 +27,16 @@ namespace HospitalManagement.Controllers
         private readonly IAppointmentRepository _appointmentRepository;
         private readonly EmailService _emailService;
         private readonly BookingQueueService _bookingQueue;
+        private readonly InvoiceService _invoiceService;
 
-
-        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository, EmailService emailService, BookingQueueService bookingQueue)
+        public AppointmentController(HospitalManagementContext context, IAppointmentRepository appointmentRepository, EmailService emailService, BookingQueueService bookingQueue, InvoiceService invoiceService)
         {
             _context = context;
             _passwordHasher = new PasswordHasher<Patient>();
             _appointmentRepository = appointmentRepository;
             _emailService = emailService;
             _bookingQueue = bookingQueue;
+            _invoiceService = invoiceService;
         }
 
         public IActionResult BookingType()
@@ -45,7 +47,7 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> BookingByService(int? serviceId, int? packageId)
         {
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            var patientIdClaim = User.FindFirst(AppConstants.ClaimTypes.PatientId)?.Value;
             if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -63,7 +65,8 @@ namespace HospitalManagement.Controllers
 
             if (string.IsNullOrEmpty(user.PhoneNumber))
             {
-                TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                TempData["error"] = AppConstants.Messages.User.PhoneRequired;
+                TempData["ReturnUrl"] = Url.Action("BookingByService", new { serviceId, packageId });
                 return RedirectToAction("UpdateProfile", "Patient");
             }
             var model = new BookingByServiceViewModel
@@ -89,7 +92,6 @@ namespace HospitalManagement.Controllers
             ModelState.Remove(nameof(model.PackageOptions));
             if (!ModelState.IsValid)
             {
-
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 foreach (var error in errors)
                 {
@@ -97,12 +99,11 @@ namespace HospitalManagement.Controllers
                     Console.WriteLine(error);
                 }
                 model.ServiceOptions = await GetServiceListAsync();
-                // Nạp lại danh sách dropdown khi trả view để dropdown hiển thị đúng
-                TempData["error"] = "Thiếu các trường dữ liệu!";
+                TempData["error"] = AppConstants.Messages.General.ModelStateInvalid;
                 return View(model);
             }
             // Lấy PatientId từ Claims
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            var patientIdClaim = User.FindFirst(AppConstants.ClaimTypes.PatientId)?.Value;
             if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -113,7 +114,6 @@ namespace HospitalManagement.Controllers
             if (patient == null)
             {
                 return RedirectToAction("Login", "Auth");
-
             }
             Slot? slot = null;
             if (model.SelectedSlotId.HasValue)
@@ -128,7 +128,7 @@ namespace HospitalManagement.Controllers
             {
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
-                TempData["error"] = "Chọn dịch vụ khám cơ bản hoặc gói khám chưa hợp lệ!";
+                TempData["error"] = AppConstants.Messages.Appointment.InvalidServiceOrPackage;
                 return View(model);
             }
 
@@ -137,14 +137,14 @@ namespace HospitalManagement.Controllers
                 a.PatientId == patientId &&
                 a.Date == model.AppointmentDate &&
                 a.SlotId == model.SelectedSlotId &&
-                a.Status != "Rejected"
+                a.Status != AppConstants.AppointmentStatus.Rejected
             );
 
             if (exists)
             {
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
-                TempData["error"] = $"Bạn đã có cuộc hẹn đang chờ duyệt trong cùng khung giờ này!";
+                TempData["error"] = AppConstants.Messages.Appointment.AlreadyExists;
                 return View(model);
             }
 
@@ -154,7 +154,7 @@ namespace HospitalManagement.Controllers
                 Note = model.Note,
                 SlotId = model.SelectedSlotId ?? null,
                 Date = model.AppointmentDate,
-                Status = "Pending",
+                Status = AppConstants.AppointmentStatus.Pending,
                 ServiceId = model.SelectedServiceId,
                 PackageId = model.SelectedPackageId
             };
@@ -173,7 +173,7 @@ namespace HospitalManagement.Controllers
 
             if (savedAppointment == null)
             {
-                TempData["error"] = $"Error!";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return View(model);
             }
 
@@ -183,23 +183,24 @@ namespace HospitalManagement.Controllers
 
                 await _emailService.SendEmailAsync(
                     toEmail: patient.Email,
-                    subject: "Đặt lịch hẹn thành công - Đang chờ duyệt",
+                    subject: AppConstants.Messages.Appointment.PendingEmailSubject,
                     body: emailBody
                 );
 
-                TempData["success"] = "Đặt lịch hẹn thành công!";
+                TempData["success"] = AppConstants.Messages.Appointment.CreateSuccess;
             }
             catch (Exception ex)
             {
-                TempData["error"] = $"Đặt lịch không thành công: {ex.Message}";
+                TempData["error"] = $"{AppConstants.Messages.Appointment.CreateFail}: {ex.Message}";
             }
 
             return RedirectToAction("MyAppointments");
         }
+
         [HttpGet]
         public async Task<IActionResult> BookingByDoctor(int? doctorId, string? departmentName)
         {
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            var patientIdClaim = User.FindFirst(AppConstants.ClaimTypes.PatientId)?.Value;
             if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
@@ -216,7 +217,7 @@ namespace HospitalManagement.Controllers
 
             if (string.IsNullOrEmpty(user.PhoneNumber))
             {
-                TempData["error"] = "Vui lòng cập nhật số điện thoại trước khi đặt cuộc hẹn!";
+                TempData["error"] = AppConstants.Messages.User.PhoneRequired;
                 TempData["ReturnUrl"] = Url.Action("BookingByDoctor", new { doctorId, departmentName });
                 return RedirectToAction("UpdateProfile", "Patient");
             }
@@ -226,7 +227,7 @@ namespace HospitalManagement.Controllers
             selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
             DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
 
-            // 3. Lấy lịch làm việc của bác sĩ (nếu đã chọn bác sĩ)
+            // Lấy lịch làm việc của bác sĩ (nếu đã chọn bác sĩ)
             List<DoctorScheduleViewModel.ScheduleItem> schedules = new();
             if (doctorId != null)
             {
@@ -272,11 +273,12 @@ namespace HospitalManagement.Controllers
                 model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
+                TempData["error"] = AppConstants.Messages.General.ModelStateInvalid;
                 return View(model);
             }
 
             // Kiểm tra xác thực người dùng là bệnh nhân
-            var patientIdClaim = User.FindFirst("PatientID")?.Value;
+            var patientIdClaim = User.FindFirst(AppConstants.ClaimTypes.PatientId)?.Value;
             if (string.IsNullOrEmpty(patientIdClaim))
             {
                 return RedirectToAction("Login", "Auth");
@@ -292,11 +294,11 @@ namespace HospitalManagement.Controllers
                                                                 a.PatientId == patientId &&
                                                                 a.Date == model.AppointmentDate &&
                                                                 a.SlotId == model.SelectedSlotId &&
-                                                                a.Status != "Rejected");
+                                                                a.Status != AppConstants.AppointmentStatus.Rejected);
 
             if (isPatientConflict)
             {
-                TempData["error"] = "Bạn đã có một cuộc hẹn trong khung giờ này!";
+                TempData["error"] = AppConstants.Messages.Appointment.AlreadyExists;
                 model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
@@ -309,7 +311,7 @@ namespace HospitalManagement.Controllers
                 User = User
             });
 
-            TempData["success"] = "Hệ thống đang xử lý đặt lịch của bạn. Vui lòng kiểm tra lịch hẹn sau vài phút.";
+            TempData["success"] = AppConstants.Messages.Appointment.Processing;
             return RedirectToAction("MyAppointments");
         }
 
@@ -348,8 +350,8 @@ namespace HospitalManagement.Controllers
                 })
                 .ToListAsync();
             var statusList = includePending
-                   ? new[] { "Confirmed", "Pending" }
-                   : new[] { "Confirmed" };
+                   ? new[] { AppConstants.AppointmentStatus.Confirmed, AppConstants.AppointmentStatus.Pending }
+                   : new[] { AppConstants.AppointmentStatus.Confirmed };
 
             var bookedAppointments = await _context.Appointments
                             .Where(a => a.DoctorId == doctorId &&
@@ -367,9 +369,8 @@ namespace HospitalManagement.Controllers
             return PartialView("~/Views/Appointment/_ScheduleTablePartial.cshtml", schedules);
         }
 
-
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> Index(string? searchName, string? timeFilter, string? dateFilter, string? statusFilter)
         {
             var appointments = await _appointmentRepository.FilterForAdmin(searchName, timeFilter, dateFilter, statusFilter);
@@ -380,7 +381,7 @@ namespace HospitalManagement.Controllers
             return View(appointments);
         }
 
-        [Authorize(Roles = "Patient, Sales, Doctor")]
+        [Authorize(Roles = AppConstants.Roles.Patient + "," + AppConstants.Roles.Sales + "," + AppConstants.Roles.Doctor)]
         [HttpGet]
         public async Task<IActionResult> MyAppointments(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter, string? Type, int? page)
         {
@@ -400,8 +401,6 @@ namespace HospitalManagement.Controllers
             ViewBag.SlotFilter = SlotFilter;
             ViewBag.DateFilter = DateFilter;
             ViewBag.StatusFilter = StatusFilter;
-            ViewBag.Type = Type ?? "Today"; 
-            ViewBag.FilterType = Type ?? "Today";
 
             // Truy vấn lọc
             var filteredList = await _appointmentRepository.Filter(roleKey, (int)userId, SearchName, SlotFilter, DateFilter, StatusFilter);
@@ -411,26 +410,28 @@ namespace HospitalManagement.Controllers
             var now = TimeOnly.FromDateTime(DateTime.Now);
 
             if (string.IsNullOrEmpty(Type))
-                Type = "Today";
+                Type = AppConstants.FilterTypes.All;
+            ViewBag.Type = Type;
+            ViewBag.FilterType = Type;
             if (!string.IsNullOrEmpty(Type))
             {
                 switch (Type)
                 {
-                    case "Today":
-                        filteredList = filteredList.Where(a => a.Date == today
-                        && (a.Status == "Pending" || a.Status == "Confirmed")).
-                        ToList();
+                    case AppConstants.FilterTypes.Today:
+                        filteredList = filteredList.Where(a => a.Date == today).ToList();
                         break;
 
-                    case "Ongoing":
-                        filteredList = filteredList.Where(a =>  
-                          a.Date > today && (a.Status == "Confirmed") || a.Status == "Pending")
-                         .ToList();
+                    case AppConstants.FilterTypes.Ongoing:
+                        filteredList = filteredList.Where(a => a.Date > today).ToList();
                         break;
 
-                    case "Completed":
-                        filteredList = filteredList.Where(a =>
-                            a.Status == "Completed" || a.Status == "Rejected").ToList();
+                    case AppConstants.FilterTypes.Completed:
+                        filteredList = filteredList.Where(a => a.Status == AppConstants.AppointmentStatus.Completed).ToList();
+                        break;
+
+                    case AppConstants.FilterTypes.All:
+                    default:
+                        // Không lọc thêm gì nữa
                         break;
                 }
             }
@@ -451,7 +452,7 @@ namespace HospitalManagement.Controllers
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        [Authorize(Roles = "Sales")]
+        [Authorize(Roles = AppConstants.Roles.Sales)]
         [HttpGet]
         public async Task<IActionResult> Create(int? doctorId, int? year, string? weekStart)
         {
@@ -504,7 +505,7 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
-        [Authorize(Roles = "Sales")]
+        [Authorize(Roles = AppConstants.Roles.Sales)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateAppointmentViewModel model)
@@ -516,11 +517,12 @@ namespace HospitalManagement.Controllers
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
                 model.WeeklySchedule = new List<DoctorScheduleViewModel.ScheduleItem>();
+                TempData["error"] = AppConstants.Messages.General.ModelStateInvalid;
                 return View(model);
             }
 
             // Kiểm tra xác thực người dùng là Sales
-            var staffIdClaim = User.FindFirst("StaffID")?.Value;
+            var staffIdClaim = User.FindFirst(AppConstants.ClaimTypes.StaffId)?.Value;
             if (string.IsNullOrEmpty(staffIdClaim))
             {
                 return RedirectToAction("Login", "Auth");
@@ -551,28 +553,15 @@ namespace HospitalManagement.Controllers
 
                     await _emailService.SendEmailAsync(
                         toEmail: patient.Email,
-                        subject: "✅ Fmec System - Tài khoản mới",
+                        subject: AppConstants.Messages.User.NewAccountEmailSubject,
                         body: emailBody
                     );
                 }
                 catch (Exception ex)
                 {
-                    TempData["error"] = $"Tạo tài khoản không thành công: {ex.Message}";
+                    TempData["error"] = $"{AppConstants.Messages.User.CreateFail}: {ex.Message}";
                 }
             }
-            //var isExistedAppointment = await _context.Appointments
-            //    .AnyAsync(a => a.Date == model.AppointmentDate && a.PatientId == patient.PatientId);
-
-
-            //if (isExistedAppointment)
-            //{
-            //    TempData["error"] = "Không thể tạo cuộc hẹn mới trong cùng 1 ngày!";
-            //    model.DepartmentOptions = await GetDepartmentListAsync();
-            //    model.ServiceOptions = await GetServiceListAsync();
-            //    model.PackageOptions = await GetPackageListAsync();
-            //    model.WeeklySchedule = new List<DoctorScheduleViewModel.ScheduleItem>();
-            //    return View(model);
-            //}
 
             // Tạo cuộc hẹn mới
             var appointment = new Appointment
@@ -583,7 +572,7 @@ namespace HospitalManagement.Controllers
                 PackageId = model.SelectedPackageId,
                 SlotId = model.SelectedSlotId,
                 Date = model.AppointmentDate,
-                Status = "Confirmed",
+                Status = AppConstants.AppointmentStatus.Confirmed,
                 Note = model.Note,
                 CreatedByStaffId = staffId
             };
@@ -602,7 +591,7 @@ namespace HospitalManagement.Controllers
 
             if (confirmedAppointment == null)
             {
-                TempData["error"] = $"Lỗi khi tạo lịch hẹn!";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 model.DepartmentOptions = await GetDepartmentListAsync(false);
                 model.ServiceOptions = await GetServiceListAsync();
                 model.PackageOptions = await GetPackageListAsync();
@@ -616,21 +605,21 @@ namespace HospitalManagement.Controllers
 
                 await _emailService.SendEmailAsync(
                     toEmail: patient.Email,
-                    subject: "Lịch hẹn đã được xác nhận",
+                    subject: AppConstants.Messages.Appointment.ConfirmedEmailSubject,
                     body: emailBody
                 );
 
-                TempData["success"] = "Tạo lịch hẹn thành công!";
+                TempData["success"] = AppConstants.Messages.Appointment.CreateSuccess;
             }
             catch (Exception ex)
             {
-                TempData["error"] = $"Tạo lịch hẹn không thành công: {ex.Message}";
+                TempData["error"] = $"{AppConstants.Messages.Appointment.CreateFail}: {ex.Message}";
             }
 
             return RedirectToAction("MyAppointments");
         }
 
-        [Authorize(Roles = "Sales")]
+        [Authorize(Roles = AppConstants.Roles.Sales)]
         [HttpGet]
         public async Task<IActionResult> ApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter, int? page)
         {
@@ -639,7 +628,7 @@ namespace HospitalManagement.Controllers
 
             // Chuẩn hóa tên
             searchName = NormalizeName(searchName);
-            ViewBag.StatusFilter = statusFilter ?? "All";
+            ViewBag.StatusFilter = statusFilter ?? AppConstants.FilterTypes.All;
             ViewBag.SlotOptions = await _context.Slots.ToListAsync();
             ViewBag.SearchName = searchName;
             ViewBag.SlotFilter = timeFilter;
@@ -654,14 +643,14 @@ namespace HospitalManagement.Controllers
             return View(pagedAppointments);
         }
 
-        [Authorize(Roles = "Sales")]
+        [Authorize(Roles = AppConstants.Roles.Sales)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDoctor(AssignDoctorViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                TempData["error"] = "Dữ liệu không hợp lệ.";
+                TempData["error"] = AppConstants.Messages.General.ModelStateInvalid;
                 return RedirectToAction("ApproveAppointment");
             }
             var appointment = await _context.Appointments
@@ -670,7 +659,7 @@ namespace HospitalManagement.Controllers
 
             if (appointment == null)
             {
-                TempData["error"] = "Không tìm thấy cuộc hẹn.";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return RedirectToAction("ApproveAppointment");
             }
 
@@ -680,7 +669,7 @@ namespace HospitalManagement.Controllers
 
             if (doctor == null)
             {
-                TempData["error"] = "Không tìm thấy bác sĩ.";
+                TempData["error"] = AppConstants.Messages.Doctor.NotFound;
                 return RedirectToAction("ApproveAppointment");
             }
 
@@ -690,7 +679,7 @@ namespace HospitalManagement.Controllers
 
             if (!hasSchedule)
             {
-                TempData["error"] = "Bác sĩ không có lịch làm việc trong khung giờ này.";
+                TempData["error"] = AppConstants.Messages.Doctor.DoctorScheduleNotFound;
                 return RedirectToAction("ApproveAppointment");
             }
 
@@ -700,17 +689,16 @@ namespace HospitalManagement.Controllers
                 a.Date == appointment.Date &&
                 a.SlotId == model.SlotId &&
                 a.AppointmentId != model.AppointmentId &&
-                a.Status != "Rejected"
+                a.Status != AppConstants.AppointmentStatus.Rejected
             );
 
             if (hasConflict)
             {
-                TempData["error"] = "Bác sĩ đã có cuộc hẹn khác trong khung giờ này.";
+                TempData["error"] = AppConstants.Messages.Doctor.DoctorAlreadyHasAppointment;
                 return RedirectToAction("ApproveAppointment");
             }
-
             appointment.DoctorId = model.SelectedDoctorId;
-            appointment.Status = "Confirmed";
+            appointment.Status = AppConstants.AppointmentStatus.Confirmed;
             _context.Update(appointment);
             await _context.SaveChangesAsync();
 
@@ -723,9 +711,12 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
 
+            //Tạo ra hóa đơn tương ứng
+            await _invoiceService.CreateInvoiceForAppointmentAsync(savedAppointment!);
+
             if (savedAppointment == null)
             {
-                TempData["error"] = "Error!";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return View(model);
             }
 
@@ -734,18 +725,17 @@ namespace HospitalManagement.Controllers
                 var emailBody = EmailBuilder.BuildConfirmedAppointmentEmail(savedAppointment);
                 await _emailService.SendEmailAsync(
                     toEmail: savedAppointment.Patient.Email,
-                    subject: "Cuộc hẹn đã được duyệt!",
+                    subject: AppConstants.Messages.Appointment.ConfirmedEmailSubject,
                     body: emailBody
                 );
-                TempData["success"] = "Duyệt cuộc hẹn thành công!";
+                TempData["success"] = AppConstants.Messages.Appointment.ApproveSuccess;
             }
             catch (Exception ex)
             {
-                TempData["error"] = $"Duyệt cuộc hẹn không thành công: {ex.Message}";
+                TempData["error"] = $"{AppConstants.Messages.Appointment.ApproveFail}: {ex.Message}";
             }
 
-            
-            TempData["success"] = "Chỉ định bác sĩ thành công.";
+            TempData["success"] = AppConstants.Messages.Doctor.AssignSuccess;
             return RedirectToAction("ApproveAppointment");
         }
 
@@ -755,33 +745,61 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.AppointmentId == id);
             if (appointment == null)
             {
-                TempData["error"] = "Cuộc hẹn không tồn tại!";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return RedirectToAction("ApproveAppointment");
             }
 
-            if (appointment.DoctorId == null && action.Equals("Accept"))
+            if (appointment.DoctorId == null && action.Equals(AppConstants.AppointmentActions.Accept))
             {
-                TempData["error"] = "Cuộc hẹn chưa được chỉ định bác sĩ! Vui lòng chỉ định bác sĩ!";
+                TempData["error"] = AppConstants.Messages.Appointment.NoDoctorAssigned;
                 return RedirectToAction("ApproveAppointment");
             }
 
             switch (action)
             {
-                case "Accept":
-                    appointment.Status = "Confirmed";
-                    TempData["success"] = "Cuộc hẹn đã được duyệt.";
+                case AppConstants.AppointmentActions.Accept:
+                    appointment.Status = AppConstants.AppointmentStatus.Confirmed;
+                    await _invoiceService.CreateInvoiceForAppointmentAsync(appointment);
+                    if (appointment.PackageId != null)
+                    {
+                        var package = await _context.Packages
+                            .Include(p => p.PackageTests).ThenInclude(pt => pt.Test)
+                            .FirstOrDefaultAsync(p => p.PackageId == appointment.PackageId);
+                        if (package == null)
+                        {
+                            TempData["error"] = AppConstants.Messages.Package.NotFound;
+                            return RedirectToAction("ApproveAppointment");
+                        }
+
+                        if (package.PackageTests != null)
+                        {
+                            foreach (var test in package.PackageTests)
+                            {
+                                var testRecord = new TestRecord
+                                {
+                                    AppointmentId = appointment.AppointmentId,
+                                    TestId = test.TestId,
+                                    TestStatus = AppConstants.TestStatus.Pending,
+                                };
+                                _context.TestRecords.Add(testRecord);
+                            }
+                            Console.WriteLine("Tạo các test record thành công!");
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                    TempData["success"] = AppConstants.Messages.Appointment.AlreadyApproved;
                     break;
 
-                case "Reject":
-                    appointment.Status = "Rejected";
-                    TempData["success"] = "Cuộc hẹn đã bị từ chối.";
+                case AppConstants.AppointmentActions.Reject:
+                    appointment.Status = AppConstants.AppointmentStatus.Rejected;
+                    TempData["success"] = AppConstants.Messages.Appointment.Rejected;
                     break;
 
                 default:
-                    TempData["error"] = "Thao tác không hợp lệ.";
+                    TempData["error"] = AppConstants.Messages.Appointment.InvalidAction;
                     return RedirectToAction("ApproveAppointment");
             }
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return RedirectToAction("ApproveAppointment");
         }
 
@@ -793,7 +811,7 @@ namespace HospitalManagement.Controllers
 
             if (appointment == null || appointment.Slot == null)
             {
-                TempData["error"] = "Không hợp lệ!";
+                TempData["error"] = AppConstants.Messages.General.InvalidData;
                 return RedirectToAction("ApproveAppointment");
             }
 
@@ -811,7 +829,7 @@ namespace HospitalManagement.Controllers
                         a.DoctorId == d.DoctorId &&
                         a.Date == dateOnly &&
                         a.SlotId == slotId &&
-                        a.Status != "Rejected")
+                        a.Status != AppConstants.AppointmentStatus.Rejected)
                 )
                 .ToList();
 
@@ -826,8 +844,6 @@ namespace HospitalManagement.Controllers
 
             return PartialView("_AssignDoctorModal", viewModel);
         }
-
-
 
         [HttpGet]
         public async Task<IActionResult> GetDoctorsByDate(DateOnly date)
@@ -854,7 +870,7 @@ namespace HospitalManagement.Controllers
         {
             if (string.IsNullOrEmpty(department))
             {
-                return BadRequest("Department name is required.");
+                return BadRequest(AppConstants.Messages.General.DepartmentRequired);
             }
 
             var doctors = await _context.Doctors
@@ -871,6 +887,7 @@ namespace HospitalManagement.Controllers
             Console.WriteLine("Doctors: " + string.Join(", ", doctors.Select(d => d.DoctorName)));
             return Json(doctors);
         }
+
         [HttpGet]
         public async Task<IActionResult> GetSlotsSimple(DateOnly date)
         {
@@ -892,7 +909,7 @@ namespace HospitalManagement.Controllers
         {
             // Lấy danh sách SlotId đã được đặt (Confirmed), đúng theo loại (Service hoặc Package)
             var bookedSlotIdsQuery = _context.Appointments
-                .Where(a => a.Date == date && a.Status == "Confirmed");
+                .Where(a => a.Date == date && a.Status == AppConstants.AppointmentStatus.Confirmed);
 
             if (SelectedServiceId.HasValue)
             {
@@ -961,9 +978,7 @@ namespace HospitalManagement.Controllers
             foreach (var test in tests)
             {
                 Console.WriteLine($"Test: {test.TestId} - {test.Name} - {test.Price}");
-
             }
-            ;
             return Json(tests);
         }
 
@@ -973,12 +988,12 @@ namespace HospitalManagement.Controllers
             var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
             if (appointment == null)
             {
-                TempData["error"] = $"Can not find appointment with ID = {appointmentId}!";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return RedirectToAction("Index", "Appointment");
             }
             _context.Appointments.Remove(appointment);
             await _context.SaveChangesAsync();
-            TempData["success"] = $"Delete successfully appointment with ID = {appointmentId}!";
+            TempData["success"] = AppConstants.Messages.General.SuccessDelete;
             return RedirectToAction("Index", "Appointment");
         }
 
@@ -993,6 +1008,7 @@ namespace HospitalManagement.Controllers
                 })
                 .ToListAsync();
         }
+
         private async Task<List<SelectListItem>> GetDepartmentListAsync(bool? containTestDoc)
         {
             var query = _context.Doctors.AsQueryable();
@@ -1000,8 +1016,8 @@ namespace HospitalManagement.Controllers
             if (!(containTestDoc ?? false))
             {
                 query = query.Where(d =>
-                    d.DepartmentName != "Xét nghiệm" &&
-                    d.DepartmentName != "Chẩn đoán hình ảnh");
+                    d.DepartmentName != AppConstants.RoomTypes.Lab &&
+                    d.DepartmentName != AppConstants.RoomTypes.Imaging);
             }
 
             var departmentNames = await query
@@ -1020,7 +1036,6 @@ namespace HospitalManagement.Controllers
                 .ToList();
         }
 
-
         private async Task<List<SelectListItem>> GetPackageListAsync()
         {
             return await _context.Packages
@@ -1031,7 +1046,6 @@ namespace HospitalManagement.Controllers
                 })
                 .ToListAsync();
         }
-
 
         //Lấy slot cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetSlotListAsync()
@@ -1060,12 +1074,12 @@ namespace HospitalManagement.Controllers
 
         private (string RoleKey, int? UserId) GetUserRoleAndId(ClaimsPrincipal user)
         {
-            if (user.IsInRole("Patient"))
-                return ("PatientID", GetUserIdFromClaim(user, "PatientID"));
-            if (user.IsInRole("Sales"))
-                return ("StaffID", GetUserIdFromClaim(user, "StaffID"));
-            if (user.IsInRole("Doctor"))
-                return ("DoctorID", GetUserIdFromClaim(user, "DoctorID"));
+            if (user.IsInRole(AppConstants.Roles.Patient))
+                return (AppConstants.ClaimTypes.PatientId, GetUserIdFromClaim(user, AppConstants.ClaimTypes.PatientId));
+            if (user.IsInRole(AppConstants.Roles.Sales))
+                return (AppConstants.ClaimTypes.StaffId, GetUserIdFromClaim(user, AppConstants.ClaimTypes.StaffId));
+            if (user.IsInRole(AppConstants.Roles.Doctor))
+                return (AppConstants.ClaimTypes.DoctorId, GetUserIdFromClaim(user, AppConstants.ClaimTypes.DoctorId));
             return default;
         }
 
@@ -1077,60 +1091,114 @@ namespace HospitalManagement.Controllers
             return int.TryParse(claim.Value, out var id) ? id : null;
         }
 
-
-        [Authorize(Roles = "Patient, Sales, Admin, Doctor")]
-        public IActionResult Detail(int appId)
+        [Authorize(Roles = AppConstants.Roles.Patient + "," + AppConstants.Roles.Sales + "," + AppConstants.Roles.Admin + "," + AppConstants.Roles.Doctor + "," + AppConstants.Roles.Receptionist)]
+        public async Task<IActionResult> Detail(int appId)
         {
-            var appointment = _context.Appointments
+            var appointment = await _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
                                 .Include(a => a.CreatedByStaff)
                                 .Include(a => a.Slot)
-                                .FirstOrDefault(a => a.AppointmentId == appId);
+                                .Include(a => a.Service)
+                                .Include(a => a.Package)
+                                .Include(a => a.InvoiceDetails)
+                                .Include(a => a.TestRecords).ThenInclude(tr => tr.Test)
+                                .Include(a => a.Trackings).ThenInclude(t => t.Room)
+                                .FirstOrDefaultAsync(a => a.AppointmentId == appId);
             if (appointment == null)
             {
-                TempData["error"] = "Trang không tồn tại";
+                TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return NotFound();
             }
 
-
-            if (User.IsInRole("Admin") || User.IsInRole("Sales"))
+            if (User.IsInRole(AppConstants.Roles.Admin) || User.IsInRole(AppConstants.Roles.Sales) || User.IsInRole(AppConstants.Roles.Receptionist))
             {
                 return View(appointment);
             }
 
             // now, roleKey only Patient/Doctor/Staff
-
             var (roleKey, userId) = GetUserRoleAndId(User);
             if (userId == null)
             {
-                TempData["error"] = "Bạn cần đăng nhập để thực hiện thao tác này";
+                TempData["error"] = AppConstants.Messages.Auth.SessionExpired;
                 return RedirectToAction("Login", "Auth");
             }
 
+            // Lấy toàn bộ trackings
+            var allTrackings = appointment.Trackings?
+                .OrderBy(t => t.Time)
+                .ToList() ?? new List<Tracking>();
+
+            // 1. Phòng khám
+            var clinic = allTrackings
+                .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
+                .OrderBy(t => t.Time)
+                .FirstOrDefault();
+
+            // 2. Gom theo batch (nhóm các tracking theo đợt)
+            var groupedByBatch = allTrackings
+                .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Clinic)
+                .GroupBy(t => t.TrackingBatch)
+                .OrderBy(g => g.Key)
+                .ToList();
+
+            var finalOrderedTrackings = new List<Tracking>();
+
+            // 3. Thêm phòng khám lên đầu 
+            if (clinic != null)
+                finalOrderedTrackings.Add(clinic);
+
+            // 4. Duyệt từng batch
+            foreach (var batchGroup in groupedByBatch)
+            {
+                var cashier = batchGroup
+                    .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier)
+                    .FirstOrDefault();
+
+                var unpaidTests = batchGroup
+                    .Where(t => t.TestRecord != null && t.TestRecord.TestStatus == AppConstants.TestStatus.WaitingForPayment)
+                    .ToList();
+
+                var others = batchGroup
+                    .Except(unpaidTests)
+                    .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Cashier)
+                    .ToList();
+
+                if (cashier != null)
+                {
+                    finalOrderedTrackings.Add(cashier);
+                }
+
+                finalOrderedTrackings.AddRange(unpaidTests);
+                finalOrderedTrackings.AddRange(others);
+            }
+
+            // Gán vào ViewBag để view hiển thị
+            ViewBag.SortedTrackings = finalOrderedTrackings;
             if (roleKey == "")
             {
-                TempData["error"] = "Lỗi RoleKey không xác định";
+                TempData["error"] = AppConstants.Messages.General.Undefined;
                 return NotFound();
             }
 
-            if (roleKey == "PatientID" && appointment.Patient != null && appointment.Patient.PatientId != null && appointment.Patient.PatientId == userId)
+            if (roleKey == AppConstants.ClaimTypes.PatientId && appointment.Patient != null && appointment.Patient.PatientId != null && appointment.Patient.PatientId == userId)
             {
                 return View(appointment);
             }
-            if (roleKey == "DoctorID" && appointment.Doctor != null && appointment.Doctor.DoctorId != null && appointment.Doctor.DoctorId == userId)
+            if (roleKey == AppConstants.ClaimTypes.DoctorId && appointment.Doctor != null && appointment.Doctor.DoctorId != null && appointment.Doctor.DoctorId == userId)
             {
                 return View(appointment);
             }
-            if (roleKey == "StaffID" && appointment.CreatedByStaff != null && appointment.CreatedByStaff.StaffId != null && appointment.CreatedByStaff.StaffId == userId)
+            if (roleKey == AppConstants.ClaimTypes.StaffId && appointment.CreatedByStaff != null && appointment.CreatedByStaff.StaffId != null && appointment.CreatedByStaff.StaffId == userId)
+
             {
                 return View(appointment);
             }
 
-            TempData["error"] = "Bạn không có quyền truy cập";
-
+            TempData["error"] = AppConstants.Messages.General.NoPermission;
             return RedirectToAction("Index", "Home");
         }
+
         public static string NormalizeName(string? input)
         {
             if (string.IsNullOrEmpty(input))
@@ -1140,6 +1208,7 @@ namespace HospitalManagement.Controllers
             var words = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             return string.Join(" ", words);
         }
+
         [HttpGet]
         public async Task<IActionResult> SearchDoctors(string keyword, string? departmentName)
         {
@@ -1168,7 +1237,5 @@ namespace HospitalManagement.Controllers
             }).ToListAsync();
             return Json(result);
         }
-
     }
-
 }

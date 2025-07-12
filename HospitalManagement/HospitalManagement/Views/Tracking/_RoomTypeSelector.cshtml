@@ -1,9 +1,0 @@
-﻿@model List<string>
-
-<select class="form-select" id="roomSelector">
-    <option value="">-- Vui lòng chọn loại phòng xét nghiệm --</option>
-    @foreach (var rt in Model)
-    {
-        <option value="@rt">@rt</option>
-    }
-</select>

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authentication;
 
 namespace HospitalManagement.Controllers
 {
-    [Authorize(Roles = "Admin,Sales,Cashier")]
+    [Authorize(Roles = "Admin, Sales, Cashier, Receptionist")]
     public class StaffController : Controller
     {
         private readonly PasswordHasher<Staff> _passwordHasher;

@@ -330,7 +330,8 @@ namespace HospitalManagement.Controllers
                         DoctorId = parsedDoctorId,
                         SlotId = item.Slot,
                         Day = item.Date,
-                        RoomId = parsedRoomId
+                        RoomId = parsedRoomId,
+                        Status = "Not Yet"
                     });
                     _context.SaveChanges();
                     existingSuccessList.Add(key);
@@ -511,7 +512,6 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Bạn không có quyền truy cập";
                 return Redirect("Home/AccessDenied");
             }
-
         }
 
         [Authorize(Roles = "Admin, Doctor")]
@@ -642,15 +642,15 @@ namespace HospitalManagement.Controllers
             _context.SaveChanges();
             return Json(new { success = true });
         }
-        
+
         // ========================  expired slots  ========================
 
-        
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult UpdateExpiredSlots()
         {
-            return View(new List<DoctorScheduleViewModel.ScheduleItem> ());
+            return View(new List<DoctorScheduleViewModel.ScheduleItem>());
         }
 
         [HttpPost]

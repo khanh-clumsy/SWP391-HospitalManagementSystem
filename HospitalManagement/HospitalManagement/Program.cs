@@ -11,26 +11,30 @@ using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging;
 using OfficeOpenXml;
 using System.ComponentModel;
+using HospitalManagement.Filters;
+using HospitalManagement.Services.VnPay;
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
-builder.Services.AddScoped<ITestRepository, TestRepository>();
+// Đăng ký các Repository
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<ITestRepository, TestRepository>();
 builder.Services.AddScoped<IPatientRepository, PatientRepository>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
-builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
 builder.Services.AddScoped<ISlotRepository, SlotRepository>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IScheduleChangeRepository, ScheduleChangeRepository>();
+builder.Services.AddScoped<InvoiceService>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-
-
 ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
 
@@ -116,6 +120,8 @@ builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 //    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
 //});
 
+// vnpay
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 var app = builder.Build();
 
@@ -138,7 +144,11 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
     }
 }
-
+using (var scope = app.Services.CreateScope())
+{
+    var repo = scope.ServiceProvider.GetRequiredService<IScheduleRepository>();
+    repo.PrintDoctorRoomsToday();
+}
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -163,3 +173,9 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+
+// dotnet ef dbcontext scaffold "Name=DefaultConnection" Microsoft.EntityFrameworkCore.SqlServer \
+//   --context HospitalDbContext \
+//   --output-dir Models \
+//   --force

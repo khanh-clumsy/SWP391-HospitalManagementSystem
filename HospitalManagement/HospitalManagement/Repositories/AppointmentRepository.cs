@@ -21,6 +21,8 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
+                .Include(a => a.Service)
+                .Include(a => a.Package)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
@@ -64,6 +66,8 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
+                .Include(a => a.Service)
+                .Include(a => a.Package)
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(Name))
@@ -244,5 +248,76 @@ namespace HospitalManagement.Repositories
         }
 
 
+        public async Task<List<Appointment>> GetAppointmentsAsync(string phone)
+        {
+            var query = _context.Appointments
+                .Include(a => a.Patient)
+                .Where(a => a.Status == "Confirmed");
+
+            if (!string.IsNullOrWhiteSpace(phone))
+            {
+                phone = string.Join("", phone.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                query = query.Where(a => a.Patient.PhoneNumber.Contains(phone));
+            }
+
+            return await query
+                .ToListAsync();
+        }
+        public async Task<List<Appointment>> GetTodayAppointmentsAsync(string? phone)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var query = _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Slot)
+                .Include(a => a.InvoiceDetails)
+                .Where(a => a.Status == "Confirmed" && a.Date == today);
+           
+            var appointments = await query
+                .OrderBy(a => a.Slot.StartTime)
+                .ToListAsync();
+
+            // Gán giá trị IsServiceOrPackagePaid
+            foreach (var appointment in appointments)
+            {
+                appointment.IsServiceOrPackagePaid = appointment.InvoiceDetails != null &&
+                    appointment.InvoiceDetails.Any(i =>
+                        (i.ItemType == "Service" || i.ItemType == "Package") &&
+                        (i.PaymentStatus == "Success") &&
+                        (i.UnitPrice > 0)
+                    );
+            }
+
+            return appointments;
+        }
+
+        public async Task StartAppointmentAsync(int appointmentId)
+        {
+            var appointment = await _context.Appointments.FindAsync(appointmentId);
+            if (appointment != null)
+            {
+                appointment.Status = "OnGoing";
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<Appointment>> GetOngoingAppointmentsByDoctorIdAsync(int doctorId)
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Slot)
+                .Where(a => a.DoctorId == doctorId && a.Status == "Ongoing" && a.Date == DateOnly.FromDateTime(DateTime.Today))
+                .OrderBy(a => a.Date).ThenBy(a => a.Slot.StartTime)
+                .ToListAsync();
+        }
+
+        public async Task<Appointment> GetAppointmentByIdAsync(int appointmentId)
+        {
+            return await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Trackings)
+                .ThenInclude(t => t.Room)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+        }
     }
 }

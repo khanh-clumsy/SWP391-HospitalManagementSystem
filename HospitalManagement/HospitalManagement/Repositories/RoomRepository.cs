@@ -3,6 +3,8 @@ using HospitalManagement.Data;
 using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
+using System.Threading.Tasks;
 
 namespace HospitalManagement.Repositories
 {
@@ -19,7 +21,7 @@ namespace HospitalManagement.Repositories
                         string? building,
                         string? floor,
                         string? status,
-                        string? roomType) 
+                        string? roomType)
         {
             var roomsQuery = _context.Rooms.AsQueryable();
 
@@ -32,7 +34,7 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(status))
                 roomsQuery = roomsQuery.Where(r => r.Status == status);
 
-            if (!string.IsNullOrEmpty(roomType)) 
+            if (!string.IsNullOrEmpty(roomType))
                 roomsQuery = roomsQuery.Where(r => r.RoomType == roomType);
 
             var list = await roomsQuery.ToListAsync();
@@ -124,7 +126,7 @@ namespace HospitalManagement.Repositories
                                     string? building,
                                     string? floor,
                                     string? status,
-                                    string? roomType, 
+                                    string? roomType,
                                     int page,
                                     int pageSize)
         {
@@ -175,7 +177,7 @@ namespace HospitalManagement.Repositories
             if (!string.IsNullOrEmpty(status))
                 result = result.Where(r => r.Status == status);
 
-            if (!string.IsNullOrEmpty(roomType)) 
+            if (!string.IsNullOrEmpty(roomType))
                 result = result.Where(r => r.RoomType == roomType);
 
             if (!string.IsNullOrEmpty(floor) && int.TryParse(floor, out int parsedFloor))
@@ -189,11 +191,6 @@ namespace HospitalManagement.Repositories
 
             return paged;
         }
-
-
-
-
-
 
 
         public static int ExtractFloor(string roomName)
@@ -242,7 +239,7 @@ namespace HospitalManagement.Repositories
                         s.RoomId == room.RoomId &&
                         s.Day == schedule.Day &&
                         s.SlotId == schedule.SlotId &&
-                        !selectedScheduleIds.Contains(s.ScheduleId) 
+                        !selectedScheduleIds.Contains(s.ScheduleId)
                     );
 
                     if (hasConflict)
@@ -281,10 +278,52 @@ namespace HospitalManagement.Repositories
             return availableRooms;
         }
 
-
         //public Task<RoomWithDoctorDtoViewModel> GetRoomWithDoctorByIdAsync(int id)
         //{
         //    throw new NotImplementedException();
         //}
+
+        public async Task<int?> GetWorkingRoomIdByDoctorAndTimeAsync(int doctorId, DateOnly today, TimeOnly currentTime)
+        {
+            var roomId = await _context.Schedules
+                .Include(s => s.Slot)
+                .Where(s => s.DoctorId == doctorId &&
+                            s.Day == today &&
+                            s.Slot.StartTime <= currentTime)
+                .OrderByDescending(s => s.Slot.StartTime)
+                .Select(s => s.RoomId)
+                .FirstOrDefaultAsync();
+            return roomId == 0 ? (int?)null : roomId;
+        }
+
+        public async Task<int?> GetWorkingRoomIdByDoctorAndDateAsync(int doctorId, DateOnly date)
+        {
+            var schedule = await _context.Schedules
+                .Where(s => s.DoctorId == doctorId && s.Day == date)
+                .Include(s => s.Room)
+                .FirstOrDefaultAsync();
+
+            return schedule?.RoomId;
+        }
+
+        public async Task<List<RoomSlotInfo>> GetRoomSlotInfosByDoctorAndDateAsync(int doctorId, DateOnly date)
+        {
+            return await _context.Schedules
+                .Where(s => s.DoctorId == doctorId && s.Day == date)
+                .Include(s => s.Room)
+                .Include(s => s.Slot)
+                .Select(s => new RoomSlotInfo
+                {
+                    RoomId = s.Room.RoomId,
+                    RoomName = s.Room.RoomName,
+                    SlotId = s.Slot.SlotId,
+                    SlotTime = s.Slot.StartTime.ToString("hh\\:mm") + " - " + s.Slot.EndTime.ToString("hh\\:mm"),
+                    StartTime = s.Slot.StartTime,
+                    EndTime = s.Slot.EndTime
+                })
+                .OrderBy(s => s.SlotId)
+                .ToListAsync();
+        }
+
     }
 }
