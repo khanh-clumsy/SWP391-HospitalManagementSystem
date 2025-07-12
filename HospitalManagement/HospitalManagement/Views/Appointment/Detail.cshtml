@@ -126,11 +126,14 @@
 									<p class="mb-0 text-muted">
 										@if (Model.Service != null)
 										{
-											<span><strong>Gói dịch vụ:</strong> @Model.Service.ServiceType</span>
+											<span><strong>Loại dịch vụ:</strong> @Model.Service.ServiceType</span><br>
+											<span><strong>Giá dịch vụ:</strong> @Model.Service.ServicePrice vnd</span>
+
 										}
 										else if (Model.Package != null)
 										{
-											<span><strong>Gói khám:</strong> @Model.Package.PackageName</span>
+											<span><strong>Gói khám:</strong> @Model.Package.PackageName</span><br>
+											<span><strong>Giá khám:</strong> @Model.Package.FinalPrice vnd</span>
 										}
 										else
 										{

@@ -8,6 +8,8 @@ using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HospitalManagement.Filters;
+using HospitalManagement.Services.VnPay;
+
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
@@ -109,6 +111,8 @@ builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 //    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
 //});
 
+// vnpay
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 var app = builder.Build();
 
@@ -156,3 +160,9 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+
+// dotnet ef dbcontext scaffold "Name=DefaultConnection" Microsoft.EntityFrameworkCore.SqlServer \
+//   --context HospitalDbContext \
+//   --output-dir Models \
+//   --force
