@@ -88,7 +88,7 @@ namespace HospitalManagement.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Lưu kết quả xét nghiệm thành công.";
-            return RedirectToAction("TestListForDoctor");
+            return RedirectToAction("ViewTestResult", "Test", new { id = testRecord.TestRecordId });
         }
 
 
@@ -111,9 +111,10 @@ namespace HospitalManagement.Controllers
                     .Where(t => t.RoomId == roomSlots.RoomId &&
                                 t.TestRecordId != null && t.TestRecord != null &&
                                 t.TestRecord.TestStatus == AppConstants.TestStatus.Ongoing &&
-                                t.Time.Date == DateTime.Today &&
-                                t.Time.TimeOfDay >= roomSlots.StartTime.ToTimeSpan() &&
-                                t.Time.TimeOfDay <= roomSlots.EndTime.ToTimeSpan())
+                                t.Time.Date == DateTime.Today
+                                // && t.Time.TimeOfDay >= roomSlots.StartTime.ToTimeSpan() &&
+                                //t.Time.TimeOfDay <= roomSlots.EndTime.ToTimeSpan()
+                                )
                     .Select(t => new TestPatientViewModel
                     {
                         PatientID = t.Appointment.PatientId,

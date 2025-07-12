@@ -247,7 +247,7 @@ namespace HospitalManagement.Repositories
             return await _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
-                .Where(a => a.DoctorId == doctorId && a.Status == "Ongoing")
+                .Where(a => a.DoctorId == doctorId && a.Status == "Ongoing" && a.Date == DateOnly.FromDateTime(DateTime.Today))
                 .OrderBy(a => a.Date).ThenBy(a => a.Slot.StartTime)
                 .ToListAsync();
         }

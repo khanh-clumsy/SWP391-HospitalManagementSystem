@@ -210,7 +210,7 @@
 													<td>
 														@if (tracking.TestRecord != null && tracking.TestRecord?.TestStatus == "Completed")
 														{
-															<a class="btn btn-sm btn-outline-primary" asp-controller="TestPerform" asp-action="ViewOngoingTest" asp-route-id="@tracking.TestRecord.TestRecordId">Xem kết quả</a>
+															<a class="btn btn-sm btn-outline-primary" asp-controller="Test" asp-action="ViewTestResult" asp-route-id="@tracking.TestRecord.TestRecordId">Xem kết quả</a>
 														}
 													</td>
 												</tr>

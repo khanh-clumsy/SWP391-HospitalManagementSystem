@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using HospitalManagement.Repositories;
@@ -233,7 +234,7 @@ namespace HospitalManagement.Controllers
                 ViewBag.SlotsPerDay = slots.Count();
                 ViewBag.SelectedYear = selectedYear;
                 ViewBag.SelectedWeekStart = selectedWeekStart;
-                ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(false);
+                ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(true);
 
                 ViewBag.ListRoom = await _roomRepo.GetAllActiveRoom();
                 var doctorList = _context.Doctors.ToList();
@@ -487,7 +488,7 @@ namespace HospitalManagement.Controllers
                 ViewBag.SlotsPerDay = slots.Count();
                 ViewBag.SelectedYear = selectedYear;
                 ViewBag.SelectedWeekStart = selectedWeekStart;
-                ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(false);
+                ViewBag.ListDep = await _doctorRepo.GetDistinctDepartment(true);
                 ViewBag.ListRoom = await _roomRepo.GetAllActiveRoom();
                 var doctorList = _context.Doctors.ToList();
                 ViewBag.ListDoctor = doctorList
@@ -510,7 +511,6 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = "Bạn không có quyền truy cập";
                 return Redirect("Home/AccessDenied");
             }
-
         }
 
         [Authorize(Roles = "Admin, Doctor")]
@@ -641,15 +641,15 @@ namespace HospitalManagement.Controllers
             _context.SaveChanges();
             return Json(new { success = true });
         }
-        
+
         // ========================  expired slots  ========================
 
-        
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult UpdateExpiredSlots()
         {
-            return View(new List<DoctorScheduleViewModel.ScheduleItem> ());
+            return View(new List<DoctorScheduleViewModel.ScheduleItem>());
         }
 
         [HttpPost]

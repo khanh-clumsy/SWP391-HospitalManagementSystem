@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HospitalManagement.Filters;
 
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<HospitalManagementContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -132,7 +134,11 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("Error Exception when connecting to database: " + ex.Message);
     }
 }
-
+using (var scope = app.Services.CreateScope())
+{
+    var repo = scope.ServiceProvider.GetRequiredService<IScheduleRepository>();
+    repo.PrintDoctorRoomsToday();
+}
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

@@ -19,20 +19,20 @@ namespace HospitalManagement.Controllers
     {
 
         private readonly IAppointmentRepository _appointmentRepo;
-        private readonly ITrackingRepository _trackingRepository;
-        private readonly IRoomRepository _RoomRepository;
-        private readonly ITestRepository _testRepository;
+        private readonly ITrackingRepository _trackingRepo;
+        private readonly IRoomRepository _roomRepo;
+        private readonly ITestRepository _testRepo;
         private readonly HospitalManagementContext _context;
-        private readonly IScheduleRepository _scheduleRepository;
+        private readonly IScheduleRepository _scheduleRepo;
 
         public TrackingController(IAppointmentRepository appointmentRepo, ITrackingRepository trackingRepository, IRoomRepository roomRepository, ITestRepository testRepository, HospitalManagementContext context, IScheduleRepository scheduleRepository)
         {
             _appointmentRepo = appointmentRepo;
-            _trackingRepository = trackingRepository;
-            _RoomRepository = roomRepository;
-            _testRepository = testRepository;
+            _trackingRepo = trackingRepository;
+            _roomRepo = roomRepository;
+            _testRepo = testRepository;
             _context = context;
-            _scheduleRepository = scheduleRepository;
+            _scheduleRepo = scheduleRepository;
         }
 
         [Authorize(Roles = "Receptionist")]
@@ -71,7 +71,7 @@ namespace HospitalManagement.Controllers
             string doctorRoomName = null;
             if (doctorId > 0 && slotId > 0)
             {
-                var roomId = await _scheduleRepository.GetRoomIdByDoctorSlotAndDayAsync(doctorId, slotId, day);
+                var roomId = await _scheduleRepo.GetRoomIdByDoctorSlotAndDayAsync(doctorId, slotId, day);
                 if (roomId.HasValue)
                 {
                     var room = await _context.Rooms.FirstOrDefaultAsync(r => r.RoomId == roomId.Value);
@@ -104,7 +104,7 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("Index", "Home");
             }
             appointment.Status = AppConstants.AppointmentStatus.Ongoing;
-            var schedule = await _scheduleRepository.GetScheduleWithRoomAsync(
+            var schedule = await _scheduleRepo.GetScheduleWithRoomAsync(
                                    appointment.DoctorId ?? 0,
                                    appointment.SlotId ?? 0,
                                    appointment.Date);
@@ -173,9 +173,9 @@ namespace HospitalManagement.Controllers
             }
 
             // Lấy danh sách phòng đã chỉ định (Tracking + Room)
-            var trackings = await _trackingRepository.GetTrackingsByAppointmentIdWithDetailsAsync(appointment.AppointmentId);
+            var trackings = await _trackingRepo.GetTrackingsByAppointmentIdWithDetailsAsync(appointment.AppointmentId);
             //Lấy danh sách các xét nghiệm đang khả dụng trong hệ thống
-            var availableTests = await _testRepository.GetAvailableTestsAsync();
+            var availableTests = await _testRepo.GetAvailableTestsAsync();
             //Lấy ra các test từ gói khám
             List<int> packageTestIds = new List<int>();
 
@@ -517,11 +517,11 @@ namespace HospitalManagement.Controllers
                 {
                     TempData["error"] = "Cần hoàn thành và chỉ định phòng cho tất cả xét nghiệm trước khi kết thúc khám bệnh.";
                     // Gán lại ViewBag và model để quay lại đúng trang
-                    var assignedTrackings = await _trackingRepository.GetTrackingsByAppointmentIdWithDetailsAsync(model.AppointmentId);
+                    var assignedTrackings = await _trackingRepo.GetTrackingsByAppointmentIdWithDetailsAsync(model.AppointmentId);
                     model.PatientName = appointment.Patient.FullName;
                     model.DateOfBirth = appointment.Patient.Dob;
                     model.Gender = appointment.Patient.Gender;
-                    model.AvailableTests = await _testRepository.GetAvailableTestsAsync();
+                    model.AvailableTests = await _testRepo.GetAvailableTestsAsync();
                     model.AssignedRooms = assignedTrackings;
                     if (appointment.PackageId != null)
                     {
@@ -554,6 +554,24 @@ namespace HospitalManagement.Controllers
                 appointment.Symptoms = model.Symptoms?.Trim() ?? "";
                 appointment.Diagnosis = model.Diagnosis?.Trim() ?? "";
                 appointment.PrescriptionNote = model.PrescriptionNote?.Trim() ?? "";
+                appointment.RecordCreatedAt = DateTime.Now;
+                var invoiceDetails = await _context.InvoiceDetails
+                    .Where(i => i.AppointmentId == appointment.AppointmentId)
+                    .ToListAsync();
+
+                if (invoiceDetails.Count == 0)
+                {
+                    appointment.PaymentStatus = AppConstants.PaymentStatus.Unpaid;
+                }
+                else if (invoiceDetails.All(i => i.PaymentStatus == AppConstants.PaymentStatus.Paid))
+                {
+                    appointment.PaymentStatus = AppConstants.PaymentStatus.Paid;
+                }
+                else
+                {
+                    appointment.PaymentStatus = AppConstants.PaymentStatus.Unpaid;
+                }
+                appointment.TotalPrice = invoiceDetails.Sum(i => i.UnitPrice);
                 appointment.Status = AppConstants.AppointmentStatus.Completed;
                 TempData["success"] = AppConstants.Messages.Tracking.SubmitExaminationSuccess;
             }
@@ -566,7 +584,7 @@ namespace HospitalManagement.Controllers
                 TempData["success"] = AppConstants.Messages.Tracking.SaveExaminationSuccess;
 
                 // Kiểm tra nếu còn test chưa chỉ định phòng thì cảnh báo khi quay lại trang
-                var unassignedTestRecords = await _testRepository.GetUnassignedTestRecordsAsync(appointment.AppointmentId);
+                var unassignedTestRecords = await _testRepo.GetUnassignedTestRecordsAsync(appointment.AppointmentId);
                 if (unassignedTestRecords.Any())
                 {
                     TempData["warning"] = $"Còn {unassignedTestRecords.Count} xét nghiệm từ gói khám chưa được chỉ định phòng!";
