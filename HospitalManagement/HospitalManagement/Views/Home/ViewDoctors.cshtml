@@ -1,0 +1,290 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model X.PagedList.IPagedList<HospitalManagement.Models.Doctor>
+@using Microsoft.AspNetCore.Http
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<style>
+		.doctor-img-wrapper {
+			aspect-ratio: 5 / 6;
+			width: 100%; /* hoặc width: 250px; nếu muốn cố định */
+			overflow: hidden;
+			border-radius: 8px; /* tuỳ chọn làm bo góc đẹp hơn */
+			position: relative;
+		}
+
+		.doctor-img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover; /* quan trọng: ảnh sẽ được cắt đúng tỷ lệ */
+			display: block;
+		}
+
+	</style>
+</head>
+<body>
+
+
+	<!-- Page Header Start -->
+	<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
+		<div class="container py-5">
+			<h1 class="display-3 text-white mb-3 animated slideInDown">Bác sĩ</h1>
+			<nav aria-label="breadcrumb animated slideInDown">
+				<ol class="breadcrumb text-uppercase mb-0">
+					<li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home" class="text-white">Trang chủ</a></li>
+					<li class="breadcrumb-item text-primary active" aria-current="page">Bác sĩ</li>
+				</ol>
+			</nav>
+		</div>
+	</div>
+	<!-- Page Header End -->
+	<!-- Team Start -->
+	<div class="container-xxl py-5">
+		<div class="container">
+			<div class="text-center mx-auto mb-4 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+				<p class="d-inline-block border rounded-pill py-1 px-4">Bác sĩ</p>
+				<h1>Đội ngũ bác sĩ</h1>
+			</div>
+
+			<!-- Search & Filter Form -->
+			<form method="get" asp-action="ViewDoctors" asp-controller="Home">
+				<div class="row justify-content-center g-2 wow fadeInUp" data-wow-delay="0.2s">
+
+					<!-- Search by name -->
+					<div class="col-md-2">
+						<input type="text" name="name" class="form-control" placeholder="Name"
+							   value="@(ViewBag.Name ?? "")" />
+					</div>
+
+					<!-- Filter by Department -->
+					<div class="col-md-2">
+						<select class="form-select" name="department">
+							<option value="">Department</option>
+							@foreach (var dept in ViewBag.Departments as List<string>)
+							{
+								if ((string)ViewBag.Department == dept)
+								{
+									<option value="@dept" selected>@dept</option>
+								}
+								else
+								{
+									<option value="@dept">@dept</option>
+								}
+							}
+						</select>
+					</div>
+
+					<!-- Filter by Experience -->
+					<div class="col-md-2">
+						<select class="form-select" name="exp">
+							<option value="">Kinh nghiệm</option>
+							@if ((int?)ViewBag.Experience == 1)
+							{
+								<option value="1" selected>Trên 1 năm</option>
+							}
+							else
+							{
+								<option value="1">Trên 1 năm</option>
+							}
+							@for (int i = 5; i < 16; i = i + 5)
+							{
+								if ((int?)ViewBag.Experience == i)
+								{
+									<option value="@i" selected>@($"Trên {i} năm")</option>
+								}
+								else
+								{
+									<option value="@i">@($"Trên {i} năm")</option>
+								}
+							}
+						</select>
+					</div>
+
+					<!-- Filter by Type -->
+					<div class="col-md-2">
+						<select class="form-select" name="isHead">
+							<option value="">Loại</option>
+							@if (ViewBag.Type == null)
+							{
+								<option value="true">Trưởng khoa</option>
+								<option value="false">Bác sĩ</option>
+							}
+							else if (ViewBag.Type)
+							{
+								<option value="true" selected>Trưởng khoa</option>
+								<option value="false">Bác sĩ</option>
+							}
+							else if (ViewBag.Type == false)
+							{
+								<option value="true">Trưởng khoa</option>
+								<option value="false" selected>Bác sĩ</option>
+							}
+						</select>
+					</div>
+
+					<!-- Sort by Experience -->
+					<div class="col-md-2">
+						<select class="form-select" name="sort">
+							b
+							<option value="">Sắp xếp theo kinh nghiệm</option>
+							@if ((string)ViewBag.Sort == "asc")
+							{
+								<option value="asc" selected>Tăng dần</option>
+							}
+							else
+							{
+								<option value="asc">Tăng dần</option>
+							}
+							@if ((string)ViewBag.Sort == "desc")
+							{
+								<option value="desc" selected>Giảm dần</option>
+							}
+							else
+							{
+								<option value="desc">Giảm dần</option>
+							}
+						</select>
+					</div>
+
+					<!-- Search Button -->
+					<div class="col-md-2 d-grid">
+						<button class="btn btn-primary" type="submit">Tìm kiếm</button>
+					</div>
+				</div>
+			</form>
+
+			<!-- Doctors -->
+			<div class="row g-4 mt-4">
+				@foreach (var doctor in Model)
+				{
+					<div class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+						<div class="team-item position-relative rounded overflow-hidden">
+							<div class="doctor-img-wrapper">
+								<img src="@(doctor.ProfileImage != null
+									 ? $"data:image/png;base64,{doctor.ProfileImage}"
+									 : Url.Content("~/img/logo.jpg"))"
+								alt="Doctor Image" class="doctor-img" />
+							</div>
+							<div class="team-text bg-light text-center p-4">
+								<h5>@doctor.FullName</h5>
+								<p class="text-primary">@doctor.DepartmentName (@doctor.ExperienceYear Exp Years)</p>
+								<div class="d-flex justify-content-center gap-2 mt-4">
+									<a asp-controller="Appointment" asp-action="BookingByDoctor" asp-route-doctorId="@doctor.DoctorId" asp-route-departmentName="@doctor.DepartmentName" class="btn btn-sm btn-outline-primary">Tạo cuộc hẹn</a>
+									<a href="/Home/DoctorDetail/@doctor.DoctorId" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center">Chi tiết</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+			<!-- Pagination start -->
+			@{
+				int maxPagesToShow = 5;
+				int startPage = Model.PageNumber - maxPagesToShow / 2;
+				if (startPage < 1) startPage = 1;
+
+				int endPage = startPage + maxPagesToShow - 1;
+				if (endPage > Model.PageCount)
+				{
+					endPage = Model.PageCount;
+					startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+				}
+			}
+			@if(Model.PageCount>1)
+			{
+			<div class="d-flex justify-content-center mt-5">
+				<nav>
+					<ul class="pagination">
+
+						@* Previous button *@
+						<li class="page-item @(Model.HasPreviousPage ? "" : "	")">
+							<a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("ViewDoctors", new {
+											page = Model.PageNumber - 1,
+											name = ViewBag.Name,
+											department = ViewBag.Department,
+											exp = ViewBag.Experience,
+											isHead = ViewBag.Type,
+											sort = ViewBag.Sort }) : "#")" tabindex="-1">Trước</a>
+						</li>
+
+						@* Trang đầu nếu startPage > 1 và dấu "..." *@
+						@if (startPage > 1)
+						{
+							<li class="page-item">
+								<a class="page-link" href="@Url.Action("ViewDoctors", new {
+											page = 1,
+											name = ViewBag.Name,
+											department = ViewBag.Department,
+											exp = ViewBag.Experience,
+											isHead = ViewBag.Type,
+											sort = ViewBag.Sort })">1</a>
+							</li>
+							@if (startPage > 2)
+							{
+								<li class="page-item disabled"><span class="page-link">...</span></li>
+							}
+						}
+
+						@* Các trang hiển thị trong khoảng từ startPage đến endPage *@
+						@for (int i = startPage; i <= endPage; i++)
+						{
+							<li class="page-item @(i == Model.PageNumber ? "active" : "")">
+								<a class="page-link" href="@Url.Action("ViewDoctors", new {
+											page = i,
+											name = ViewBag.Name,
+											department = ViewBag.Department,
+											exp = ViewBag.Experience,
+											isHead = ViewBag.Type,
+											sort = ViewBag.Sort
+											})">@i</a>
+							</li>
+						}
+
+						@* Trang cuối nếu endPage < total pages và dấu "..." *@
+						@if (endPage < Model.PageCount)
+						{
+							if (endPage < Model.PageCount - 1)
+							{
+								<li class="page-item disabled"><span class="page-link">...</span></li>
+							}
+							<li class="page-item">
+								<a class="page-link" href="@Url.Action("ViewDoctors", new { 
+											page = Model.PageCount, 
+											name = ViewBag.Name,
+											department = ViewBag.Department,
+											exp = ViewBag.Experience,
+											isHead = ViewBag.Type,
+											sort = ViewBag.Sort })">@Model.PageCount</a>
+							</li>
+						}
+
+						@* Next button *@
+						<li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+							<a class="page-link" href="@(Model.HasNextPage ? Url.Action("ViewDoctors", new { 
+										page = Model.PageNumber + 1,
+										name = ViewBag.Name,
+										department = ViewBag.Department,
+										exp = ViewBag.Experience,
+										isHead = ViewBag.Type,
+										sort = ViewBag.Sort}) : "#")">Sau</a>
+						</li>
+
+					</ul>
+				</nav>
+			</div>
+			}
+			<!-- Pagination end -->
+
+		</div>
+	</div>
+	<!-- Team End -->
+	<!-- Back to Top -->
+	<a href="#" class="btn btn-lg btn-primary btn-lg-square rounded-circle back-to-top"><i class="bi bi-arrow-up"></i></a>
+</body>
+
+</html>

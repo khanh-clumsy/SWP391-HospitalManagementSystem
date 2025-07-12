@@ -1,0 +1,176 @@
+﻿@model HospitalManagement.Models.Patient
+@{
+	ViewData["Title"] = "Update Profile";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<!-- Template Stylesheet -->
+	<link href="/css/doctorprofile.css" rel="stylesheet">
+</head>
+
+<body>
+	<!-- Profile Start -->
+	<div class="container-xxl doctor-profile py-5">
+		<div class="container">
+
+			<div class="row mb-4">
+				<div class="col-12">
+					<a asp-controller="Home" asp-action="Index" class="back-to-list">
+						<i class="fas fa-arrow-left"></i>
+						Back to Home Page
+					</a>
+				</div>
+			</div>
+
+			<div class="row g-4 align-items-stretch">
+				<!-- Image and Upload Buttons -->
+				<div class="left-content col-lg-4 wow fadeInUp" data-wow-delay="0.1s">
+					<div class="profile-card text-center">
+
+						<!-- Ảnh hiện tại -->
+						<div class="profile-image">
+							<img src="@(string.IsNullOrEmpty(Model.ProfileImage)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/"+Model.ProfileImage))"
+								 alt="Current Photo"
+								 class="shadow mb-2" />
+						</div>
+						@Html.ValidationMessage("photo", "", new { @class = "text-danger" })
+
+						<!-- Chọn file + nút Upload  -->
+						<div class="profile-buttons">
+							<div class="d-flex gap-2 justify-content-center flex-wrap">
+								<div style="width: 240px; margin-bottom:30px">
+
+									<form id="photoForm" asp-action="UploadPhoto" asp-controller="Patient" method="post" enctype="multipart/form-data">
+										<input type="file" class="form-control form-control-sm" id="photoInput" name="photo" accept=".jpg,.jpeg,.png,.gif" />
+										<button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Upload</button>
+									</form>
+
+								</div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<!-- Update Information -->
+				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
+					<div class="profile-card">
+						<div class="profile-info">
+							<h2> Update Details</h2>
+
+							<form asp-action="UpdateProfile" asp-controller="Patient" method="post">
+								<div class="form-group">
+									<label>Full Name</label>
+									<input asp-for="FullName" class="form-control" />
+								</div>
+								<div class="form-group">
+									<label>Gender</label>
+									<select asp-for="Gender" class="form-select">
+										<option value="M">Male</option>
+										<option value="F">Female</option>
+										<option value="O">Other</option>
+									</select>
+								</div>
+								<div class="form-group">
+									<label>Phone</label>
+									<input asp-for="PhoneNumber" class="form-control" />
+								</div>
+
+								<div class="form-group">
+									<label>Date of Birth</label>
+									<input asp-for="Dob" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
+								</div>
+
+								<div class="form-group">
+									<label>Address</label>
+									<input asp-for="Address" class="form-control" />
+								</div>
+
+								<div class="form-group">
+									<label>Health Insurance</label> 						
+									<span asp-validation-for="HealthInsurance" class="text-danger small"></span>
+
+									<input asp-for="HealthInsurance"
+										   id="HealthInsurance"
+										   name="HealthInsurance"
+										   class="form-control"
+										   data-val="true"
+										   data-val-regex="Health Insurance must contain 2 uppercase characters and 13 digits."
+										   data-val-regex-pattern="^[A-Z]{2}\d{13}$" />
+
+								</div>
+
+								<div class="form-group">
+									<label>Blood Group</label>
+									<select asp-for="BloodGroup" class="form-select">
+										<option value="">Select</option>
+										<option value="A+">A+</option>
+										<option value="A-">A-</option>
+										<option value="B+">B+</option>
+										<option value="B-">B-</option>
+										<option value="AB+">AB+</option>
+										<option value="AB-">AB-</option>
+										<option value="O+">O+</option>
+										<option value="O-">O-</option>
+									</select>
+								</div>
+
+
+								<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
+							</form>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<!-- JavaScript Libraries -->
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="/lib/wow/wow.min.js"></script>
+	<script src="/lib/easing/easing.min.js"></script>
+	<script src="/lib/waypoints/waypoints.min.js"></script>
+	<script src="/lib/counterup/counterup.min.js"></script>
+	<script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+	<script src="/lib/tempusdominus/js/moment.min.js"></script>
+	<script src="/lib/tempusdominus/js/moment-timezone.min.js"></script>
+	<script src="/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+
+	<!-- Template Javascript -->
+	<script src="/js/main.js"></script>
+
+	<script>
+		// validate photo upload
+		document.getElementById('photoForm').addEventListener('submit', function (e) {
+			const input = document.getElementById('photoInput');
+			const file = input.files[0];
+			const maxSize = 2 * 1024 * 1024; // 2MB
+			const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/jpg', 'image/webp'];
+
+			if (!file) return; // file null
+
+			let errors = [];
+
+			if (!allowedTypes.includes(file.type)) {
+				errors.push("Ảnh phải là .jpg, .jpeg, .png, .webp hoặc .gif.");
+			}
+
+			if (file.size > maxSize) {
+				errors.push("Dung lượng ảnh không được vượt quá 2MB.");
+			}
+
+			if (errors.length > 0) {
+				e.preventDefault();
+				alert(errors.join('\n'));
+			}
+		});
+	</script>
+
+</body>
+</html>
