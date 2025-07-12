@@ -1,6 +1,7 @@
 ﻿using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Data;
+using HospitalManagement.Models;
 
 namespace HospitalManagement.Repositories
 {
@@ -88,7 +89,6 @@ namespace HospitalManagement.Repositories
             return schedule?.RoomId;
         }
             
-
         public async Task<List<ScheduleViewModel>> GetDoctorSchedulesInRangeAsync(int doctorId, DateOnly startDate, DateOnly endDate)
         {
             return await _context.Schedules
@@ -103,6 +103,67 @@ namespace HospitalManagement.Repositories
                     EndTime = s.Slot.EndTime.ToString(@"hh\:mm")
                 })
                 .ToListAsync();
+        }
+
+        public async Task<int?> GetRoomIdByDoctorSlotAndDayAsync(int doctorId, int slotId, DateOnly day)
+        {
+            var schedule = await _context.Schedules
+                .Where(s => s.DoctorId == doctorId && s.SlotId == slotId && s.Day == day)
+                .FirstOrDefaultAsync();
+            return schedule?.RoomId;
+        }
+
+        public async Task<Schedule?> GetScheduleWithRoomAsync(int doctorId, int slotId, DateOnly day)
+        {
+            return await _context.Schedules
+                .Include(s => s.Room)
+                .FirstOrDefaultAsync(s => s.DoctorId == doctorId && s.SlotId == slotId && s.Day == day);
+        }
+
+        public void PrintDoctorRoomsToday()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+
+            var scheduleDetails = _context.Schedules
+                .Where(s => s.Day == today)
+                .Join(_context.Doctors, s => s.DoctorId, d => d.DoctorId,
+                    (s, d) => new { s, d })
+                .Join(_context.Rooms, sd => sd.s.RoomId, r => r.RoomId,
+                    (sd, r) => new {
+                        sd.d.FullName,
+                        sd.d.DepartmentName,
+                        SlotId = sd.s.SlotId,
+                        r.RoomName,
+                        r.RoomType
+                    })
+                .Join(_context.Slots, x => x.SlotId, sl => sl.SlotId,
+                    (x, sl) => new {
+                        x.FullName,
+                        x.DepartmentName,
+                        x.RoomName,
+                        x.RoomType,
+                        SlotTime = $"{sl.StartTime:hh\\:mm} - {sl.EndTime:hh\\:mm}",
+                        x.SlotId
+                    })
+                .OrderBy(x => x.FullName)
+                .ThenBy(x => x.SlotId)
+                .ToList();
+
+            Console.WriteLine("\n===== LỊCH PHÒNG LÀM VIỆC BÁC SĨ HÔM NAY =====\n");
+
+            string currentDoctor = null;
+            foreach (var item in scheduleDetails)
+            {
+                if (item.FullName != currentDoctor)
+                {
+                    currentDoctor = item.FullName;
+                    Console.WriteLine($"👨‍⚕️ {item.FullName} - Khoa: {item.DepartmentName}");
+                }
+
+                Console.WriteLine($"  🕘 Slot {item.SlotId} ({item.SlotTime}): Phòng {item.RoomName} ({item.RoomType})");
+            }
+
+            Console.WriteLine("\n==============================================\n");
         }
     }
 }

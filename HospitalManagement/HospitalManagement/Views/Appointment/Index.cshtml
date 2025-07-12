@@ -78,7 +78,7 @@
 								<td>@item.Note</td>
 								<th>@(item.Doctor?.FullName ?? "N/A")</th>
 								<th>@(item.Doctor?.DepartmentName ?? "N/A")</th>
-								<th>@(item.Staff?.FullName ?? "N/A")</th>
+								<th>@(item.CreatedByStaff?.FullName ?? "N/A")</th>
 								<td>@item.Date</td>
 								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
 								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>

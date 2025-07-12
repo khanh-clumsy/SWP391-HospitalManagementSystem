@@ -18,12 +18,24 @@ namespace HospitalManagement.Services
         {
             var id = appointment.AppointmentId;
 
-            // Đã có invoice cho Service hoặc Package?
             bool hasInvoice = await _context.InvoiceDetails.AnyAsync(i =>
                 i.AppointmentId == id &&
                 (i.ItemType == "Service" || i.ItemType == "Package"));
 
             if (hasInvoice) return;
+
+            // Ensure related data is loaded
+            if (appointment.ServiceId != null && appointment.Service == null)
+            {
+                appointment.Service = await _context.Services
+                    .FirstOrDefaultAsync(s => s.ServiceId == appointment.ServiceId.Value);
+            }
+
+            if (appointment.PackageId != null && appointment.Package == null)
+            {
+                appointment.Package = await _context.Packages
+                    .FirstOrDefaultAsync(p => p.PackageId == appointment.PackageId.Value);
+            }
 
             string itemType = null;
             int itemId = 0;
@@ -62,6 +74,7 @@ namespace HospitalManagement.Services
                 await _context.SaveChangesAsync();
             }
         }
+
 
     }
 }

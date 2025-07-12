@@ -1,0 +1,130 @@
+﻿@model List<HospitalManagement.ViewModels.RevenueMonthDto>
+
+@{
+    ViewData["Title"] = "Thống kê doanh thu";
+    var revenueData = Model ?? new List<HospitalManagement.ViewModels.RevenueMonthDto>();
+}
+
+<style>
+    #loadingOverlay {
+        display: none !important;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4 text-primary">📊 Thống kê doanh thu theo năm</h2>
+    
+    @if (!revenueData.Any())
+    {
+        <div class="alert alert-info text-center mt-4">
+            Chưa có dữ liệu doanh thu để hiển thị.
+        </div>
+    }
+    else
+    {
+        <form asp-action="RevenueStatistics" method="get" class="mb-4 d-flex align-items-center">
+        <label class="me-2 fw-bold">Chọn năm:</label>
+        <select name="year" class="form-select w-auto me-2" onchange="this.form.submit()">
+            @foreach (var y in ViewBag.Years as List<int>)
+                {
+                    <option value="@y" selected="@(ViewBag.SelectedYear == y ? "selected" : null)">
+                        @y
+                    </option>
+                }
+        </select>
+        </form>
+        <div class="row">
+            <div class="col-md-8">
+                <canvas id="revenueChart" height="100"></canvas>
+            </div>
+            <div class="col-md-4">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Tháng</th>
+                            <th>Doanh thu (VND)</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in revenueData)
+                        {
+                            <tr>
+                                <td>
+                                    @{
+                                        var monthDate = DateTime.ParseExact(item.Month, "yyyy-MM", null);
+                                        @monthDate.ToString("MM/yyyy")
+                                    }
+                                </td>
+                                <td>@String.Format("{0:N0}", item.TotalRevenue) VND</td>
+                                <td>
+                                    <a asp-action="MonthlyInvoiceDetails" asp-route-month="@item.Month" class="btn btn-sm btn-primary">
+                                        Chi tiết
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                        <tr class="table-info fw-bold">
+                            <td class="text-end">Tổng cộng</td>
+                            <td>
+                                @String.Format("{0:N0}", revenueData.Sum(x => x.TotalRevenue)) VND
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <form asp-action="ExportRevenueToExcel" asp-route-year="@ViewBag.SelectedYear" method="post">
+                    <button type="submit" class="btn btn-success w-100 mt-2">
+                        📁 Xuất Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const chartData = @Html.Raw(Json.Serialize(
+        Model.Select(x => new {
+            label = x.MonthDisplay,
+            totalRevenue = x.TotalRevenue
+        })
+    ));
+
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: chartData.map(x => x.label), 
+            datasets: [{
+                label: 'Doanh thu (VND)',
+                data: chartData.map(x => x.totalRevenue),
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: value => value.toLocaleString("vi-VN")
+                    }
+                }
+            },
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+</script>
+
+
+

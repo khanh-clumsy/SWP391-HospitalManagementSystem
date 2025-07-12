@@ -70,8 +70,8 @@ namespace HospitalManagement.Repositories
                         tl.TestRecordId < currentTestListId)
                     .ToListAsync();
 
-                // Kiểm tra nếu tất cả TestList nhỏ hơn đã "Done"
-                if (previousTestLists.All(tl => tl.TestStatus == "Done"))
+                // Kiểm tra nếu tất cả TestList nhỏ hơn đã "Completed"
+                if (previousTestLists.All(tl => tl.TestStatus == "Completed"))
                 {
                     validTrackings.Add(tracking);
                 }
@@ -102,5 +102,10 @@ namespace HospitalManagement.Repositories
 
             return await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
         }
+        public async Task<int> CountActivePatientsAsync()
+        {
+            return await _context.Patients.CountAsync(p => p.IsActive);
+        }
+
     }
 }

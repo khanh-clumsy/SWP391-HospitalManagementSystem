@@ -188,6 +188,16 @@ namespace HospitalManagement.Repositories
 
             return doctors;
         }
+        public async Task<(int xetNghiemCount, int otherCount)> CountDoctorsByDepartmentAsync()
+        {
+            var query = _context.Doctors
+                .Where(d => d.IsActive); // hoặc điều kiện thêm nếu cần
+
+            int xetNghiemCount = await query.CountAsync(d => d.DepartmentName == "Xét nghiệm" || d.DepartmentName == "Chẩn đoán hình ảnh");
+            int otherCount = await query.CountAsync(d => d.DepartmentName != "Xét nghiệm" && d.DepartmentName != "Chẩn đoán hình ảnh");
+
+            return (xetNghiemCount, otherCount);
+        }
 
     }
 }

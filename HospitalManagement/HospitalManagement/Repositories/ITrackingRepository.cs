@@ -6,5 +6,6 @@ namespace HospitalManagement.Repositories
     {
         Task<List<Tracking>> GetRoomByAppointmentIdAsync(int appointmentId);
         Task<List<Room>> GetTestRoomsAsync();
+        Task<List<Tracking>> GetTrackingsByAppointmentIdWithDetailsAsync(int appointmentId);
     }
 }
