@@ -26,6 +26,8 @@ namespace HospitalManagement.Helpers
             public const string Lab = "Xét nghiệm";
             public const string Imaging = "Chẩn đoán hình ảnh";
             public const string Cashier = "Thu ngân";
+            public const string Endoscopy = "Nội soi";
+            public const string Ultrasound = "Siêu âm";
             public const string Other = "Khác";
         }
 
@@ -38,6 +40,7 @@ namespace HospitalManagement.Helpers
             public const string Rejected = "Rejected";
             public const string Failed = "Failed";
             public const string Cancelled = "Cancelled";
+            public const string Overdue = "Overdue";
         }
 
         public static class AppointmentActions

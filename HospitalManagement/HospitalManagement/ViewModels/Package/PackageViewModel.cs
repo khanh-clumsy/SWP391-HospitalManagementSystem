@@ -32,6 +32,8 @@ namespace HospitalManagement.ViewModels.Package
 
         public decimal CurrentPrice => Math.Round(OriginalPrice * (1 - (DiscountPercent ?? 0) / 100), 0);
 
+        public bool IsDeleted { get; set; }
+
 
 
     }

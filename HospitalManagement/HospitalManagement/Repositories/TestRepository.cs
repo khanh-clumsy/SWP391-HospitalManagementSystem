@@ -19,35 +19,42 @@ namespace HospitalManagement.Repositories
             return _context.Tests.ToList();
         }
 
-        public Test GetById(int id)
+        public async Task<Test> GetByIdAsync(int id)
         {
-            return _context.Tests.Find(id);
+            return await _context.Tests.FindAsync(id);
         }
 
-        public void Add(Test test)
+        public async Task AddAsync(Test test)
         {
-            _context.Tests.Add(test);
+            await _context.Tests.AddAsync(test);
         }
 
-        public void Update(Test test)
+        public async Task UpdateAsync(Test test)
         {
             _context.Tests.Update(test);
+            await Task.CompletedTask;
         }
 
-        public void Delete(int id)
+        public async Task DeleteAsync(int id)
         {
-            var test = _context.Tests.Find(id);
+            var test = await _context.Tests.FindAsync(id);
             if (test != null)
                 _context.Tests.Remove(test);
         }
 
-        public void Save()
+        public async Task SaveAsync()
         {
-            _context.SaveChanges();
+           await _context.SaveChangesAsync();
         }
-        public IEnumerable<Test> Search(string name, string sortOrder, decimal? minPrice, decimal? maxPrice)
+        public async Task<IEnumerable<Test>> SearchAsync(string name, string sortOrder, decimal? minPrice, decimal? maxPrice, bool includeDeleted = false)
         {
             var query = _context.Tests.AsQueryable();
+
+            // Only exclude deleted tests if not admin
+            if (!includeDeleted)
+            {
+                query = query.Where(t => !t.IsDeleted);
+            }
 
             if (!string.IsNullOrEmpty(name))
             {
@@ -74,7 +81,7 @@ namespace HospitalManagement.Repositories
                 query = query.OrderByDescending(t => t.Price);
             }
 
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
         public async Task<List<Test>> GetAvailableTestsAsync()

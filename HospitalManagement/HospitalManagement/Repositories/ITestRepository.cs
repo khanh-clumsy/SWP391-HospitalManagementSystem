@@ -7,12 +7,12 @@ namespace HospitalManagement.Repositories
     public interface ITestRepository
     {
         IEnumerable<Test> GetAll();
-        Test GetById(int id);
-        void Add(Test test);
-        void Update(Test test);
-        void Delete(int id);
-        void Save();
-        IEnumerable<Test> Search(string name, string sortOrder, decimal? minPrice, decimal? maxPrice);
+        Task<Test> GetByIdAsync(int id);
+        Task AddAsync(Test test);
+        Task UpdateAsync(Test test);
+        Task DeleteAsync(int id);
+        Task SaveAsync();
+        Task<IEnumerable<Test>> SearchAsync(string name, string sortOrder, decimal? minPrice, decimal? maxPrice, bool includeDeleted = false);
         /// <summary>
         /// Lấy các TestRecord chưa được chỉ định phòng cho một appointment
         /// </summary>

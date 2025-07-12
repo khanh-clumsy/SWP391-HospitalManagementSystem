@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using HospitalManagement.Models;
+using HospitalManagement.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace HospitalManagement.Data;
@@ -60,6 +62,20 @@ public partial class HospitalManagementContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
+            {
+                var parameter = Expression.Parameter(entityType.ClrType, "e");
+                var isDeletedProperty = Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
+                var compareExpression = Expression.Equal(isDeletedProperty, Expression.Constant(false));
+                var lambda = Expression.Lambda(compareExpression, parameter);
+
+                modelBuilder.Entity(entityType.ClrType).HasQueryFilter(lambda);
+            }
+        }
         modelBuilder.Entity<Appointment>(entity =>
         {
             entity.HasKey(e => e.AppointmentId).HasName("PK__Appointm__8ECDFCA27E5EC77C");

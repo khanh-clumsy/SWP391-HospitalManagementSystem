@@ -874,7 +874,8 @@ namespace HospitalManagement.Controllers
             }
 
             var doctors = await _context.Doctors
-                                        .Where(d => d.DepartmentName == department)
+                                        .Where(d => d.DepartmentName == department && d.IsActive)
+                                        .OrderByDescending(d => d.IsSpecial)
                                         .Select(d => new
                                         {
                                             d.DoctorId,

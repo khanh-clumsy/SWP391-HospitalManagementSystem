@@ -79,7 +79,7 @@
 				foreach (var package in Model)
 				{
 					<div class="col-lg-4 col-md-6 col-12">
-						<div class="package-card position-relative">
+						<div class="package-card position-relative @(package.IsDeleted ? "deleted-package" : "")">
 							<!-- Discount Badge -->
 							@if (package.DiscountPercent != null && package.DiscountPercent > 0)
 							{
@@ -130,28 +130,58 @@
 								<div class="package-actions mt-3">
 									@if (User.IsInRole("Admin"))
 									{
-										<a asp-action="Edit" asp-controller="Package" asp-route-id="@package.PackageId"
-										   class="btn btn-outline-primary btn-sm">
-											<i class="fas fa-edit me-1"></i>Chỉnh sửa
-										</a>
-										<form asp-action="Delete" asp-controller="Package" asp-route-id="@package.PackageId"
-											  method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa gói khám này?');"
-											  class="d-inline">
-											<button type="submit" class="btn btn-outline-danger btn-sm">
-												<i class="fas fa-trash me-1"></i>Xóa
-											</button>
-										</form>
+										@if (package.IsDeleted)
+										{
+											<div class="alert alert-warning py-2 mb-2">
+												<i class="fas fa-exclamation-triangle me-1"></i>
+												<small>Gói khám này đã bị ẩn</small>
+											</div>
+										}
+
+										<div class="d-flex gap-2 flex-wrap">
+											<a asp-action="Detail" asp-controller="Package" asp-route-id="@package.PackageId"
+											   class="btn btn-primary btn-sm flex-fill">
+												<i class="fas fa-eye me-1"></i>Xem chi tiết
+											</a>
+											@if (!package.IsDeleted)
+											{
+												<a asp-action="Edit" asp-controller="Package" asp-route-id="@package.PackageId"
+												   class="btn btn-outline-primary btn-sm flex-fill">
+													<i class="fas fa-edit me-1"></i>Chỉnh sửa
+												</a>
+
+												<form asp-action="Delete" asp-controller="Package" asp-route-id="@package.PackageId"
+													  method="post" onsubmit="return confirm('Bạn có chắc chắn muốn ẩn gói khám này?');"
+													  class="d-inline flex-fill">
+													<button type="submit" class="btn btn-outline-danger btn-sm w-100">
+														<i class="fas fa-eye-slash me-1"></i>Ẩn gói
+													</button>
+												</form>
+											}
+											else
+											{
+												<form asp-action="Restore" asp-controller="Package" asp-route-id="@package.PackageId"
+													  method="post" onsubmit="return confirm('Bạn có chắc chắn muốn khôi phục gói khám này?');"
+													  class="d-inline flex-fill">
+													<button type="submit" class="btn btn-success btn-sm w-100">
+														<i class="fas fa-undo me-1"></i>Khôi phục
+													</button>
+												</form>
+											}
+										</div>
 									}
 									else
 									{
-										<a asp-action="Detail" asp-controller="Package" asp-route-id="@package.PackageId"
-										   class="btn btn-primary btn-sm">
-											<i class="fas fa-eye me-1"></i>Xem chi tiết
-										</a>
-										<a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@package.PackageId"
-										   class="btn btn-success btn-sm">
-											<i class="fas fa-calendar-plus me-1"></i>Đặt khám
-										</a>
+										<div class="d-flex gap-2">
+											<a asp-action="Detail" asp-controller="Package" asp-route-id="@package.PackageId"
+											   class="btn btn-primary btn-sm flex-fill">
+												<i class="fas fa-eye me-1"></i>Xem chi tiết
+											</a>
+											<a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@package.PackageId"
+											   class="btn btn-success btn-sm flex-fill">
+												<i class="fas fa-calendar-plus me-1"></i>Đặt khám
+											</a>
+										</div>
 									}
 								</div>
 							</div>
@@ -188,17 +218,17 @@
 						GenderFilter = ViewBag.GenderFilter,
 						PriceRangeFilter = ViewBag.PriceRangeFilter
 					}), new PagedListRenderOptions
-			{
-				DisplayLinkToFirstPage = PagedListDisplayMode.Always,
-				DisplayLinkToLastPage = PagedListDisplayMode.Always,
-				DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
-				DisplayLinkToNextPage = PagedListDisplayMode.Always,
-				DisplayLinkToIndividualPages = true,
-				MaximumPageNumbersToDisplay = 5,
-				UlElementClasses = new[] { "pagination" },
-				LiElementClasses = new[] { "page-item" },
-				PageClasses = new[] { "page-link" }
-			})
+{
+	DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+	DisplayLinkToLastPage = PagedListDisplayMode.Always,
+	DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+	DisplayLinkToNextPage = PagedListDisplayMode.Always,
+	DisplayLinkToIndividualPages = true,
+	MaximumPageNumbersToDisplay = 5,
+	UlElementClasses = new[] { "pagination" },
+	LiElementClasses = new[] { "page-item" },
+	PageClasses = new[] { "page-link" }
+})
 			</div>
 		}
 

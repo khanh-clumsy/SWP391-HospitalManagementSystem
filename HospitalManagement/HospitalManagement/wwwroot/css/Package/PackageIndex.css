@@ -258,6 +258,31 @@
         border-color: var(--danger);
     }
 
+/* Deleted Package Styling */
+.deleted-package {
+    opacity: 0.7;
+    border: 2px dashed var(--gray-400);
+    background: var(--gray-50);
+}
+
+    .deleted-package .package-image {
+        filter: grayscale(50%);
+    }
+
+    .deleted-package .package-title {
+        color: var(--gray-600);
+    }
+
+    .deleted-package .current-price {
+        color: var(--gray-500);
+    }
+
+    .deleted-package:hover {
+        transform: none;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        border-color: var(--gray-400);
+    }
+
 
 /* Empty State - Improved design */
 .empty-state {
