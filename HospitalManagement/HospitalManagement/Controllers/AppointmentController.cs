@@ -1190,6 +1190,7 @@ namespace HospitalManagement.Controllers
                 return View(appointment);
             }
             if (roleKey == AppConstants.ClaimTypes.StaffId && appointment.CreatedByStaff != null && appointment.CreatedByStaff.StaffId != null && appointment.CreatedByStaff.StaffId == userId)
+
             {
                 return View(appointment);
             }

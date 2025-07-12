@@ -273,6 +273,13 @@
 								{
 									<div class="col-md-4 mb-3">
 										<h6 class="text-muted">Nhân viên hỗ trợ</h6>
+										<p class="mb-0">@Model.Service.ServiceType</p>
+									</div>
+								}
+								@if (Model.CreatedByStaff != null)
+								{
+									<div class="col-md-4 mb-3">
+										<h6 class="text-muted">Staff Member</h6>
 										<p class="mb-0">@Model.CreatedByStaff.FullName</p>
 									</div>
 								}

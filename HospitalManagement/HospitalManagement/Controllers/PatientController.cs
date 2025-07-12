@@ -290,7 +290,7 @@ namespace HospitalManagement.Controllers
                 return Redirect(returnUrl);
             }
 
-            return RedirectToAction("Profile", "Patient");
+            return RedirectToAction("UpdateProfile");
         }
 
         [HttpGet]

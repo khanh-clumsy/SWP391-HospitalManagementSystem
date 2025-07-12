@@ -49,7 +49,7 @@
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
-								<a href="#" class="btn btn-primary">Tạo cuộc hẹn</a>
+								<a asp-controller="Appointment" asp-action="BookingByDoctor" asp-route-doctorId="@Model.DoctorId" asp-route-departmentName="@Model.DepartmentName" class="btn btn-primary">Tạo cuộc hẹn</a>
 							</div>
 						</div>
 					</div>

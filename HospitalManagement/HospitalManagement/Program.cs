@@ -1,13 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using HospitalManagement.Data;
+using HospitalManagement.Filters;
+using HospitalManagement.Models;
 using HospitalManagement.Repositories;
-using HospitalManagement.Data;
+using HospitalManagement.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
-using HospitalManagement.Services;
-using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using HospitalManagement.Filters;
+using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging;
+using OfficeOpenXml;
+using System.ComponentModel;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -29,6 +32,9 @@ builder.Services.AddScoped<ISlotRepository, SlotRepository>();
 builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 builder.Services.AddScoped<IScheduleChangeRepository, ScheduleChangeRepository>();
 builder.Services.AddScoped<InvoiceService>();
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+
 
 // Add services to the container
 builder.Services.AddCors(options =>
