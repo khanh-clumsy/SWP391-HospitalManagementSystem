@@ -195,6 +195,16 @@
 										   class="btn btn-sm btn-info">
 											<i class="fas fa-eye"></i> Chi tiết
 										</a>
+										@if(User.IsInRole("Patient") && item.Status == "Completed")
+										{
+											<a asp-action="Create"
+											   asp-controller="Feedback"
+											   asp-route-packageId="@item.PackageId"
+											   asp-route-serviceId="@item.ServiceId"
+											   class="btn btn-sm btn-info">
+												<i class="fas fa-eye"></i> Đánh giá
+											</a>
+										}
 									</div>
 								</td>
 							</tr>

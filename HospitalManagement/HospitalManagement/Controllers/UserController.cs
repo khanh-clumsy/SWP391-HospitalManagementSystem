@@ -1098,6 +1098,8 @@ namespace HospitalManagement.Controllers
             var doctor = await _doctorRepo.GetByIdAsync(id);
             if (doctor == null) return NotFound();
 
+            ViewBag.Doctor = doctor;
+
             // Nếu không truyền gì, dùng tuần hiện tại
             int selectedYear = year ?? DateTime.Today.Year;
 
