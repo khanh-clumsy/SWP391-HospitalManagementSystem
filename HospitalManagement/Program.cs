@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HospitalManagement.Filters;
 using OfficeOpenXml;
+using HospitalManagement.Services.VnPay;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
@@ -96,7 +97,7 @@ builder.Services.AddControllersWithViews()
 
 builder.Services.AddDistributedMemoryCache();
 builder.Configuration
-    .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true); // máy ai nấy dùng
 
 builder.Services.AddSingleton<BookingQueueService>();
@@ -117,6 +118,7 @@ builder.Services.AddScoped<IPasswordHasher<Patient>, PasswordHasher<Patient>>();
 //    options.Filters.Add(new PreventSpamAttribute { Seconds = 1 }); // mặc định trong filters là 1s
 //});
 
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 var app = builder.Build();
 

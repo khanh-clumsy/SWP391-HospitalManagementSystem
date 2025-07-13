@@ -155,6 +155,9 @@ namespace HospitalManagement.Helpers
                 public const string AssignSuccess = "Chỉ định xét nghiệm thành công!";
                 public const string AssignFail = "Chỉ định xét nghiệm thất bại!";
                 public const string NotCompleted = "Vui lòng hoàn thành tất cả xét nghiệm trước khi kết thúc khám bệnh.";
+                public const string TestRecordNotFound = "Không tìm thấy xét nghiệm.";
+                public const string ResultFileRequired = "Chưa cập nhật kết quả";
+                public const string SaveResultSuccess = "Lưu kết quả xét nghiệm thành công.";
             }
 
             public static class Package

@@ -7,6 +7,7 @@ using HospitalManagement.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static HospitalManagement.Helpers.AppConstants.Messages;
 
 namespace HospitalManagement.Controllers
 {
@@ -32,7 +33,7 @@ namespace HospitalManagement.Controllers
 
             if (testRecord == null)
             {
-                TempData["error"] = "Không tìm thấy xét nghiệm.";
+                TempData["error"] = AppConstants.Messages.Test.TestRecordNotFound;
                 return RedirectToAction("ViewOngoingTest", "TestPerform");
             }
 
@@ -52,16 +53,26 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> InputTestResult(TestResultInputViewModel model)
         {
+            // Debug: Log the start of the method
+            Console.WriteLine($"[DEBUG] InputTestResult started - TestRecordID: {model.TestRecordID}");
+            
             int doctorId = int.Parse(User.FindFirst(AppConstants.ClaimTypes.DoctorId)?.Value ?? "0");
+            Console.WriteLine($"[DEBUG] DoctorId: {doctorId}");
+            
             var testRecord = await _context.TestRecords.FindAsync(model.TestRecordID);
             if (testRecord == null)
             {
-                TempData["error"] = "Không tìm thấy xét nghiệm.";
+                Console.WriteLine($"[DEBUG] TestRecord not found for ID: {model.TestRecordID}");
+                TempData["error"] = AppConstants.Messages.Test.TestRecordNotFound;
                 return NotFound();
             }
+            
+            Console.WriteLine($"[DEBUG] TestRecord found - Status: {testRecord.TestStatus}, AppointmentId: {testRecord.AppointmentId}");
+            
             if (model.ResultFile == null)
             {
-                TempData["Error"] = "Chưa cập nhật kết quả";
+                Console.WriteLine($"[DEBUG] ResultFile is null");
+                TempData["Error"] = AppConstants.Messages.Test.ResultFileRequired;
                 return View(model);
             }
 
@@ -70,24 +81,105 @@ namespace HospitalManagement.Controllers
             {
                 try
                 {
+                    Console.WriteLine($"[DEBUG] Saving file: {model.ResultFile.FileName}, Size: {model.ResultFile.Length}");
                     var fileName = await FileService.SaveTestFileAsync(model.ResultFile, "TestResult");
                     model.ResultFileName = fileName;
+                    Console.WriteLine($"[DEBUG] File saved successfully: {fileName}");
                 }
                 catch (InvalidOperationException ex)
                 {
+                    Console.WriteLine($"[DEBUG] File save error: {ex.Message}");
                     TempData["Error"] = ex.Message;
                     return View(model);
                 }
             }
+            
             // Add các trường vào DB
+            Console.WriteLine($"[DEBUG] Updating TestRecord in database");
             testRecord.TestNote = model.Note;
             testRecord.Result = model.ResultFileName;
             testRecord.TestStatus = "Completed";
             testRecord.CompletedAt = DateTime.Now;
             testRecord.DoctorId = doctorId;
+            
             await _context.SaveChangesAsync();
+            Console.WriteLine($"[DEBUG] TestRecord updated successfully");
+            
+            // Kiểm tra nếu tất cả test trong batch đã Completed
+            Console.WriteLine($"[DEBUG] Starting batch completion check");
 
-            TempData["Success"] = "Lưu kết quả xét nghiệm thành công.";
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var appointmentId = testRecord.AppointmentId;
+                    Console.WriteLine($"[DEBUG] Checking batch for AppointmentId: {appointmentId}");
+
+                    int? currentBatch = await BatchHelper.GetOpenBatchAsync(_context, appointmentId);
+                    Console.WriteLine($"[DEBUG] Current batch: {currentBatch}");
+
+                    if (currentBatch == null) 
+                    {
+                        Console.WriteLine($"[DEBUG] No open batch found");
+                        return;
+                    }
+
+                    bool isBatchComplete = await _context.Trackings
+                        .Where(t => t.TestRecord != null && t.AppointmentId == appointmentId && t.TrackingBatch == currentBatch && t.TestRecordId != null)
+                        .AllAsync(t => t.TestRecord.TestStatus == AppConstants.TestStatus.Completed);
+
+                    Console.WriteLine($"[DEBUG] Is batch complete: {isBatchComplete}");
+
+                    if (isBatchComplete)
+                    {
+                        Console.WriteLine($"[DEBUG] Batch is complete, creating clinic tracking");
+                        var appointment = await _context.Appointments
+                            .Include(a => a.Doctor)
+                            .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+
+                        if (appointment != null)
+                        {
+                            var doctor = appointment.Doctor;
+                            Console.WriteLine($"[DEBUG] Found appointment with doctor: {doctor?.FullName}");
+
+                            // Tìm phòng khám bác sĩ của cuộc hẹn đó
+                            var clinicRoom = await _context.Trackings
+                                .Where(t => t.Room.RoomType == AppConstants.RoomTypes.Clinic && t.Room.Status == "Active" && t.AppointmentId == appointmentId)
+                                .Select(t => t.Room)
+                                .Distinct()
+                                .FirstOrDefaultAsync();
+
+                            Console.WriteLine($"[DEBUG] Clinic room found: {clinicRoom?.RoomId}");
+
+                            if (clinicRoom != null) 
+                            {
+                                int newBatch = await BatchHelper.GetOpenOrNewBatchAsync(_context, appointmentId);
+                                Console.WriteLine($"[DEBUG] New batch created: {newBatch}");
+
+                                var clinicTracking = new Models.Tracking
+                                {
+                                    AppointmentId = appointmentId,
+                                    RoomId = clinicRoom.RoomId,
+                                    Time = DateTime.Now,
+                                    TestRecordId = null,
+                                    TrackingBatch = newBatch
+                                };
+
+                                _context.Trackings.Add(clinicTracking);
+                                await _context.SaveChangesAsync();
+                                Console.WriteLine($"[DEBUG] Clinic tracking created successfully");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DEBUG] Error in batch completion task: {ex.Message}");
+                }
+            });
+
+            TempData["Success"] = AppConstants.Messages.Test.SaveResultSuccess;
+            Console.WriteLine($"[DEBUG] InputTestResult completed successfully");
             return RedirectToAction("ViewTestResult", "Test", new { id = testRecord.TestRecordId });
         }
 

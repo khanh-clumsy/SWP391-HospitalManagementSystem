@@ -306,15 +306,14 @@
 								}
 
 								@if ((User.IsInRole("Patient") || User.IsInRole("Receptionist") || User.IsInRole("Cashier"))
-																&& Model.InvoiceDetails != null
-																&& Model.InvoiceDetails.Any())
+														&& Model.InvoiceDetails != null
+														&& Model.InvoiceDetails.Any())
 								{
-									<a class="btn btn-outline-primary py-3 px-4"
-									   asp-controller="Invoice"
-									   asp-action="Detail"
-									   asp-route-id="@Model.InvoiceDetails.First().InvoiceDetailId">
+									<a asp-controller="Payment" asp-action="TotalInvoiceDetail" asp-route-id="@Model.AppointmentId"
+									   class="btn btn-outline-primary py-3 px-4">
 										<i class="fa fa-file-invoice me-2"></i> Xem hóa đơn
 									</a>
+
 								}
 							</div>
 						</div>
