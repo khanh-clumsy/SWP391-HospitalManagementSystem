@@ -97,7 +97,6 @@ namespace HospitalManagement.Repositories
                 )
                 .ToListAsync();
         }
-
         // Async CRUD operations
         public async Task<Test?> GetByIdAsync(int id)
         {
@@ -199,7 +198,6 @@ namespace HospitalManagement.Repositories
             }
         }
 
-        
 
     }
 }

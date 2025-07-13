@@ -713,5 +713,39 @@ namespace HospitalManagement.Controllers
 
             return Json(rooms);
         }
+
+        [HttpGet]
+       public async Task<IActionResult> ViewInvoiceList(string status = "Unpaid", string? phone = null)
+        {
+            var query = _context.InvoiceDetails
+                .Include(i => i.Appointment)
+                    .ThenInclude(a => a.Patient) // cần include để lấy được PhoneNumber
+                .AsQueryable();
+
+            // Filter trạng thái
+            if (status == "Paid")
+            {
+                query = query.Where(i => i.PaymentStatus == "Paid");
+            }
+            else
+            {
+                query = query.Where(i => i.PaymentStatus == null || i.PaymentStatus == "Unpaid");
+            }
+
+            // Filter số điện thoại nếu có
+            if (!string.IsNullOrEmpty(phone))
+            {
+                query = query.Where(i => i.Appointment.Patient.PhoneNumber.Contains(phone));
+            }
+
+            var invoices = await query
+                .OrderByDescending(i => i.CreatedAt)
+                .ToListAsync();
+
+            ViewBag.CurrentStatus = status;
+            ViewBag.CurrentPhone = phone;
+            return View(invoices);
+        }
+
     }
 }
