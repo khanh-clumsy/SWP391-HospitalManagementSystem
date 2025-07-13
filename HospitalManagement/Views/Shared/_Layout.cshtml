@@ -163,7 +163,7 @@
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
 								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
-													User.FindFirst("IsDepartmentHead")?.Value == "True")
+															User.FindFirst("IsDepartmentHead")?.Value == "True")
 								{
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
@@ -195,7 +195,7 @@
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
 								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
-													User.FindFirst("IsDepartmentHead")?.Value == "True")
+															User.FindFirst("IsDepartmentHead")?.Value == "True")
 								{
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
@@ -218,6 +218,8 @@
 						<div class="nav-item dropdown">
 							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
+								<a class="dropdown-item" asp-controller="Appointment" asp-action="ApproveAppointment">Xét duyệt cuộc hẹn</a>
+								<a class="dropdown-item" asp-controller="Tracking" asp-action="StartAppointmentProcess">Bắt đầu quy trình khám bệnh</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Quản lý tài khoản</a>
 								<a class="dropdown-item" asp-controller="User" asp-action="ManageRoom">Quản lý phòng</a>
 								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Quản lý Cuộc hẹn</a>
@@ -281,7 +283,6 @@
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
 								<a class="dropdown-item" asp-controller="Tracking" asp-action="StartAppointmentProcess">Bắt đầu quy trình khám bệnh</a>
 								<a class="dropdown-item" asp-controller="Tracking" asp-action="ViewInvoiceList">Danh sách hoá đơn</a>
-
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
@@ -383,7 +384,7 @@
 						setTimeout(() => alert.remove(), 500);
 					}, index * 500); // Stagger the animations
 				});
-				
+
 				// Remove the container after all alerts are gone
 				setTimeout(() => {
 					if (notificationsContainer.children.length === 0) {

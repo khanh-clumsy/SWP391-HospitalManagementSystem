@@ -23,6 +23,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
+                .Include(a => a.CreatedByStaff)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
@@ -271,6 +272,12 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.InvoiceDetails)
                 .Where(a => a.Status == "Confirmed" && a.Date == today);
            
+            if (!string.IsNullOrEmpty(phone))
+            {
+                phone = string.Join("", phone.Split(" ", StringSplitOptions.RemoveEmptyEntries));
+                query = query.Where(a => a.Patient.PhoneNumber.Contains(phone));
+            }
+
             var appointments = await query
                 .OrderBy(a => a.Slot.StartTime)
                 .ToListAsync();

@@ -102,7 +102,7 @@
 						<th>Mô tả</th>
 						<th>Tên bác sĩ</th>
 						<th>Khoa</th>
-						<th>Tên nhân viên</th>
+						<th>Tên nhân viên tạo</th>
 						<th>Ngày</th>
 						<th>Giờ bắt đầu</th>
 						<th>Giờ kết thúc</th>
@@ -171,6 +171,7 @@
 										<a asp-action="Detail"
 										   asp-controller="Appointment"
 										   asp-route-appId="@item.AppointmentId"
+										   asp-route-returnUrl="@Context.Request.Path"
 										   class="btn btn-sm btn-info">
 											<i class="fas fa-eye"></i> Chi tiết
 										</a>

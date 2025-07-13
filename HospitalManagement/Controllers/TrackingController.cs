@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using System.Text.Json;
 using HospitalManagement.Data;
+using HospitalManagement.Helpers;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using HospitalManagement.ViewModels;
@@ -9,9 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using X.PagedList;
-using X.PagedList.Extensions;
 using X.PagedList.EF;
-using HospitalManagement.Helpers;
+using X.PagedList.Extensions;
+using static HospitalManagement.Helpers.AppConstants.Messages;
 
 namespace HospitalManagement.Controllers
 {
@@ -35,7 +36,7 @@ namespace HospitalManagement.Controllers
             _scheduleRepo = scheduleRepository;
         }
 
-        [Authorize(Roles = "Receptionist")]
+        [Authorize(Roles = AppConstants.Roles.Receptionist + ", " + AppConstants.Roles.Admin)]
         //tìm cuộc hẹn theo sd0t
         public async Task<IActionResult> StartAppointmentProcess(string? phone, int? page)
         {
@@ -51,6 +52,7 @@ namespace HospitalManagement.Controllers
         }
 
         //Bắt đầu cuộc hẹn chuyển status của appoinment sang Ongoing
+        [Authorize(Roles = AppConstants.Roles.Receptionist + ", " + AppConstants.Roles.Admin)]
         public async Task<IActionResult> StartAppointment(int id)
         {
             var appointment = await _context.Appointments
@@ -84,6 +86,7 @@ namespace HospitalManagement.Controllers
             return PartialView("_StartAppointmentPartial", appointment);
         }
 
+        [Authorize(Roles = AppConstants.Roles.Receptionist + ", " + AppConstants.Roles.Admin)]
         [HttpPost]
         public async Task<IActionResult> StartDiagnosis(int appointmentId)
         {
@@ -98,7 +101,7 @@ namespace HospitalManagement.Controllers
 
             // Kiểm tra xem bệnh nhân đã có cuộc hẹn Ongoing nào khác chưa
             var existingOngoingAppointment = await _context.Appointments
-                .Where(a => a.PatientId == appointment.PatientId && 
+                .Where(a => a.PatientId == appointment.PatientId &&
                            a.AppointmentId != appointmentId &&
                            a.Status == AppConstants.AppointmentStatus.Ongoing)
                 .FirstOrDefaultAsync();
@@ -133,7 +136,7 @@ namespace HospitalManagement.Controllers
 
                 if (!trackingExists)
                 {
-                    var tracking = new Tracking
+                    var tracking = new Models.Tracking
                     {
                         AppointmentId = appointment.AppointmentId,
                         RoomId = schedule.Room.RoomId,
@@ -184,6 +187,16 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return RedirectToAction("Index", "Home");
             }
+            if (appointment.Status == AppConstants.AppointmentStatus.Rejected)
+            {
+                TempData["error"] = AppConstants.Messages.Appointment.Failed;
+                return RedirectToAction("Index", "Home");
+            }
+            if (appointment.Status == AppConstants.AppointmentStatus.Completed)
+            {
+                TempData["error"] = "Cuộc hẹn này đã hoàn thành khám, không thể tiếp tục.";
+                return RedirectToAction("Detail", "Appointment", new { appId = appointment.AppointmentId });
+            }
 
             // Lấy danh sách phòng đã chỉ định (Tracking + Room)
             var trackings = await _trackingRepo.GetTrackingsByAppointmentIdWithDetailsAsync(appointment.AppointmentId);
@@ -221,7 +234,7 @@ namespace HospitalManagement.Controllers
                     TestStatus = tr.TestStatus,
                     RoomId = assignedTracking?.Room?.RoomId,
                     RoomName = assignedTracking?.Room?.RoomName,
-                    RoomType = assignedTracking?.Room?.RoomType
+                    RoomType = assignedTracking?.Room?.RoomType,
                 };
             }).ToList();
 
@@ -248,7 +261,7 @@ namespace HospitalManagement.Controllers
             //Lấy ra những phòng phù hợp với Test
             if (appointment.PackageId != null)
             {
-                var roomDict = new Dictionary<int, List<Room>>();
+                var roomDict = new Dictionary<int, List<Models.Room>>();
 
                 foreach (var testRecord in testRecordsFromPackage)
                 {
@@ -299,8 +312,31 @@ namespace HospitalManagement.Controllers
             // 1. Kiểm tra test có tồn tại
             var test = await _context.Tests.FirstOrDefaultAsync(t => t.TestId == testId);
 
-            if (test == null)
-                return BadRequest(new { message = AppConstants.Messages.Test.NotFound });
+            var appointment = await _context.Appointments
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+           
+            if (test == null)  return BadRequest(new { message = AppConstants.Messages.Test.NotFound });
+
+            if (appointment == null) return BadRequest(new { message = AppConstants.Messages.Appointment.NotFound });
+
+            var trackings = await _context.Trackings
+                .Include(t => t.TestRecord)
+                .Where(t => t.AppointmentId == appointmentId)
+                .ToListAsync();
+
+            bool hasOngoingPaidTest = trackings.Any(t =>
+                t.TestRecord != null &&
+                t.TestRecord.TestStatus == AppConstants.TestStatus.Ongoing &&
+                _context.InvoiceDetails.Any(i =>
+                    i.AppointmentId == appointmentId &&
+                    i.ItemType == "Test" &&
+                    i.ItemId == t.TestRecord.TestRecordId &&
+                    i.PaymentStatus == AppConstants.PaymentStatus.Paid));
+
+            if (hasOngoingPaidTest)
+            {
+                return BadRequest(new { message = "Bệnh nhân đang thực hiện xét nghiệm (đã thanh toán). Không thể chỉ định thêm." });
+            }
 
             // 2. Kiểm tra xem đã có test này với phòng này chưa
             bool exists = await _context.Trackings
@@ -312,7 +348,14 @@ namespace HospitalManagement.Controllers
                     t.TestRecord.TestId == testId);
 
             if (exists)
+            {
                 return BadRequest(new { message = AppConstants.Messages.Test.AlreadyAssigned });
+            }
+            
+            if (appointment.Status == AppConstants.AppointmentStatus.Completed)
+            {
+                return BadRequest(new { message = AppConstants.Messages.Appointment.AppointmentAlreadyCompletdCanNotAssignTest });
+            }
 
             // 3. Tìm hoặc tạo mới TestRecord
             var testRecord = await _context.TestRecords
@@ -358,7 +401,7 @@ namespace HospitalManagement.Controllers
             int batch = openBatch ?? await BatchHelper.GetOpenOrNewBatchAsync(_context, appointmentId);
 
             // 5. Tracking test
-            var testTracking = new Tracking
+            var testTracking = new Models.Tracking
             {
                 AppointmentId = appointmentId,
                 RoomId = roomId,
@@ -426,7 +469,7 @@ namespace HospitalManagement.Controllers
 
             // Kiểm tra test cần thanh toán
             var unpaidTests = trackings
-                .Where(t => t.TestRecord != null && 
+                .Where(t => t.TestRecord != null &&
                            t.TestRecord.TestStatus == AppConstants.TestStatus.WaitingForPayment)
                 .ToList();
 
@@ -715,7 +758,7 @@ namespace HospitalManagement.Controllers
         }
 
         [HttpGet]
-       public async Task<IActionResult> ViewInvoiceList(string status = "Unpaid", string? phone = null)
+        public async Task<IActionResult> ViewInvoiceList(string status = "Unpaid", string? phone = null)
         {
             var query = _context.InvoiceDetails
                 .Include(i => i.Appointment)

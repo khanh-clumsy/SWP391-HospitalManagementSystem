@@ -106,6 +106,8 @@ namespace HospitalManagement.Helpers
                 public const string CanNotStartMedicalExam = "Cuộc hẹn này không thể bắt đầu!";
                 public const string CanNotFindDoctorSchedule = "Không tìm thấy lịch làm việc của bác sĩ!";
                 public const string PatientHasOngoingAppointment = "Bệnh nhân đã có cuộc hẹn đang diễn ra. Không thể bắt đầu cuộc hẹn mới.";
+                public const string PatientHasCompletedAppointment = "Bệnh nhân đã có cuộc hẹn đã hoàn thành. Không thể bắt đầu cuộc hẹn mới.";
+                public const string AppointmentAlreadyCompletdCanNotAssignTest = "Cuộc hẹn đã hoàn thành khám, không thể chỉ định thêm xét nghiệm.";
             }
 
             public static class Tracking
@@ -113,6 +115,11 @@ namespace HospitalManagement.Helpers
                 public const string StartAppointmentProcessSuccess = "Quy trình khám đã được bắt đầu thành công.";
                 public const string SaveExaminationSuccess = "Thông tin khám đã được lưu thành công.";
                 public const string SubmitExaminationSuccess = "Khám bệnh đã được hoàn tất thành công.";
+                public const string PatientHasOngoingTest = "Bệnh nhân đang thực hiện xét nghiệm. Vui lòng đợi kết quả trước khi chỉ định thêm.";
+                public const string NoTrackingDataFound = "Không tìm thấy dữ liệu theo dõi.";
+                public const string PleaseGoToReceptionForPayment = "Bạn hãy tới lễ tân để thanh toán";
+                public const string PleaseProceedToTestRoom = "Vui lòng tiến hành đến phòng xét nghiệm";
+                public const string AllStepsCompletedInCurrentBatch = "Tất cả các bước đã hoàn thành trong batch hiện tại.";
             }
 
             public static class Doctor

@@ -20,7 +20,7 @@ using HospitalManagement.Helpers;
 namespace HospitalManagement.Controllers
 {
     [Authorize]
-    public class AppointmentController : Controller
+    public class AppointmentController : BaseController
     {
         private readonly HospitalManagementContext _context;
         private readonly PasswordHasher<Patient> _passwordHasher;
@@ -619,7 +619,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("MyAppointments");
         }
 
-        [Authorize(Roles = AppConstants.Roles.Sales)]
+        [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]
         [HttpGet]
         public async Task<IActionResult> ApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter, int? page)
         {
@@ -643,7 +643,7 @@ namespace HospitalManagement.Controllers
             return View(pagedAppointments);
         }
 
-        [Authorize(Roles = AppConstants.Roles.Sales)]
+        [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDoctor(AssignDoctorViewModel model)
@@ -739,6 +739,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("ApproveAppointment");
         }
 
+        [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]
         [HttpPost]
         public async Task<IActionResult> Review(int id, string action)
         {
@@ -780,8 +781,13 @@ namespace HospitalManagement.Controllers
                                     AppointmentId = appointment.AppointmentId,
                                     TestId = test.TestId,
                                     TestStatus = AppConstants.TestStatus.Pending,
+                                    IsFromPackage = true,
                                 };
                                 _context.TestRecords.Add(testRecord);
+                                Console.WriteLine($"[DEBUG] Tạo TestRecord từ gói: TestId = {test.TestId}, " +
+                          $"AppointmentId = {appointment.AppointmentId}, " +
+                          $"IsFromPackage = {testRecord.IsFromPackage}, " +
+                          $"Status = {testRecord.TestStatus}");
                             }
                             Console.WriteLine("Tạo các test record thành công!");
                         }
@@ -1092,8 +1098,12 @@ namespace HospitalManagement.Controllers
         }
 
         [Authorize(Roles = AppConstants.Roles.Patient + "," + AppConstants.Roles.Sales + "," + AppConstants.Roles.Admin + "," + AppConstants.Roles.Doctor + "," + AppConstants.Roles.Receptionist)]
-        public async Task<IActionResult> Detail(int appId)
+        public async Task<IActionResult> Detail(int appId, string returnUrl = null)
         {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                TempData["PreviousUrl"] = returnUrl;
+            }
             var appointment = await _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
@@ -1110,6 +1120,8 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return NotFound();
             }
+
+            ViewBag.BackUrl = GetSafeBackUrl();
 
             if (User.IsInRole(AppConstants.Roles.Admin) || User.IsInRole(AppConstants.Roles.Sales) || User.IsInRole(AppConstants.Roles.Receptionist))
             {
@@ -1130,10 +1142,10 @@ namespace HospitalManagement.Controllers
                 .ToList() ?? new List<Tracking>();
 
             // 1. Phòng khám
-            var clinic = allTrackings
-                .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
-                .OrderBy(t => t.Time)
-                .FirstOrDefault();
+            var clinicTrackings = allTrackings
+                 .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
+                 .OrderBy(t => t.Time)
+                 .ToList();
 
             // 2. Gom theo batch (nhóm các tracking theo đợt)
             var groupedByBatch = allTrackings
@@ -1143,18 +1155,19 @@ namespace HospitalManagement.Controllers
                 .ToList();
 
             var finalOrderedTrackings = new List<Tracking>();
+            var firstClinic = allTrackings
+                .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
+                .OrderBy(t => t.Time)
+                .FirstOrDefault();
 
-            // 3. Thêm phòng khám lên đầu 
-            if (clinic != null)
-                finalOrderedTrackings.Add(clinic);
+            if (firstClinic != null)
+            {
+                finalOrderedTrackings.Add(firstClinic);
+            }
 
             // 4. Duyệt từng batch
             foreach (var batchGroup in groupedByBatch)
             {
-                var cashier = batchGroup
-                    .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier)
-                    .FirstOrDefault();
-
                 var unpaidTests = batchGroup
                     .Where(t => t.TestRecord != null && t.TestRecord.TestStatus == AppConstants.TestStatus.WaitingForPayment)
                     .ToList();
@@ -1164,13 +1177,16 @@ namespace HospitalManagement.Controllers
                     .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Cashier)
                     .ToList();
 
-                if (cashier != null)
-                {
-                    finalOrderedTrackings.Add(cashier);
-                }
-
                 finalOrderedTrackings.AddRange(unpaidTests);
                 finalOrderedTrackings.AddRange(others);
+
+                // Sau batch, thêm tracking clinic nếu có (sau thời gian cuối của batch)
+                var lastTime = batchGroup.Max(t => t.Time);
+                var nextClinic = clinicTrackings.FirstOrDefault(c => c.Time > lastTime);
+                if (nextClinic != null)
+                {
+                    finalOrderedTrackings.Add(nextClinic);
+                }
             }
 
             // Gán vào ViewBag để view hiển thị
@@ -1180,7 +1196,6 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.General.Undefined;
                 return NotFound();
             }
-
             if (roleKey == AppConstants.ClaimTypes.PatientId && appointment.Patient != null && appointment.Patient.PatientId != null && appointment.Patient.PatientId == userId)
             {
                 return View(appointment);
@@ -1189,8 +1204,9 @@ namespace HospitalManagement.Controllers
             {
                 return View(appointment);
             }
-            if (roleKey == AppConstants.ClaimTypes.StaffId && appointment.CreatedByStaff != null && appointment.CreatedByStaff.StaffId != null && appointment.CreatedByStaff.StaffId == userId)
+            if (roleKey == AppConstants.ClaimTypes.StaffId)
             {
+                // Nếu bạn muốn tất cả staff được xem
                 return View(appointment);
             }
 
@@ -1214,6 +1230,7 @@ namespace HospitalManagement.Controllers
             var query = _context.Doctors
                 .Where(d => d.IsActive);
 
+            keyword = NormalizeName(keyword);
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 var lowered = keyword.ToLower();

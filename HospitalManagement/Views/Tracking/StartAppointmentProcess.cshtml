@@ -46,24 +46,25 @@
 									var openInvoice = appointment.InvoiceDetails
 									.OrderBy(i => i.InvoiceDetailId)
 									.FirstOrDefault();
+	
 									var invoiceId = openInvoice?.InvoiceDetailId ?? 0;
+		
+								<tr id="row-@appointment.AppointmentId">
+									<td>@appointment.Patient?.FullName</td>
+									<td>@appointment.Date.ToString("dd/MM/yyyy")</td>
+									<td>@(appointment.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
+									<td>
+										<span class="badge
+													@(appointment.Status == "Confirmed"
+																	   ? "bg-success"
+																	   : "bg-secondary")">
+										@(appointment.Status == "Confirmed" ? "Đã xác nhận" : appointment.Status)
+									</span>
+								</td>
 
-									<tr id="row-@appointment.AppointmentId">
-										<td>@appointment.Patient?.FullName</td>
-										<td>@appointment.Date.ToString("dd/MM/yyyy")</td>
-										<td>@(appointment.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
 										<td>
 											<span class="badge
-												@(appointment.Status == "Confirmed"
-													? "bg-success"
-													: "bg-secondary")">
-												@(appointment.Status == "Confirmed" ? "Đã xác nhận" : appointment.Status)
-											</span>
-										</td>
-
-										<td>
-											<span class="badge
-												@(openInvoice.PaymentStatus=="Paid" ? "bg-success"	: "bg-warning text-dark")">
+														@(openInvoice.PaymentStatus == "Paid" ? "bg-success" : "bg-warning text-dark")">
 												@(openInvoice.PaymentStatus == "Paid" ? "Đã thanh toán" : "Chưa thanh toán")
 											</span>
 										</td>
@@ -72,17 +73,17 @@
 										<td>
 											<div class="d-flex flex-wrap justify-content-center gap-2">
 												<a class="btn btn-sm btn-info"
-												   asp-controller="Appointment" asp-action="Detail" asp-route-appId="@appointment.AppointmentId">
+												   asp-controller="Appointment" asp-action="Detail" asp-route-appId="@appointment.AppointmentId" asp-route-returnUrl="@Context.Request.Path">
 													<i class="fas fa-eye"></i> Chi tiết
 												</a>
-												<a class="btn btn-sm btn-warning @(openInvoice.PaymentStatus=="Paid" ? "disabled" : "")"
+												<a class="btn btn-sm btn-warning @(openInvoice.PaymentStatus == "Paid" ? "disabled" : "")"
 												   asp-controller="Payment" asp-action="PayStartAppointment" asp-route-invoiceId="@invoiceId">
 													<i class="fas fa-credit-card"></i> Thanh toán
 												</a>
 												<button type="button"
 														class="btn btn-sm btn-success btn-start"
 														data-id="@appointment.AppointmentId"
-												@(openInvoice.PaymentStatus == "Paid" ? "" : "disabled")>
+														@(openInvoice.PaymentStatus == "Paid" ? "" : "disabled")>
 													<i class="fas fa-play"></i> Bắt đầu
 												</button>
 
@@ -92,7 +93,7 @@
 											</div>
 										</td>
 									</tr>
-								}
+														}
 							</tbody>
 						</table>
 					</div>
@@ -104,24 +105,24 @@
 		{
 			<div class="d-flex justify-content-center mt-4">
 				@Html.PagedListPager(Model, page => Url.Action("MyAppointments", new
-					{
-						page,
+				{
+					page,
 						phone = ViewBag.phone
-					}),
-								new PagedListRenderOptions
-			{
-				DisplayLinkToFirstPage = PagedListDisplayMode.Always,
-				DisplayLinkToLastPage = PagedListDisplayMode.Always,
-				DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
-				DisplayLinkToNextPage = PagedListDisplayMode.Always,
-				DisplayLinkToIndividualPages = true,
-				MaximumPageNumbersToDisplay = 5,
-				UlElementClasses = new[] { "pagination" },
-				LiElementClasses = new[] { "page-item" },
-				PageClasses = new[] { "page-link" }
-			})
-			</div>
-		}
+						}),
+						new PagedListRenderOptions
+						{
+							DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+							DisplayLinkToLastPage = PagedListDisplayMode.Always,
+							DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+							DisplayLinkToNextPage = PagedListDisplayMode.Always,
+							DisplayLinkToIndividualPages = true,
+							MaximumPageNumbersToDisplay = 5,
+							UlElementClasses = new[] { "pagination" },
+							LiElementClasses = new[] { "page-item" },
+							PageClasses = new[] { "page-link" }
+						})
+		</div>
+				}
 	</div>
 </div>
 
