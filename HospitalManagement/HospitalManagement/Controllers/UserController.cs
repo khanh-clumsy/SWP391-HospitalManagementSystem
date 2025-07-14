@@ -244,20 +244,20 @@ namespace HospitalManagement.Controllers
                 return await ReturnRoomDetailWithError(room, "Vui lòng không để trống các trường bắt buộc.", weekStart);
             }
 
-            // Kiểm tra định dạng RoomName
-            if (!System.Text.RegularExpressions.Regex.IsMatch(room.RoomName, @"^[A-Z][0-9]{3,4}$"))
-            {
-                return await ReturnRoomDetailWithError(room, "Tên phòng phải có dạng A101 hoặc A1001.", weekStart);
-            }
+            //// Kiểm tra định dạng RoomName
+            //if (!System.Text.RegularExpressions.Regex.IsMatch(room.RoomName, @"^[A-Z][0-9]{3,4}$"))
+            //{
+            //    return await ReturnRoomDetailWithError(room, "Tên phòng phải có dạng A101 hoặc A1001.", weekStart);
+            //}
 
             // Kiểm tra trùng tên phòng
-            var existingRoom = await _context.Rooms
-                .FirstOrDefaultAsync(r => r.RoomName == room.RoomName && r.RoomId != room.RoomId);
+            //var existingRoom = await _context.Rooms
+            //    .FirstOrDefaultAsync(r => r.RoomName == room.RoomName && r.RoomId != room.RoomId);
 
-            if (existingRoom != null)
-            {
-                return await ReturnRoomDetailWithError(room, "Tên phòng đã tồn tại.", weekStart);
-            }
+            //if (existingRoom != null)
+            //{
+            //    return await ReturnRoomDetailWithError(room, "Tên phòng đã tồn tại.", weekStart);
+            //}
 
             // Tìm phòng hiện tại để cập nhật
             var roomInDb = await _context.Rooms
@@ -272,7 +272,7 @@ namespace HospitalManagement.Controllers
             }
 
             // Nếu muốn chuyển sang "Bảo trì", kiểm tra có lịch trong tương lai không
-            if (room.Status == "Bảo trì")
+            if (room.Status == "Maintain")
             {
                 var now = DateTime.Now;
                 bool hasFutureSchedule = roomInDb.Schedules.Any(s =>
@@ -286,7 +286,7 @@ namespace HospitalManagement.Controllers
             }
 
             // Cập nhật thông tin
-            roomInDb.RoomName = room.RoomName.Trim();
+            //roomInDb.RoomName = room.RoomName.Trim();
             roomInDb.RoomType = room.RoomType.Trim();
             roomInDb.Status = room.Status.Trim();
 
@@ -412,7 +412,7 @@ namespace HospitalManagement.Controllers
             }
 
             // Lưu phòng mới
-            room.Status = "Hoạt động"; // Hoặc null nếu bạn không cần trạng thái
+            room.Status = "Active"; // Hoặc null nếu bạn không cần trạng thái
             _context.Rooms.Add(room);
             _context.SaveChanges();
 
