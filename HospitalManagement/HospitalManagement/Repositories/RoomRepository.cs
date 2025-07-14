@@ -222,7 +222,7 @@ namespace HospitalManagement.Repositories
 
             // Lấy danh sách các phòng đang hoạt động
             var activeRooms = await _context.Rooms
-                .Where(r => r.Status == "Hoạt động")
+                .Where(r => r.Status == "Active")
                 .ToListAsync();
 
             // Tạo danh sách để chứa các phòng thỏa điều kiện
