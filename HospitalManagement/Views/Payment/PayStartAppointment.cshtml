@@ -31,7 +31,17 @@
                 }
 
                 <dt class="col-sm-4">Trạng thái:</dt>
-                <dd class="col-sm-8">@Model.PaymentStatus</dd>
+                <dd class="col-sm-8">
+                    @{
+                        var statusText = Model.PaymentStatus switch
+                        {
+                            "Paid" => "Đã thanh toán",
+                            "Unpaid" => "Chưa thanh toán",
+                            _ => Model.PaymentStatus
+                        };
+                    }
+                    @statusText
+                </dd>
             </dl>
 
             <div class="alert alert-warning">
@@ -48,7 +58,7 @@
                 </div>
 
                 <div class="text-center">
-                    <a href="@qrLink" class="btn btn-primary mt-2" target="_blank">Mở VNPAY</a>
+                    <a href="@qrLink" class="btn btn-primary mt-2" target="_blank">Mở VNPay</a>
                 </div>
             }
             else

@@ -103,6 +103,10 @@
 													badgeText = "Hoàn thành - Chưa thanh toán";
 												}
 												break;
+											case "Expired":
+												badgeClass += "bg-dark text-white";
+												badgeText = "Đã hết hạn";
+												break;
 											default:
 												badgeClass += "bg-secondary";
 												badgeText = Model.Status ?? "Không xác định";

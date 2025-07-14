@@ -132,12 +132,19 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
+            var excludedStatuses = new[] {
+                AppConstants.AppointmentStatus.Rejected,
+                AppConstants.AppointmentStatus.Failed,
+                AppConstants.AppointmentStatus.Expired
+            };
+
             // Kiểm tra trùng appointment cùng ngày, cùng giờ (slot), và trạng thái là "Pending"
             bool exists = await _context.Appointments.AnyAsync(a =>
                 a.PatientId == patientId &&
                 a.Date == model.AppointmentDate &&
                 a.SlotId == model.SelectedSlotId &&
-                a.Status != AppConstants.AppointmentStatus.Rejected
+                !excludedStatuses.Contains(a.Status)
+
             );
 
             if (exists)
@@ -289,12 +296,16 @@ namespace HospitalManagement.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
-
+            var excludedStatuses = new[] {
+                AppConstants.AppointmentStatus.Rejected,
+                AppConstants.AppointmentStatus.Failed,
+                AppConstants.AppointmentStatus.Expired
+            };
             var isPatientConflict = await _context.Appointments.AnyAsync(a =>
                                                                 a.PatientId == patientId &&
                                                                 a.Date == model.AppointmentDate &&
                                                                 a.SlotId == model.SelectedSlotId &&
-                                                                a.Status != AppConstants.AppointmentStatus.Rejected);
+                                                                !excludedStatuses.Contains(a.Status));
 
             if (isPatientConflict)
             {
@@ -682,14 +693,18 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.Doctor.DoctorScheduleNotFound;
                 return RedirectToAction("ApproveAppointment");
             }
-
+            var excludedStatuses = new[] {
+                AppConstants.AppointmentStatus.Rejected,
+                AppConstants.AppointmentStatus.Failed,
+                AppConstants.AppointmentStatus.Expired
+            };
             //Check xem bác sĩ đã bị trùng lịch hẹn hay chưa?
             bool hasConflict = await _context.Appointments.AnyAsync(a =>
                 a.DoctorId == doctor.DoctorId &&
                 a.Date == appointment.Date &&
                 a.SlotId == model.SlotId &&
                 a.AppointmentId != model.AppointmentId &&
-                a.Status != AppConstants.AppointmentStatus.Rejected
+                !excludedStatuses.Contains(a.Status)
             );
 
             if (hasConflict)
@@ -711,13 +726,39 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
 
-            //Tạo ra hóa đơn tương ứng
-            await _invoiceService.CreateInvoiceForAppointmentAsync(savedAppointment!);
-
             if (savedAppointment == null)
             {
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return View(model);
+            }
+
+            //Tạo ra hóa đơn tương ứng
+            await _invoiceService.CreateInvoiceForAppointmentAsync(savedAppointment!);
+            if (savedAppointment.PackageId != null)
+            {
+                var package = await _context.Packages
+                    .Include(p => p.PackageTests).ThenInclude(pt => pt.Test)
+                    .FirstOrDefaultAsync(p => p.PackageId == savedAppointment.PackageId);
+                if (package == null)
+                {
+                    TempData["error"] = AppConstants.Messages.Package.NotFound;
+                    return RedirectToAction("ApproveAppointment");
+                }
+
+                if (package.PackageTests != null)
+                {
+                    foreach (var test in package.PackageTests)
+                    {
+                        var testRecord = new TestRecord
+                        {
+                            AppointmentId = savedAppointment.AppointmentId,
+                            TestId = test.TestId,
+                            TestStatus = AppConstants.TestStatus.Pending
+                        };
+                        _context.TestRecords.Add(testRecord);
+
+                    }
+                }
             }
 
             try
@@ -780,17 +821,26 @@ namespace HospitalManagement.Controllers
                                 {
                                     AppointmentId = appointment.AppointmentId,
                                     TestId = test.TestId,
-                                    TestStatus = AppConstants.TestStatus.Pending,
-                                    IsFromPackage = true,
+                                    TestStatus = AppConstants.TestStatus.Pending
                                 };
                                 _context.TestRecords.Add(testRecord);
-                                Console.WriteLine($"[DEBUG] Tạo TestRecord từ gói: TestId = {test.TestId}, " +
-                          $"AppointmentId = {appointment.AppointmentId}, " +
-                          $"IsFromPackage = {testRecord.IsFromPackage}, " +
-                          $"Status = {testRecord.TestStatus}");
+
                             }
-                            Console.WriteLine("Tạo các test record thành công!");
                         }
+                    }
+                    try
+                    {
+                        var emailBody = EmailBuilder.BuildConfirmedAppointmentEmail(appointment);
+                        await _emailService.SendEmailAsync(
+                            toEmail: appointment.Patient.Email,
+                            subject: AppConstants.Messages.Appointment.ConfirmedEmailSubject,
+                            body: emailBody
+                        );
+                        TempData["success"] = AppConstants.Messages.Appointment.ApproveSuccess;
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["error"] = $"{AppConstants.Messages.Appointment.ApproveFail}: {ex.Message}";
                     }
                     await _context.SaveChangesAsync();
                     TempData["success"] = AppConstants.Messages.Appointment.AlreadyApproved;
@@ -798,6 +848,20 @@ namespace HospitalManagement.Controllers
 
                 case AppConstants.AppointmentActions.Reject:
                     appointment.Status = AppConstants.AppointmentStatus.Rejected;
+                    try
+                    {
+                        var emailBody = EmailBuilder.BuildRequestAppointmentFailed(appointment);
+                        await _emailService.SendEmailAsync(
+                            toEmail: appointment.Patient.Email,
+                            subject: AppConstants.Messages.Appointment.RejectedEmailSubject,
+                            body: emailBody
+                        );
+                        TempData["success"] = AppConstants.Messages.Appointment.ApproveSuccess;
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["error"] = $"{AppConstants.Messages.Appointment.ApproveFail}: {ex.Message}";
+                    }
                     TempData["success"] = AppConstants.Messages.Appointment.Rejected;
                     break;
 
@@ -835,7 +899,8 @@ namespace HospitalManagement.Controllers
                         a.DoctorId == d.DoctorId &&
                         a.Date == dateOnly &&
                         a.SlotId == slotId &&
-                        a.Status != AppConstants.AppointmentStatus.Rejected)
+                        a.Status != AppConstants.AppointmentStatus.Rejected &&
+                        a.Status != AppConstants.AppointmentStatus.Expired)
                 )
                 .ToList();
 

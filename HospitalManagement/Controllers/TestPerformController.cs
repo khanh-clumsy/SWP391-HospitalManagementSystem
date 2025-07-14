@@ -195,9 +195,10 @@ namespace HospitalManagement.Controllers
                                 t.TestRecordId != null &&
                                 t.TestRecord != null &&
                                 t.TestRecord.TestStatus == AppConstants.TestStatus.Ongoing &&
-                                t.Time.Date == DateTime.Today &&
-                                t.Time.TimeOfDay >= roomSlots.StartTime.ToTimeSpan() &&
-                                t.Time.TimeOfDay <= roomSlots.EndTime.ToTimeSpan())
+                                t.Time.Date == DateTime.Today
+                               //&& t.Time.TimeOfDay >= roomSlots.StartTime.ToTimeSpan() &&
+                               // t.Time.TimeOfDay <= roomSlots.EndTime.ToTimeSpan()
+                                )
                     .Select(t => new TestPatientViewModel
                     {
                         PatientID = t.Appointment.PatientId,

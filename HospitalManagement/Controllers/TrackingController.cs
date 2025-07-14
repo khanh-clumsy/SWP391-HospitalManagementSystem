@@ -174,9 +174,16 @@ namespace HospitalManagement.Controllers
         {
             // Lấy thông tin cuộc hẹn + bệnh nhân (nếu cần)
             var appointment = await _context.Appointments
+                .Include(a => a.Doctor)
                 .Include(a => a.Patient)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id);
+            var doctorIdClaim = User.FindFirst(AppConstants.ClaimTypes.DoctorId)?.Value;
+            if (doctorIdClaim == null)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
 
+            int currentDoctorId = int.Parse(doctorIdClaim);
             var allTestsCompleted = await _context.TestRecords
                     .Where(t => t.AppointmentId == id)
                     .AllAsync(t => t.TestStatus == AppConstants.TestStatus.Completed);
@@ -185,6 +192,11 @@ namespace HospitalManagement.Controllers
             if (appointment == null)
             {
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
+                return RedirectToAction("Index", "Home");
+            }
+            if (appointment.DoctorId != currentDoctorId)
+            {
+                TempData["error"] = AppConstants.Messages.Appointment.NoPermission;
                 return RedirectToAction("Index", "Home");
             }
             if (appointment.Status == AppConstants.AppointmentStatus.Rejected)

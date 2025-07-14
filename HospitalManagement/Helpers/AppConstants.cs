@@ -40,6 +40,7 @@ namespace HospitalManagement.Helpers
             public const string Rejected = "Rejected";
             public const string Failed = "Failed";
             public const string Cancelled = "Cancelled";
+            public const string Expired = "Expired";
         }
 
         public static class AppointmentActions
@@ -102,12 +103,14 @@ namespace HospitalManagement.Helpers
                 public const string InvalidServiceOrPackage = "Chọn dịch vụ khám cơ bản hoặc gói khám chưa hợp lệ!";
                 public const string PendingEmailSubject = "Đặt lịch hẹn thành công - Đang chờ duyệt";
                 public const string ConfirmedEmailSubject = "Lịch hẹn đã được xác nhận";
+                public const string RejectedEmailSubject = "Lịch hẹn đã bị từ chối";
                 public const string Processing = "Hệ thống đang xử lý đặt lịch của bạn. Vui lòng kiểm tra lịch hẹn sau vài phút.";
                 public const string CanNotStartMedicalExam = "Cuộc hẹn này không thể bắt đầu!";
                 public const string CanNotFindDoctorSchedule = "Không tìm thấy lịch làm việc của bác sĩ!";
                 public const string PatientHasOngoingAppointment = "Bệnh nhân đã có cuộc hẹn đang diễn ra. Không thể bắt đầu cuộc hẹn mới.";
                 public const string PatientHasCompletedAppointment = "Bệnh nhân đã có cuộc hẹn đã hoàn thành. Không thể bắt đầu cuộc hẹn mới.";
                 public const string AppointmentAlreadyCompletdCanNotAssignTest = "Cuộc hẹn đã hoàn thành khám, không thể chỉ định thêm xét nghiệm.";
+                public const string NoPermission = "Bạn không có quyền truy cập vào cuộc hẹn này!";
             }
 
             public static class Tracking

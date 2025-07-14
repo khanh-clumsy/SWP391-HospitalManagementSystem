@@ -116,6 +116,10 @@
 											@(isPaid == "Paid" ? "Hoàn thành - Đã thanh toán" : "Hoàn thành - Chưa thanh toán")
 										</span>
 									}
+									else if (item.Status == "Expired")
+									{
+										<span class="badge bg-dark text-white">Đã hết hạn</span>
+									}
 									else
 									{
 										<span class="badge bg-secondary">@item.Status</span>

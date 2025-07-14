@@ -57,7 +57,7 @@ namespace HospitalManagement.Repositories
             }
             else if (RoleKey == "DoctorID")
             {
-                query = query.Where(a => a.Status != "Pending");
+                query = query.Where(a => a.Status != "Pending" && a.Status != "Expired");
             }
             return await query.ToListAsync();
         }
@@ -104,7 +104,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Package)
                 .Include(a => a.Slot)
                 .OrderByDescending(a => a.Date)
-                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected")
+                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected" || a.Status == "Expired")
                 .AsQueryable();
 
             // Lọc theo status
@@ -184,7 +184,7 @@ namespace HospitalManagement.Repositories
         }
         public async Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day)
         {
-            return await _context.Appointments.Where(a => a.Status == "Pending" || a.Status == "Confirmed").AnyAsync(a =>
+            return await _context.Appointments.Where(a => (a.Status == "Pending" || a.Status == "Confirmed") && a.Status != "Expired").AnyAsync(a =>
                 a.DoctorId == doctorId &&
                 a.SlotId == slotId &&
                 a.Date == day

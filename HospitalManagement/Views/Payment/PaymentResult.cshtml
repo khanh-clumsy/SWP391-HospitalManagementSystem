@@ -15,7 +15,13 @@
 
             @if (!string.IsNullOrEmpty(paymentMethod))
             {
-                <p><strong>Phương thức thanh toán:</strong> @paymentMethod</p>
+                var paymentMethodText = paymentMethod switch
+                {
+                    "VNPAY" => "Chuyển khoản",
+                    "Cash" => "Tiền mặt",
+                    _ => paymentMethod
+                };
+                <p><strong>Phương thức thanh toán:</strong> @paymentMethodText</p>
             }
 
             @if (paymentTime.HasValue)
