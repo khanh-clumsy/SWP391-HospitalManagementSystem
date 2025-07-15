@@ -784,7 +784,9 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Review(int id, string action)
         {
-            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.AppointmentId == id);
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(a => a.AppointmentId == id);
             if (appointment == null)
             {
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;

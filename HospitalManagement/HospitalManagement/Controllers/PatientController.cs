@@ -214,6 +214,7 @@ namespace HospitalManagement.Controllers
             TempData["success"] = "Không có ảnh được tải lên";
             return RedirectToAction("UpdateProfile");
         }
+
         [HttpPost]
         public IActionResult UpdateProfile(Patient model)
         {
@@ -289,8 +290,8 @@ namespace HospitalManagement.Controllers
             {
                 return Redirect(returnUrl);
             }
-
-            return RedirectToAction("Profile", "Patient");
+            TempData["success"] = "Cập nhật thành công!";
+            return RedirectToAction("UpdateProfile", "Patient");
         }
 
         [HttpGet]
