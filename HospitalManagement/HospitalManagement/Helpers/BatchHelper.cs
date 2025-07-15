@@ -32,5 +32,16 @@ namespace HospitalManagement.Helpers
 
             return newBatch;
         }
+
+        // Trả về batch gần nhất nếu tồn tại, bất kể test completed hay chưa
+        public static async Task<int?> GetLatestBatchAsync(HospitalManagementContext context, int appointmentId)
+        {
+            return await context.Trackings
+                .Where(t => t.AppointmentId == appointmentId && t.TrackingBatch != null)
+                .OrderByDescending(t => t.TrackingBatch)
+                .Select(t => (int?)t.TrackingBatch)
+                .FirstOrDefaultAsync();
+        }
+
     }
 }

@@ -23,6 +23,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
+                .Include(a => a.CreatedByStaff)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
@@ -56,7 +57,7 @@ namespace HospitalManagement.Repositories
             }
             else if (RoleKey == "DoctorID")
             {
-                query = query.Where(a => a.Status != "Pending");
+                query = query.Where(a => a.Status != "Pending" && a.Status != "Expired");
             }
             return await query.ToListAsync();
         }
@@ -103,7 +104,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Package)
                 .Include(a => a.Slot)
                 .OrderByDescending(a => a.Date)
-                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected")
+                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected" || a.Status == "Expired")
                 .AsQueryable();
 
             // Lọc theo status
@@ -183,7 +184,7 @@ namespace HospitalManagement.Repositories
         }
         public async Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day)
         {
-            return await _context.Appointments.Where(a => a.Status == "Pending" || a.Status == "Confirmed").AnyAsync(a =>
+            return await _context.Appointments.Where(a => (a.Status == "Pending" || a.Status == "Confirmed") && a.Status != "Expired").AnyAsync(a =>
                 a.DoctorId == doctorId &&
                 a.SlotId == slotId &&
                 a.Date == day
@@ -271,6 +272,12 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.InvoiceDetails)
                 .Where(a => a.Status == "Confirmed" && a.Date == today);
            
+            if (!string.IsNullOrEmpty(phone))
+            {
+                phone = string.Join("", phone.Split(" ", StringSplitOptions.RemoveEmptyEntries));
+                query = query.Where(a => a.Patient.PhoneNumber.Contains(phone));
+            }
+
             var appointments = await query
                 .OrderBy(a => a.Slot.StartTime)
                 .ToListAsync();

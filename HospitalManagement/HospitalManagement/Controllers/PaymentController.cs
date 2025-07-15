@@ -27,6 +27,7 @@ public class PaymentController : Controller
 
     }
 
+
     [HttpGet]
     public async Task<IActionResult> PayStartAppointment(int invoiceId)
     {

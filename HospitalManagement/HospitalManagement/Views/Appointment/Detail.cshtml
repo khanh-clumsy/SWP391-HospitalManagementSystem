@@ -103,6 +103,10 @@
 													badgeText = "Hoàn thành - Chưa thanh toán";
 												}
 												break;
+											case "Expired":
+												badgeClass += "bg-dark text-white";
+												badgeText = "Đã hết hạn";
+												break;
 											default:
 												badgeClass += "bg-secondary";
 												badgeText = Model.Status ?? "Không xác định";
@@ -286,39 +290,29 @@
 
 					<!-- Action Buttons Start -->
 					<div class="row mb-4">
-						<div class="col-12 text-center">
-							<div class="d-inline-flex gap-3 flex-wrap justify-content-center">
-								@if (User.IsInRole("Receptionist"))
-								{
-									<a asp-controller="Tracking" asp-action="StartAppointmentProcess"
-									   class="btn btn-primary py-3 px-4">
-										<i class="fa fa-arrow-left me-2"></i>
-										Quay lại danh sách hôm nay
-									</a>
-								}
-								else
-								{
-									<a asp-action="MyAppointments"
-									   class="btn btn-primary py-3 px-4">
-										<i class="fa fa-arrow-left me-2"></i>
-										Quay lại lịch hẹn của tôi
-									</a>
-								}
+						<div class="col-12">
+							<div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
 
-								@if ((User.IsInRole("Patient") || User.IsInRole("Receptionist") || User.IsInRole("Cashier"))
-														&& Model.InvoiceDetails != null
-														&& Model.InvoiceDetails.Any())
+								<a href="@ViewBag.BackUrl" class="btn btn-outline-primary px-4 py-2">
+									<i class="fa fa-arrow-left me-2"></i> Quay lại
+								</a>
+
+								@if ((User.IsInRole("Patient") || User.IsInRole("Receptionist"))
+																&& Model.InvoiceDetails != null
+																&& Model.InvoiceDetails.Any())
 								{
-									<a asp-controller="Payment" asp-action="TotalInvoiceDetail" asp-route-id="@Model.AppointmentId"
-									   class="btn btn-outline-primary py-3 px-4">
+									<a asp-controller="Payment"
+									   asp-action="TotalInvoiceDetail"
+									   asp-route-id="@Model.AppointmentId"
+									   class="btn btn-outline-primary px-4 py-2">
 										<i class="fa fa-file-invoice me-2"></i> Xem hóa đơn
 									</a>
-
 								}
 							</div>
 						</div>
 					</div>
 					<!-- Action Buttons End -->
+
 
 				</div>
 			</div>

@@ -165,7 +165,7 @@ namespace HospitalFETemplate.Controllers
                         }
                         else
                         {
-                            ViewBag.PatientCurrentRoom = $"Không có phòng nào cần tới lúc này.";
+                            ViewBag.PatientCurrentRoom = "";
                         }
                     }
                 }

@@ -1,5 +1,5 @@
 ﻿@using HospitalManagement.ViewModels
-@model Dictionary<int, List<HospitalManagement.ViewModels.TestPatientViewModel>>
+@model Dictionary<(int RoomId, TimeOnly StartTime), List<HospitalManagement.ViewModels.TestPatientViewModel>>
 
 @{
 	var roomSlots = ViewBag.RoomSlotsToday as List<RoomSlotInfo>;
@@ -24,9 +24,8 @@
 				</div>
 				<div class="card-body">
 					@{
-						var tests = Model.ContainsKey(info.RoomId)
-						? Model[info.RoomId]
-						: new List<HospitalManagement.ViewModels.TestPatientViewModel>();
+						var key = (info.RoomId, info.StartTime);
+						var tests = Model.ContainsKey(key) ? Model[key] : new List<TestPatientViewModel>();
 					}
 
 					@if (tests.Count == 0)
@@ -35,7 +34,7 @@
 							Không có bệnh nhân nào trong phòng này.
 						</div>
 					}
-					
+
 					else
 					{
 						<div class="table-responsive">

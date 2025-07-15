@@ -385,7 +385,7 @@ namespace HospitalManagement.Controllers
             ViewBag.Units = GetAllRoomTypes();
             // Kiểm tra thủ công định dạng RoomName bằng controller
             if (string.IsNullOrWhiteSpace(room.RoomName) ||
-                string.IsNullOrWhiteSpace(room.RoomType) )
+                string.IsNullOrWhiteSpace(room.RoomType))
             {
                 TempData["error"] = "Vui lòng không để trống các trường bắt buộc.";
                 return View(room);
@@ -955,11 +955,11 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("SelectReplacementInfo", new { requestId = model.RequestId });
             }
 
-                // Kiểm tra lịch đổi có hợp lệ không
-                var request = await _context.ScheduleChangeRequests
-                    .Include(r => r.FromSchedule)
-                        .ThenInclude(s => s.Doctor)
-                    .FirstOrDefaultAsync(r => r.RequestId == model.RequestId);
+            // Kiểm tra lịch đổi có hợp lệ không
+            var request = await _context.ScheduleChangeRequests
+                .Include(r => r.FromSchedule)
+                    .ThenInclude(s => s.Doctor)
+                .FirstOrDefaultAsync(r => r.RequestId == model.RequestId);
 
             if (request == null || request.Status != "Pending")
             {
@@ -1093,7 +1093,7 @@ namespace HospitalManagement.Controllers
             // Trộn chuỗi để các ký tự không cố định vị trí
             return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
         }
-        
+
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ViewSchedule(int id, int? year, string? weekStart)

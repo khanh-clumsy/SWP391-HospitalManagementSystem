@@ -32,4 +32,5 @@ public partial class TestRecord
     
     [NotMapped]
     public string RoomName { get; set; } = "";
+
 }

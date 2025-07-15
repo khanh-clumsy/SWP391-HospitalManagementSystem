@@ -5,6 +5,9 @@
 @{
 	ViewBag.Title = "Danh Sách Cuộc Hẹn";
 	Layout = "~/Views/Shared/_Layout.cshtml";
+	var today = DateOnly.FromDateTime(DateTime.Today);
+    // Tạo danh sách các PatientId đang có cuộc hẹn Ongoing
+    var ongoingPatientIds = Model.Where(a => a.Status == "Ongoing").Select(a => a.PatientId).Distinct().ToList();
 }
 
 <div class="container-xxl py-5">
@@ -13,11 +16,19 @@
 			<h1 class="text-primary">
 				<i class="fas fa-calendar-check"></i> Quản Lý Cuộc Hẹn
 			</h1>
-			<p class="text-muted">Danh sách tất cả các cuộc hẹn hiện tại</p>
+			<p class="text-muted">Danh sách tất cả các cuộc hẹn hôm nay: @today</p>
 		</div>
 
 		<div class="card">
 			<div class="card-body px-4 py-4">
+				<form asp-controller="Tracking" asp-action="StartAppointmentProcess" method="get" class="row g-3 mb-4 justify-content-center align-items-center">
+					<div class="col-md-4 col-12">
+						<input type="text" name="phone" class="form-control" placeholder="Tìm theo SĐT bệnh nhân" value="@ViewBag.Phone" />
+					</div>
+					<div class="col-md-2 col-12">
+						<button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
+					</div>
+				</form>
 				@if (Model == null || !Model.Any())
 				{
 					<div class="text-center text-muted p-4">
@@ -33,6 +44,7 @@
 							<thead class="table-light">
 								<tr>
 									<th>Bệnh nhân</th>
+									<th>SĐT</th>
 									<th>Ngày hẹn</th>
 									<th>Thời gian bắt đầu</th>
 									<th>Trạng thái cuộc hẹn</th>
@@ -46,24 +58,27 @@
 									var openInvoice = appointment.InvoiceDetails
 									.OrderBy(i => i.InvoiceDetailId)
 									.FirstOrDefault();
+	
 									var invoiceId = openInvoice?.InvoiceDetailId ?? 0;
+									var disablePayment = ongoingPatientIds.Contains(appointment.PatientId);
+		
+								<tr id="row-@appointment.AppointmentId">
+									<td>@appointment.Patient?.FullName</td>
+									<td>@appointment.Patient?.PhoneNumber</td>
+									<td>@appointment.Date.ToString("dd/MM/yyyy")</td>
+									<td>@(appointment.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
+									<td>
+										<span class="badge
+													@(appointment.Status == "Confirmed"
+																	   ? "bg-success"
+																	   : "bg-secondary")">
+										@(appointment.Status == "Confirmed" ? "Đã xác nhận" : appointment.Status)
+									</span>
+								</td>
 
-									<tr id="row-@appointment.AppointmentId">
-										<td>@appointment.Patient?.FullName</td>
-										<td>@appointment.Date.ToString("dd/MM/yyyy")</td>
-										<td>@(appointment.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
 										<td>
 											<span class="badge
-												@(appointment.Status == "Confirmed"
-													? "bg-success"
-													: "bg-secondary")">
-												@(appointment.Status == "Confirmed" ? "Đã xác nhận" : appointment.Status)
-											</span>
-										</td>
-
-										<td>
-											<span class="badge
-												@(openInvoice.PaymentStatus=="Paid" ? "bg-success"	: "bg-warning text-dark")">
+														@(openInvoice.PaymentStatus == "Paid" ? "bg-success" : "bg-warning text-dark")">
 												@(openInvoice.PaymentStatus == "Paid" ? "Đã thanh toán" : "Chưa thanh toán")
 											</span>
 										</td>
@@ -72,17 +87,17 @@
 										<td>
 											<div class="d-flex flex-wrap justify-content-center gap-2">
 												<a class="btn btn-sm btn-info"
-												   asp-controller="Appointment" asp-action="Detail" asp-route-appId="@appointment.AppointmentId">
+												   asp-controller="Appointment" asp-action="Detail" asp-route-appId="@appointment.AppointmentId" asp-route-returnUrl="@Context.Request.Path">
 													<i class="fas fa-eye"></i> Chi tiết
 												</a>
-												<a class="btn btn-sm btn-warning @(openInvoice.PaymentStatus=="Paid" ? "disabled" : "")"
+												<a class="btn btn-sm btn-warning @(openInvoice.PaymentStatus == "Paid" || disablePayment ? "disabled" : "")"
 												   asp-controller="Payment" asp-action="PayStartAppointment" asp-route-invoiceId="@invoiceId">
 													<i class="fas fa-credit-card"></i> Thanh toán
 												</a>
 												<button type="button"
 														class="btn btn-sm btn-success btn-start"
 														data-id="@appointment.AppointmentId"
-												@(openInvoice.PaymentStatus == "Paid" ? "" : "disabled")>
+														@(openInvoice.PaymentStatus == "Paid" ? "" : "disabled")>
 													<i class="fas fa-play"></i> Bắt đầu
 												</button>
 
@@ -92,7 +107,7 @@
 											</div>
 										</td>
 									</tr>
-								}
+														}
 							</tbody>
 						</table>
 					</div>
@@ -104,24 +119,24 @@
 		{
 			<div class="d-flex justify-content-center mt-4">
 				@Html.PagedListPager(Model, page => Url.Action("MyAppointments", new
-					{
-						page,
+				{
+					page,
 						phone = ViewBag.phone
-					}),
-								new PagedListRenderOptions
-			{
-				DisplayLinkToFirstPage = PagedListDisplayMode.Always,
-				DisplayLinkToLastPage = PagedListDisplayMode.Always,
-				DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
-				DisplayLinkToNextPage = PagedListDisplayMode.Always,
-				DisplayLinkToIndividualPages = true,
-				MaximumPageNumbersToDisplay = 5,
-				UlElementClasses = new[] { "pagination" },
-				LiElementClasses = new[] { "page-item" },
-				PageClasses = new[] { "page-link" }
-			})
-			</div>
-		}
+						}),
+						new PagedListRenderOptions
+						{
+							DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+							DisplayLinkToLastPage = PagedListDisplayMode.Always,
+							DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+							DisplayLinkToNextPage = PagedListDisplayMode.Always,
+							DisplayLinkToIndividualPages = true,
+							MaximumPageNumbersToDisplay = 5,
+							UlElementClasses = new[] { "pagination" },
+							LiElementClasses = new[] { "page-item" },
+							PageClasses = new[] { "page-link" }
+						})
+		</div>
+				}
 	</div>
 </div>
 

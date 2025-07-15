@@ -24,7 +24,18 @@
                 <dd class="col-sm-8">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")</dd>
 
                 <dt class="col-sm-4">Loại:</dt>
-                <dd class="col-sm-8">@Model.ItemType</dd>
+                <dd class="col-sm-8">
+                    @{
+                        var itemTypeText = Model.ItemType switch
+                        {
+                            "Service" => "Dịch vụ",
+                            "Package" => "Gói khám",
+                            "Test" => "Xét nghiệm",
+                            _ => Model.ItemType
+                        };
+                    }
+                    @itemTypeText
+                </dd>
 
                 <dt class="col-sm-4">Tên:</dt>
                 <dd class="col-sm-8">@Model.ItemName</dd>
@@ -34,26 +45,35 @@
 
                 <dt class="col-sm-4">Trạng thái:</dt>
                 <dd class="col-sm-8">
+                    @{
+                        var statusText = Model.PaymentStatus switch
+                        {
+                            "Paid" => "Đã thanh toán",
+                            "Unpaid" => "Chưa thanh toán",
+                            _ => Model.PaymentStatus
+                        };
+                    }
                     @if (Model.PaymentStatus == "Paid")
                     {
-                        <span class="badge bg-success fs-6 py-2 px-3">Đã thanh toán</span>
+                        <span class="badge bg-success fs-6 py-2 px-3">@statusText</span>
                     }
                     else
                     {
-                        <span class="badge bg-danger fs-6 py-2 px-3">Chưa thanh toán</span>
+                        <span class="badge bg-danger fs-6 py-2 px-3">@statusText</span>
                     }
                 </dd>
 
                 <dt class="col-sm-4">Phương thức:</dt>
                 <dd class="col-sm-8">
-                    @if (!string.IsNullOrEmpty(Model.PaymentMethod))
-                    {
-                        <span>@Model.PaymentMethod</span>
+                    @{
+                        var paymentMethodText = Model.PaymentMethod switch
+                        {
+                            "VNPAY" => "Chuyển khoản",
+                            "Cash" => "Tiền mặt",
+                            _ => Model.PaymentMethod ?? "Chưa rõ"
+                        };
                     }
-                    else
-                    {
-                        <span>Chưa rõ</span>
-                    }
+                    <span>@paymentMethodText</span>
                 </dd>
             </dl>
 

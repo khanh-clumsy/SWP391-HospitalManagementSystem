@@ -29,10 +29,6 @@
 
         <div class="d-flex justify-content-center align-items-center mb-3">
             <div class="d-flex gap-2 align-items-center">
-                <button class="btn btn-outline-primary" onclick="changePopupWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-
                 <select id="weekDropdown" class="form-select" style="width:250px;" onchange="onPopupWeekChange(this)">
                     @{
                         var start = firstWeekStart;
@@ -47,10 +43,6 @@
                         }
                     }
                 </select>
-
-                <button class="btn btn-outline-primary" onclick="changePopupWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
-                    <i class="bi bi-chevron-right"></i>
-                </button>
             </div>
         </div>
         <!-- In bảng chọn ngày muốn đổi đến -->
@@ -137,19 +129,27 @@
             loadPopup(fromScheduleId, weekStart);
         }
 
-        function changePopupWeek(delta) {
+                function changePopupWeek(delta) {
             const dropdown = document.getElementById("weekDropdown");
-            const options = dropdown.options;
-            const currentIndex = dropdown.selectedIndex;
-            const newIndex = currentIndex + delta;
+            const currentValue = dropdown.value;
 
-            if (newIndex >= 0 && newIndex < options.length) {
-                const newWeek = options[newIndex].value;
+            let currentIndex = -1;
+            for (let i = 0; i < dropdown.options.length; i++) {
+                if (dropdown.options[i].value === currentValue) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            const newIndex = currentIndex + delta;
+            if (newIndex >= 0 && newIndex < dropdown.options.length) {
+                const newWeek = dropdown.options[newIndex].value;
                 const fromScheduleId = document.querySelector('input[name="FromScheduleId"]').value;
 
                 loadPopup(fromScheduleId, newWeek);
             }
         }
+
 
         function loadPopup(fromScheduleId, weekStart) {
             $.ajax({

@@ -20,7 +20,7 @@ using HospitalManagement.Helpers;
 namespace HospitalManagement.Controllers
 {
     [Authorize]
-    public class AppointmentController : Controller
+    public class AppointmentController : BaseController
     {
         private readonly HospitalManagementContext _context;
         private readonly PasswordHasher<Patient> _passwordHasher;
@@ -132,12 +132,19 @@ namespace HospitalManagement.Controllers
                 return View(model);
             }
 
+            var excludedStatuses = new[] {
+                AppConstants.AppointmentStatus.Rejected,
+                AppConstants.AppointmentStatus.Failed,
+                AppConstants.AppointmentStatus.Expired
+            };
+
             // Kiểm tra trùng appointment cùng ngày, cùng giờ (slot), và trạng thái là "Pending"
             bool exists = await _context.Appointments.AnyAsync(a =>
                 a.PatientId == patientId &&
                 a.Date == model.AppointmentDate &&
                 a.SlotId == model.SelectedSlotId &&
-                a.Status != AppConstants.AppointmentStatus.Rejected
+                !excludedStatuses.Contains(a.Status)
+
             );
 
             if (exists)
@@ -289,12 +296,16 @@ namespace HospitalManagement.Controllers
             {
                 return RedirectToAction("Login", "Auth");
             }
-
+            var excludedStatuses = new[] {
+                AppConstants.AppointmentStatus.Rejected,
+                AppConstants.AppointmentStatus.Failed,
+                AppConstants.AppointmentStatus.Expired
+            };
             var isPatientConflict = await _context.Appointments.AnyAsync(a =>
                                                                 a.PatientId == patientId &&
                                                                 a.Date == model.AppointmentDate &&
                                                                 a.SlotId == model.SelectedSlotId &&
-                                                                a.Status != AppConstants.AppointmentStatus.Rejected);
+                                                                !excludedStatuses.Contains(a.Status));
 
             if (isPatientConflict)
             {
@@ -619,7 +630,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("MyAppointments");
         }
 
-        [Authorize(Roles = AppConstants.Roles.Sales)]
+        [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]
         [HttpGet]
         public async Task<IActionResult> ApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter, int? page)
         {
@@ -643,7 +654,7 @@ namespace HospitalManagement.Controllers
             return View(pagedAppointments);
         }
 
-        [Authorize(Roles = AppConstants.Roles.Sales)]
+        [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignDoctor(AssignDoctorViewModel model)
@@ -682,14 +693,18 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.Doctor.DoctorScheduleNotFound;
                 return RedirectToAction("ApproveAppointment");
             }
-
+            var excludedStatuses = new[] {
+                AppConstants.AppointmentStatus.Rejected,
+                AppConstants.AppointmentStatus.Failed,
+                AppConstants.AppointmentStatus.Expired
+            };
             //Check xem bác sĩ đã bị trùng lịch hẹn hay chưa?
             bool hasConflict = await _context.Appointments.AnyAsync(a =>
                 a.DoctorId == doctor.DoctorId &&
                 a.Date == appointment.Date &&
                 a.SlotId == model.SlotId &&
                 a.AppointmentId != model.AppointmentId &&
-                a.Status != AppConstants.AppointmentStatus.Rejected
+                !excludedStatuses.Contains(a.Status)
             );
 
             if (hasConflict)
@@ -711,13 +726,39 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
 
-            //Tạo ra hóa đơn tương ứng
-            await _invoiceService.CreateInvoiceForAppointmentAsync(savedAppointment!);
-
             if (savedAppointment == null)
             {
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return View(model);
+            }
+
+            //Tạo ra hóa đơn tương ứng
+            await _invoiceService.CreateInvoiceForAppointmentAsync(savedAppointment!);
+            if (savedAppointment.PackageId != null)
+            {
+                var package = await _context.Packages
+                    .Include(p => p.PackageTests).ThenInclude(pt => pt.Test)
+                    .FirstOrDefaultAsync(p => p.PackageId == savedAppointment.PackageId);
+                if (package == null)
+                {
+                    TempData["error"] = AppConstants.Messages.Package.NotFound;
+                    return RedirectToAction("ApproveAppointment");
+                }
+
+                if (package.PackageTests != null)
+                {
+                    foreach (var test in package.PackageTests)
+                    {
+                        var testRecord = new TestRecord
+                        {
+                            AppointmentId = savedAppointment.AppointmentId,
+                            TestId = test.TestId,
+                            TestStatus = AppConstants.TestStatus.Pending
+                        };
+                        _context.TestRecords.Add(testRecord);
+
+                    }
+                }
             }
 
             try
@@ -739,10 +780,13 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("ApproveAppointment");
         }
 
+        [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]
         [HttpPost]
         public async Task<IActionResult> Review(int id, string action)
         {
-            var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.AppointmentId == id);
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .FirstOrDefaultAsync(a => a.AppointmentId == id);
             if (appointment == null)
             {
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
@@ -779,12 +823,26 @@ namespace HospitalManagement.Controllers
                                 {
                                     AppointmentId = appointment.AppointmentId,
                                     TestId = test.TestId,
-                                    TestStatus = AppConstants.TestStatus.Pending,
+                                    TestStatus = AppConstants.TestStatus.Pending
                                 };
                                 _context.TestRecords.Add(testRecord);
+
                             }
-                            Console.WriteLine("Tạo các test record thành công!");
                         }
+                    }
+                    try
+                    {
+                        var emailBody = EmailBuilder.BuildConfirmedAppointmentEmail(appointment);
+                        await _emailService.SendEmailAsync(
+                            toEmail: appointment.Patient.Email,
+                            subject: AppConstants.Messages.Appointment.ConfirmedEmailSubject,
+                            body: emailBody
+                        );
+                        TempData["success"] = AppConstants.Messages.Appointment.ApproveSuccess;
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["error"] = $"{AppConstants.Messages.Appointment.ApproveFail}: {ex.Message}";
                     }
                     await _context.SaveChangesAsync();
                     TempData["success"] = AppConstants.Messages.Appointment.AlreadyApproved;
@@ -792,6 +850,20 @@ namespace HospitalManagement.Controllers
 
                 case AppConstants.AppointmentActions.Reject:
                     appointment.Status = AppConstants.AppointmentStatus.Rejected;
+                    try
+                    {
+                        var emailBody = EmailBuilder.BuildRequestAppointmentFailed(appointment);
+                        await _emailService.SendEmailAsync(
+                            toEmail: appointment.Patient.Email,
+                            subject: AppConstants.Messages.Appointment.RejectedEmailSubject,
+                            body: emailBody
+                        );
+                        TempData["success"] = AppConstants.Messages.Appointment.ApproveSuccess;
+                    }
+                    catch (Exception ex)
+                    {
+                        TempData["error"] = $"{AppConstants.Messages.Appointment.ApproveFail}: {ex.Message}";
+                    }
                     TempData["success"] = AppConstants.Messages.Appointment.Rejected;
                     break;
 
@@ -829,7 +901,8 @@ namespace HospitalManagement.Controllers
                         a.DoctorId == d.DoctorId &&
                         a.Date == dateOnly &&
                         a.SlotId == slotId &&
-                        a.Status != AppConstants.AppointmentStatus.Rejected)
+                        a.Status != AppConstants.AppointmentStatus.Rejected &&
+                        a.Status != AppConstants.AppointmentStatus.Expired)
                 )
                 .ToList();
 
@@ -1092,8 +1165,12 @@ namespace HospitalManagement.Controllers
         }
 
         [Authorize(Roles = AppConstants.Roles.Patient + "," + AppConstants.Roles.Sales + "," + AppConstants.Roles.Admin + "," + AppConstants.Roles.Doctor + "," + AppConstants.Roles.Receptionist)]
-        public async Task<IActionResult> Detail(int appId)
+        public async Task<IActionResult> Detail(int appId, string returnUrl = null)
         {
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                TempData["PreviousUrl"] = returnUrl;
+            }
             var appointment = await _context.Appointments
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
@@ -1110,6 +1187,8 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
                 return NotFound();
             }
+
+            ViewBag.BackUrl = GetSafeBackUrl();
 
             if (User.IsInRole(AppConstants.Roles.Admin) || User.IsInRole(AppConstants.Roles.Sales) || User.IsInRole(AppConstants.Roles.Receptionist))
             {
@@ -1130,10 +1209,10 @@ namespace HospitalManagement.Controllers
                 .ToList() ?? new List<Tracking>();
 
             // 1. Phòng khám
-            var clinic = allTrackings
-                .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
-                .OrderBy(t => t.Time)
-                .FirstOrDefault();
+            var clinicTrackings = allTrackings
+                 .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
+                 .OrderBy(t => t.Time)
+                 .ToList();
 
             // 2. Gom theo batch (nhóm các tracking theo đợt)
             var groupedByBatch = allTrackings
@@ -1143,18 +1222,19 @@ namespace HospitalManagement.Controllers
                 .ToList();
 
             var finalOrderedTrackings = new List<Tracking>();
+            var firstClinic = allTrackings
+                .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
+                .OrderBy(t => t.Time)
+                .FirstOrDefault();
 
-            // 3. Thêm phòng khám lên đầu 
-            if (clinic != null)
-                finalOrderedTrackings.Add(clinic);
+            if (firstClinic != null)
+            {
+                finalOrderedTrackings.Add(firstClinic);
+            }
 
             // 4. Duyệt từng batch
             foreach (var batchGroup in groupedByBatch)
             {
-                var cashier = batchGroup
-                    .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier)
-                    .FirstOrDefault();
-
                 var unpaidTests = batchGroup
                     .Where(t => t.TestRecord != null && t.TestRecord.TestStatus == AppConstants.TestStatus.WaitingForPayment)
                     .ToList();
@@ -1164,13 +1244,16 @@ namespace HospitalManagement.Controllers
                     .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Cashier)
                     .ToList();
 
-                if (cashier != null)
-                {
-                    finalOrderedTrackings.Add(cashier);
-                }
-
                 finalOrderedTrackings.AddRange(unpaidTests);
                 finalOrderedTrackings.AddRange(others);
+
+                // Sau batch, thêm tracking clinic nếu có (sau thời gian cuối của batch)
+                var lastTime = batchGroup.Max(t => t.Time);
+                var nextClinic = clinicTrackings.FirstOrDefault(c => c.Time > lastTime);
+                if (nextClinic != null)
+                {
+                    finalOrderedTrackings.Add(nextClinic);
+                }
             }
 
             // Gán vào ViewBag để view hiển thị
@@ -1180,7 +1263,6 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.General.Undefined;
                 return NotFound();
             }
-
             if (roleKey == AppConstants.ClaimTypes.PatientId && appointment.Patient != null && appointment.Patient.PatientId != null && appointment.Patient.PatientId == userId)
             {
                 return View(appointment);
@@ -1189,8 +1271,9 @@ namespace HospitalManagement.Controllers
             {
                 return View(appointment);
             }
-            if (roleKey == AppConstants.ClaimTypes.StaffId && appointment.CreatedByStaff != null && appointment.CreatedByStaff.StaffId != null && appointment.CreatedByStaff.StaffId == userId)
+            if (roleKey == AppConstants.ClaimTypes.StaffId)
             {
+                // Nếu bạn muốn tất cả staff được xem
                 return View(appointment);
             }
 
@@ -1214,6 +1297,7 @@ namespace HospitalManagement.Controllers
             var query = _context.Doctors
                 .Where(d => d.IsActive);
 
+            keyword = NormalizeName(keyword);
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 var lowered = keyword.ToLower();
