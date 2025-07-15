@@ -761,8 +761,15 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> OngoingPatientScreen()
         {
+            // 1. Lấy DoctorId từ claims
+            int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
+
+            // 2. Lấy thông tin bác sĩ
+            var doctor = await _doctorRepo.GetByIdAsync(doctorId);
+            ViewBag.DoctorName = doctor.FullName;
             return View();
         }
+
         [HttpGet]
         [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> GetTodayPatients()
