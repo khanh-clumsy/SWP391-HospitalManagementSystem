@@ -1,5 +1,14 @@
 ﻿@model IEnumerable<HospitalManagement.ViewModels.NewsViewModel>
 
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
+
 @{
     ViewData["Title"] = "Danh sách bài viết";
 }

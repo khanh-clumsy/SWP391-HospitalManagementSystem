@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Data;
+using HospitalManagement.Helpers;
 using HospitalManagement.Models;
 using HospitalManagement.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,8 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Slot)
                 .Include(a => a.Service)
                 .Include(a => a.Package)
+                .Include(a => a.CreatedByStaff)
+                .Include(a => a.InvoiceDetails)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
@@ -56,7 +59,7 @@ namespace HospitalManagement.Repositories
             }
             else if (RoleKey == "DoctorID")
             {
-                query = query.Where(a => a.Status != "Pending");
+                query = query.Where(a => a.Status != "Pending" && a.Status != "Expired");
             }
             return await query.ToListAsync();
         }
@@ -103,7 +106,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Package)
                 .Include(a => a.Slot)
                 .OrderByDescending(a => a.Date)
-                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected")
+                .Where(a => a.Status == "Pending" || a.Status == "Confirmed" || a.Status == "Rejected" || a.Status == "Expired")
                 .AsQueryable();
 
             // Lọc theo status
@@ -183,7 +186,7 @@ namespace HospitalManagement.Repositories
         }
         public async Task<bool> HasAppointmentAsync(int doctorId, int slotId, DateOnly day)
         {
-            return await _context.Appointments.Where(a => a.Status == "Pending" || a.Status == "Confirmed").AnyAsync(a =>
+            return await _context.Appointments.Where(a => (a.Status == "Pending" || a.Status == "Confirmed") && a.Status != "Expired").AnyAsync(a =>
                 a.DoctorId == doctorId &&
                 a.SlotId == slotId &&
                 a.Date == day
@@ -246,8 +249,6 @@ namespace HospitalManagement.Repositories
 
             return (list, total);
         }
-
-
         public async Task<List<Appointment>> GetAppointmentsAsync(string phone)
         {
             var query = _context.Appointments
@@ -273,6 +274,12 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.InvoiceDetails)
                 .Where(a => a.Status == "Confirmed" && a.Date == today);
            
+            if (!string.IsNullOrEmpty(phone))
+            {
+                phone = string.Join("", phone.Split(" ", StringSplitOptions.RemoveEmptyEntries));
+                query = query.Where(a => a.Patient.PhoneNumber.Contains(phone));
+            }
+
             var appointments = await query
                 .OrderBy(a => a.Slot.StartTime)
                 .ToListAsync();
@@ -306,7 +313,9 @@ namespace HospitalManagement.Repositories
             return await _context.Appointments
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
-                .Where(a => a.DoctorId == doctorId && a.Status == "Ongoing" && a.Date == DateOnly.FromDateTime(DateTime.Today))
+                .Where(a => a.DoctorId == doctorId 
+                && a.Status == AppConstants.AppointmentStatus.Ongoing 
+                && a.Date == DateOnly.FromDateTime(DateTime.Today))
                 .OrderBy(a => a.Date).ThenBy(a => a.Slot.StartTime)
                 .ToListAsync();
         }

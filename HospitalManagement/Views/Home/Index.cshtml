@@ -1,11 +1,18 @@
 ﻿@{
 	ViewData["Title"] = "Trang Chủ";
+	int doctors = ViewBag.OtherCount;
+	int testdoctors = ViewBag.XetNghiemCount;
+	int patientCount = ViewBag.PatientCount;
+	var feedbacks = ViewBag.SpecialFeedbacks as List<HospitalManagement.Models.Feedback>;
 }
 
 @if (ViewBag.PatientCurrentRoom != null)
 {
 	<div class="alert alert-info text-center fw-bold" style="font-size:1.2rem; margin: 0">
-		@ViewBag.PatientCurrentRoom
+		@if (@ViewBag.PatientCurrentRoom != "")
+		{
+			@ViewBag.PatientCurrentRoom
+		}
 		@if (ViewBag.PatientCurrentAppointmentId != null)
 		{
 			<a class="btn btn-sm btn-primary ms-3" asp-controller="Appointment" asp-action="Detail" asp-route-appId="@ViewBag.PatientCurrentAppointmentId">Xem chi tiết</a>
@@ -21,19 +28,20 @@
 			<div class="row g-4">
 				<div class="col-sm-4">
 					<div class="border-start border-light ps-4">
-						<h2 class="text-white mb-1" data-toggle="counter-up">123</h2>
+
+						<h2 class="text-white mb-1" data-toggle="counter-up">@doctors</h2>
 						<p class="text-light mb-0">Bác Sĩ Chuyên Môn</p>
 					</div>
 				</div>
 				<div class="col-sm-4">
 					<div class="border-start border-light ps-4">
-						<h2 class="text-white mb-1" data-toggle="counter-up">1234</h2>
+						<h2 class="text-white mb-1" data-toggle="counter-up">@testdoctors</h2>
 						<p class="text-light mb-0">Nhân Viên Y Tế</p>
 					</div>
 				</div>
 				<div class="col-sm-4">
 					<div class="border-start border-light ps-4">
-						<h2 class="text-white mb-1" data-toggle="counter-up">12345</h2>
+						<h2 class="text-white mb-1" data-toggle="counter-up">@patientCount</h2>
 						<p class="text-light mb-0">Tổng Số Bệnh Nhân</p>
 					</div>
 				</div>
@@ -82,7 +90,7 @@
 				<p><i class="far fa-check-circle text-primary me-3"></i>Chăm sóc sức khỏe toàn diện</p>
 				<p><i class="far fa-check-circle text-primary me-3"></i>Bác sĩ chuyên môn cao</p>
 				<p><i class="far fa-check-circle text-primary me-3"></i>Công nghệ y tế tiên tiến</p>
-				<a href="Appointment/Booking" class="btn btn-primary rounded-pill py-2 px-4 mt-4">Đặt Lịch Ngay</a>
+				<a asp-action="BookingType" asp-controller="Appointment" class="btn btn-primary rounded-pill py-2 px-4 mt-4">Đặt Lịch Ngay</a>
 			</div>
 		</div>
 	</div>
@@ -228,30 +236,40 @@
 			<h1>Bệnh Nhân Nói Gì Về Chúng Tôi?</h1>
 		</div>
 		<div class="owl-carousel testimonial-carousel wow fadeInUp" data-wow-delay="0.1s">
-			<div class="testimonial-item text-center">
+
+
+			@* <div class="testimonial-item text-center">
 				<img class="img-fluid bg-light rounded-circle p-2 mx-auto mb-4" src="/img/testimonial-1.jpg" style="width: 100px; height: 100px;">
 				<div class="testimonial-text rounded text-center p-4">
-					<p>Tôi rất hài lòng với dịch vụ tại đây. Các bác sĩ rất tận tâm và chuyên nghiệp, giúp tôi hồi phục nhanh chóng sau ca phẫu thuật.</p>
-					<h5 class="mb-1">Nguyễn Văn A</h5>
-					<span class="fst-italic">Nhân viên văn phòng</span>
+					<p>Comment của feedback</p>
+					<h5 class="mb-1">Tên bệnh nhân</h5>
+					<span class="fst-italic">Dịch vụ: Tên dịch vụ</span>
 				</div>
-			</div>
-			<div class="testimonial-item text-center">
-				<img class="img-fluid bg-light rounded-circle p-2 mx-auto mb-4" src="/img/testimonial-2.jpg" style="width: 100px; height: 100px;">
-				<div class="testimonial-text rounded text-center p-4">
-					<p>Phòng khám sạch sẽ, nhân viên thân thiện. Tôi đã được tư vấn rất kỹ lưỡng và cảm thấy an tâm khi điều trị tại đây.</p>
-					<h5 class="mb-1">Trần Thị B</h5>
-					<span class="fst-italic">Giáo viên</span>
-				</div>
-			</div>
-			<div class="testimonial-item text-center">
-				<img class="img-fluid bg-light rounded-circle p-2 mx-auto mb-4" src="/img/testimonial-3.jpg" style="width: 100px; height: 100px;">
-				<div class="testimonial-text rounded text-center p-4">
-					<p>Đội ngũ bác sĩ ở đây thật sự tuyệt vời. Họ đã giúp tôi kiểm soát bệnh tiểu đường một cách hiệu quả.</p>
-					<h5 class="mb-1">Lê Văn C</h5>
-					<span class="fst-italic">Kinh doanh tự do</span>
-				</div>
-			</div>
+
+			</div> *@
+
+			@if (feedbacks != null && feedbacks.Any())
+			{
+				@foreach (var f in feedbacks)
+				{
+					<div class="testimonial-item text-center">
+						<img class="img-fluid bg-light rounded-circle p-2 mx-auto mb-4"
+							 src="@(string.IsNullOrEmpty(f.Patient.ProfileImage)
+                                ? Url.Content("~/img/logo.jpg")
+                                : Url.Content("~/img/" + f.Patient.ProfileImage))"
+							 style="width: 100px; height: 100px;">
+						<div class="testimonial-text rounded text-center p-4">
+							<p>@f.Comment</p>
+							<h5 class="mb-1">@f.Patient?.FullName</h5>
+							<span class="fst-italic">
+								Dịch vụ:
+								@(f.Service?.ServiceType ?? f.Package?.PackageName ?? "Không rõ")
+							</span>
+						</div>
+					</div>
+				}
+			}
+
 		</div>
 	</div>
 </div>

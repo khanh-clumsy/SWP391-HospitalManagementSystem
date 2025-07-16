@@ -243,7 +243,7 @@ namespace HospitalManagement.Controllers
 
             // 🔹 Dữ liệu bắt đầu từ dòng 4
             int startRow = 4;
-            for (int i = 0; i < appointments.Count; i++)
+            for (int i = 0; i < appointments.Count(); i++)
             {
                 var a = appointments[i];
                 int row = startRow + i;

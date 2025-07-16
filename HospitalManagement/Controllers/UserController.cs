@@ -87,7 +87,7 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status, string? roomType)
         {
             name = UserController.NormalizeName(name);
-            int pageSize = 9;
+            int pageSize = 10;
             int pageNumber = page ?? 1;
 
             List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, roomType, pageNumber, pageSize);
@@ -244,20 +244,20 @@ namespace HospitalManagement.Controllers
                 return await ReturnRoomDetailWithError(room, "Vui lòng không để trống các trường bắt buộc.", weekStart);
             }
 
-            // Kiểm tra định dạng RoomName
-            if (!System.Text.RegularExpressions.Regex.IsMatch(room.RoomName, @"^[A-Z][0-9]{3,4}$"))
-            {
-                return await ReturnRoomDetailWithError(room, "Tên phòng phải có dạng A101 hoặc A1001.", weekStart);
-            }
+            //// Kiểm tra định dạng RoomName
+            //if (!System.Text.RegularExpressions.Regex.IsMatch(room.RoomName, @"^[A-Z][0-9]{3,4}$"))
+            //{
+            //    return await ReturnRoomDetailWithError(room, "Tên phòng phải có dạng A101 hoặc A1001.", weekStart);
+            //}
 
             // Kiểm tra trùng tên phòng
-            var existingRoom = await _context.Rooms
-                .FirstOrDefaultAsync(r => r.RoomName == room.RoomName && r.RoomId != room.RoomId);
+            //var existingRoom = await _context.Rooms
+            //    .FirstOrDefaultAsync(r => r.RoomName == room.RoomName && r.RoomId != room.RoomId);
 
-            if (existingRoom != null)
-            {
-                return await ReturnRoomDetailWithError(room, "Tên phòng đã tồn tại.", weekStart);
-            }
+            //if (existingRoom != null)
+            //{
+            //    return await ReturnRoomDetailWithError(room, "Tên phòng đã tồn tại.", weekStart);
+            //}
 
             // Tìm phòng hiện tại để cập nhật
             var roomInDb = await _context.Rooms
@@ -271,7 +271,7 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("ManageRoom");
             }
 
-            // Nếu muốn chuyển sang "Maintain", kiểm tra có lịch trong tương lai không
+            // Nếu muốn chuyển sang "Bảo trì", kiểm tra có lịch trong tương lai không
             if (room.Status == "Maintain")
             {
                 var now = DateTime.Now;
@@ -286,6 +286,7 @@ namespace HospitalManagement.Controllers
             }
 
             // Cập nhật thông tin
+            //roomInDb.RoomName = room.RoomName.Trim();
             roomInDb.RoomType = room.RoomType.Trim();
             roomInDb.Status = room.Status.Trim();
 
@@ -384,7 +385,7 @@ namespace HospitalManagement.Controllers
             ViewBag.Units = GetAllRoomTypes();
             // Kiểm tra thủ công định dạng RoomName bằng controller
             if (string.IsNullOrWhiteSpace(room.RoomName) ||
-                string.IsNullOrWhiteSpace(room.RoomType) )
+                string.IsNullOrWhiteSpace(room.RoomType))
             {
                 TempData["error"] = "Vui lòng không để trống các trường bắt buộc.";
                 return View(room);
@@ -760,12 +761,6 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> OngoingPatientScreen()
         {
-            // 1. Lấy DoctorId từ claims
-            int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
-
-            // 2. Lấy thông tin bác sĩ
-            var doctor = await _doctorRepo.GetByIdAsync(doctorId);
-            ViewBag.DoctorName = doctor.FullName;
             return View();
         }
         [HttpGet]
@@ -776,7 +771,7 @@ namespace HospitalManagement.Controllers
             int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
 
             // 2. Lấy thông tin bác sĩ
-            var doctor = await _doctorRepo.GetByIdAsync(doctorId); 
+            var doctor = await _doctorRepo.GetByIdAsync(doctorId); // nên Include Department
             if (doctor == null)
                 return RedirectToAction("NotFound", "Home");
 
@@ -953,11 +948,11 @@ namespace HospitalManagement.Controllers
                 return RedirectToAction("SelectReplacementInfo", new { requestId = model.RequestId });
             }
 
-                // Kiểm tra lịch đổi có hợp lệ không
-                var request = await _context.ScheduleChangeRequests
-                    .Include(r => r.FromSchedule)
-                        .ThenInclude(s => s.Doctor)
-                    .FirstOrDefaultAsync(r => r.RequestId == model.RequestId);
+            // Kiểm tra lịch đổi có hợp lệ không
+            var request = await _context.ScheduleChangeRequests
+                .Include(r => r.FromSchedule)
+                    .ThenInclude(s => s.Doctor)
+                .FirstOrDefaultAsync(r => r.RequestId == model.RequestId);
 
             if (request == null || request.Status != "Pending")
             {
@@ -1092,11 +1087,14 @@ namespace HospitalManagement.Controllers
             return new string(remainingChars.OrderBy(_ => random.Next()).ToArray());
         }
 
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ViewSchedule(int id, int? year, string? weekStart)
         {
             var doctor = await _doctorRepo.GetByIdAsync(id);
             if (doctor == null) return NotFound();
+
+            ViewBag.Doctor = doctor;
 
             // Nếu không truyền gì, dùng tuần hiện tại
             int selectedYear = year ?? DateTime.Today.Year;

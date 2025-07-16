@@ -199,15 +199,19 @@ $(document).ready(function () {
                     return;
                 }
                 data.forEach(function (doctor) {
+                    const imageUrl = doctor.profileImage
+                        ? "/img/" + doctor.profileImage
+                        : "/img/logo.jpg";
+
                     const card = `
-                <div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
-                    <div class="card-body">
-                        <img src="${doctor.profileImage ? 'data:image/png;base64,' + doctor.profileImage : '/img/logo.jpg'}"
-                             class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
-                        <h6 class="card-title mb-0">${doctor.doctorName}</h6>
-                        <p class="text-muted small mb-0">${doctor.departmentName}</p>
-                    </div>
-                </div>`;
+					<div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
+						<div class="card-body">
+							<img src="${imageUrl}"
+								class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
+							<h6 class="card-title mb-0">${doctor.doctorName}</h6>
+							<p class="text-muted small mb-0">${doctor.departmentName}</p>
+						</div>
+					</div>`;
                     $list.append(card);
                 });
                 $('.doctor-section').show();
@@ -232,11 +236,49 @@ $(document).ready(function () {
 
     // Lọc tên bác sĩ
     $('#doctorSearch').on('input', function () {
-        var term = $(this).val().toLowerCase();
-        $('#doctorDropdown option').each(function () {
-            if (!$(this).val()) return;
-            var txt = $(this).text().toLowerCase();
-            $(this).prop('hidden', term && !txt.includes(term));
+        const keyword = $(this).val();
+        const departmentName = $('#departmentDropdown').val();
+
+        $.ajax({
+            url: '/Appointment/SearchDoctors',
+            type: 'GET',
+            data: {
+                keyword: keyword,
+                departmentName: departmentName
+            },
+            success: function (data) {
+                const $list = $('#doctorList');
+                $list.empty();
+
+                if (!data || data.length === 0) {
+                    $list.append('<p class="text-muted text-center my-3">Không tìm thấy bác sĩ phù hợp.</p>');
+                    updateDoctorScrollVisibility();
+                    return;
+                }
+
+                data.forEach(function (doctor) {
+                    const imageUrl = doctor.profileImage
+                        ? "/img/" + doctor.profileImage
+                        : "/img/logo.jpg";
+
+                    const card = `
+					<div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
+						<div class="card-body">
+							<img src="${imageUrl}"
+								class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
+							<h6 class="card-title mb-0">${doctor.fullName}</h6>
+							<p class="text-muted small mb-0">${doctor.departmentName}</p>
+						</div>
+					</div>`;
+                    $list.append(card);
+                });
+
+                $('.doctor-section').show();
+                updateDoctorScrollVisibility();
+            },
+            error: function () {
+                console.error("Không thể tìm bác sĩ.");
+            }
         });
     });
 

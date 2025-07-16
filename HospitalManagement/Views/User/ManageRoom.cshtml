@@ -121,8 +121,8 @@
                     <div class="col-md-2">
                         <select name="status" class="form-select">
                             <option value="">Trạng thái</option>
-                            <option value="Active" selected="@(ViewBag.Status == "Active" ? "selected" : null)">Hoạt động</option>
-                            <option value="Maintain" selected="@(ViewBag.Status == "Maintain" ? "selected" : null)">Bảo trì</option>
+                            <option value="Hoạt động" selected="@(ViewBag.Status == "Hoạt động" ? "selected" : null)">Hoạt động</option>
+                            <option value="Bảo trì" selected="@(ViewBag.Status == "Bảo trì" ? "selected" : null)">Bảo trì</option>
                         </select>
                     </div>
 
@@ -157,7 +157,7 @@
                             <span>Trống</span>
                         }
                     </p>
-                    <p class="card-text"><strong>Trạng thái:</strong> @room.GetFullRoomStatus()</p>
+                    <p class="card-text"><strong>Trạng thái:</strong> @room.Status</p>
                 </div>
                 <div class="card-footer bg-transparent border-top-0 text-center">
                     <a asp-action="RoomDetail" asp-controller="User" asp-route-id="@room.RoomId" class="btn btn-warning">Chi tiết</a>

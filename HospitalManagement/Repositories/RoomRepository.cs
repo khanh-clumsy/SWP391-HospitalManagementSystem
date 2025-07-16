@@ -220,7 +220,7 @@ namespace HospitalManagement.Repositories
             var currentRoomId = selectedSchedules.First().RoomId;
 
 
-            // Lấy danh sách các phòng đang active
+            // Lấy danh sách các phòng đang hoạt động
             var activeRooms = await _context.Rooms
                 .Where(r => r.Status == "Active")
                 .ToListAsync();
@@ -262,7 +262,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<SelectListItem>> GetAvailableRoomsAsync(int slotId, DateOnly day)
         {
             var busyRoomIds = await _context.Schedules
-                .Where(s => s.SlotId == slotId && s.Day == day || s.Status == "Maintain")
+                .Where(s => s.SlotId == slotId && s.Day == day)
                 .Select(s => s.RoomId)
                 .ToListAsync();
 

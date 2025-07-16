@@ -330,8 +330,7 @@ namespace HospitalManagement.Controllers
                         DoctorId = parsedDoctorId,
                         SlotId = item.Slot,
                         Day = item.Date,
-                        RoomId = parsedRoomId,
-                        Status = "Not Yet"
+                        RoomId = parsedRoomId
                     });
                     _context.SaveChanges();
                     existingSuccessList.Add(key);

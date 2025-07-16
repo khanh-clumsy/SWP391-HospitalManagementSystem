@@ -25,6 +25,8 @@ namespace HospitalManagement.Helpers
             public const string Clinic = "Phòng khám";
             public const string Lab = "Xét nghiệm";
             public const string Imaging = "Chẩn đoán hình ảnh";
+            public const string Ultrasound = "Siêu âm";
+            public const string Endoscopy = "Nội soi";
             public const string Cashier = "Thu ngân";
             public const string Other = "Khác";
         }
@@ -38,6 +40,7 @@ namespace HospitalManagement.Helpers
             public const string Rejected = "Rejected";
             public const string Failed = "Failed";
             public const string Cancelled = "Cancelled";
+            public const string Expired = "Expired";
         }
 
         public static class AppointmentActions
@@ -100,9 +103,14 @@ namespace HospitalManagement.Helpers
                 public const string InvalidServiceOrPackage = "Chọn dịch vụ khám cơ bản hoặc gói khám chưa hợp lệ!";
                 public const string PendingEmailSubject = "Đặt lịch hẹn thành công - Đang chờ duyệt";
                 public const string ConfirmedEmailSubject = "Lịch hẹn đã được xác nhận";
+                public const string RejectedEmailSubject = "Lịch hẹn đã bị từ chối";
                 public const string Processing = "Hệ thống đang xử lý đặt lịch của bạn. Vui lòng kiểm tra lịch hẹn sau vài phút.";
                 public const string CanNotStartMedicalExam = "Cuộc hẹn này không thể bắt đầu!";
                 public const string CanNotFindDoctorSchedule = "Không tìm thấy lịch làm việc của bác sĩ!";
+                public const string PatientHasOngoingAppointment = "Bệnh nhân đã có cuộc hẹn đang diễn ra. Không thể bắt đầu cuộc hẹn mới.";
+                public const string PatientHasCompletedAppointment = "Bệnh nhân đã có cuộc hẹn đã hoàn thành. Không thể bắt đầu cuộc hẹn mới.";
+                public const string AppointmentAlreadyCompletdCanNotAssignTest = "Cuộc hẹn đã hoàn thành khám, không thể chỉ định thêm xét nghiệm.";
+                public const string NoPermission = "Bạn không có quyền truy cập vào cuộc hẹn này!";
             }
 
             public static class Tracking
@@ -110,6 +118,11 @@ namespace HospitalManagement.Helpers
                 public const string StartAppointmentProcessSuccess = "Quy trình khám đã được bắt đầu thành công.";
                 public const string SaveExaminationSuccess = "Thông tin khám đã được lưu thành công.";
                 public const string SubmitExaminationSuccess = "Khám bệnh đã được hoàn tất thành công.";
+                public const string PatientHasOngoingTest = "Bệnh nhân đang thực hiện xét nghiệm. Vui lòng đợi kết quả trước khi chỉ định thêm.";
+                public const string NoTrackingDataFound = "Không tìm thấy dữ liệu theo dõi.";
+                public const string PleaseGoToReceptionForPayment = "Bạn hãy tới lễ tân để thanh toán";
+                public const string PleaseProceedToTestRoom = "Vui lòng tiến hành đến phòng xét nghiệm";
+                public const string AllStepsCompletedInCurrentBatch = "Tất cả các bước đã hoàn thành trong batch hiện tại.";
             }
 
             public static class Doctor
@@ -152,6 +165,9 @@ namespace HospitalManagement.Helpers
                 public const string AssignSuccess = "Chỉ định xét nghiệm thành công!";
                 public const string AssignFail = "Chỉ định xét nghiệm thất bại!";
                 public const string NotCompleted = "Vui lòng hoàn thành tất cả xét nghiệm trước khi kết thúc khám bệnh.";
+                public const string TestRecordNotFound = "Không tìm thấy xét nghiệm.";
+                public const string ResultFileRequired = "Chưa cập nhật kết quả";
+                public const string SaveResultSuccess = "Lưu kết quả xét nghiệm thành công.";
             }
 
             public static class Package

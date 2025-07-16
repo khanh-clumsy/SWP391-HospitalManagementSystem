@@ -15,6 +15,7 @@ using X.PagedList.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using HospitalManagement.Services;
+using HospitalManagement.Helpers;
 
 namespace HospitalManagement.Controllers
 {
@@ -46,18 +47,26 @@ namespace HospitalManagement.Controllers
             ViewBag.PriceRange = GetPriceRangeOptions(PriceRangeFilter);
             ViewBag.Categories = new SelectList(await _context.PackageCategories.ToListAsync(), "PackageCategoryId", "CategoryName", CategoryFilter);
             ViewBag.GenderFilter = GenderFilter;
-
             // Truy vấn dữ liệu với Include và phân trang
-            var pagedList = await _packageRepository.FilterPackagesAsync(CategoryFilter, AgeFilter, GenderFilter, PriceRangeFilter, pageNumber, pageSize);
+            var pagedList = await _packageRepository.FilterPackagesAsync(CategoryFilter, AgeFilter, GenderFilter, PriceRangeFilter, pageNumber, pageSize, User.IsInRole(AppConstants.Roles.Admin));
             return View(pagedList);
         }
 
         [HttpGet]
         public async Task<IActionResult> Detail(int id)
         {
-            var package = await _context.Packages
+            var query = _context.Packages
                 .Include(p => p.PackageCategory)
-                .FirstOrDefaultAsync(p => p.PackageId == id);
+                .AsQueryable();
+
+            // Nếu là admin, cho phép xem cả gói khám đã ẩn
+            if (User.IsInRole("Admin"))
+            {
+                query = query.IgnoreQueryFilters();
+            }
+
+            var package = await query.FirstOrDefaultAsync(p => p.PackageId == id);
+            
             if (package == null)
             {
                 TempData["error"] = "Không tìm thấy gói khám!";
@@ -189,11 +198,19 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var package = await _context.Packages
-                            .Include(p => p.PackageCategory)
-                            .Include(p => p.PackageTests)
-                            .ThenInclude(pt => pt.Test)
-                            .FirstOrDefaultAsync(p => p.PackageId == id);
+            var query = _context.Packages
+                .Include(p => p.PackageCategory)
+                .Include(p => p.PackageTests)
+                .ThenInclude(pt => pt.Test)
+                .AsQueryable();
+
+            // Nếu là admin, cho phép chỉnh sửa cả gói khám đã ẩn
+            if (User.IsInRole("Admin"))
+            {
+                query = query.IgnoreQueryFilters();
+            }
+
+            var package = await query.FirstOrDefaultAsync(p => p.PackageId == id);
 
             if (package == null)
             {
@@ -258,9 +275,16 @@ namespace HospitalManagement.Controllers
                 }
             }
 
-            var package = await _context.Packages
-                        .Include(p => p.PackageTests)
-                        .FirstOrDefaultAsync(p => p.PackageId == model.PackageId);
+            var query = _context.Packages
+                .Include(p => p.PackageTests)
+                .AsQueryable();
+
+            if (User.IsInRole("Admin"))
+            {
+                query = query.IgnoreQueryFilters();
+            }
+
+            var package = await query.FirstOrDefaultAsync(p => p.PackageId == model.PackageId);
 
             if (package == null)
             {
@@ -333,25 +357,44 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var package = _context.Packages
-                .Include(p => p.PackageTests)
-                .FirstOrDefault(p => p.PackageId == id);
+            var package = await _context.Packages
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.PackageId == id);
+
             if (package == null)
             {
                 TempData["error"] = $"Không thể tìm gói khám với ID là {id}!";
                 return RedirectToAction("Index");
             }
 
-            if (package.Thumbnail != null)
-            {
-                FileService.DeleteImage(package.Thumbnail, "Package");
-            }
-            _context.PackageTests.RemoveRange(package.PackageTests);
-
-            _context.Packages.Remove(package);
+            // Soft delete: đánh dấu là đã ẩn
+            package.IsDeleted = true;
             await _context.SaveChangesAsync();
 
-            TempData["success"] = $"Xóa thành công gói khám với ID là {id}!";
+            TempData["success"] = $"Đã ẩn gói khám có ID là {id}!";
+            return RedirectToAction("Index");
+        }
+
+
+        [Authorize(Roles = AppConstants.Roles.Admin)]
+        [HttpPost]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var package = await _context.Packages
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(p => p.PackageId == id);
+
+            if (package == null)
+            {
+                TempData["error"] = $"Không thể tìm gói khám với ID là {id}!";
+                return RedirectToAction("Index");
+            }
+
+            // Restore - set IsDeleted to false
+            package.IsDeleted = false;
+            await _context.SaveChangesAsync();
+
+            TempData["success"] = $"Khôi phục thành công gói khám với ID là {id}!";
             return RedirectToAction("Index");
         }
 

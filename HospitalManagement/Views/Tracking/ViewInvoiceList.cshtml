@@ -64,10 +64,17 @@
                     </td>
 
                     @if(invoice.PaymentMethod != null){
-                        <td>@invoice.PaymentMethod </td>
+                        var paymentMethodText = invoice.PaymentMethod switch
+                        {
+                            "Cash" => "Tiền mặt",
+                            "Banking" => "Chuyển khoản",
+                            "VNPAY" => "Chuyển khoản",
+                            _ => invoice.PaymentMethod
+                        };
+                        <td>@paymentMethodText</td>
                     }
                     else{
-                        <td> Chưa rõ </td>
+                        <td>Chưa rõ</td>
                     }
                     
                     <td>
@@ -76,8 +83,6 @@
                             <i class="fas fa-file-invoice me-1"></i> Xem
                         </a>
                     </td>
-
-
                 </tr>
             }
         </tbody>

@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Data;
+using HospitalManagement.Helpers;
 using HospitalManagement.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,17 +37,21 @@ namespace HospitalManagement.Services
                 {
                     continue;
                 }
-
+                var excludedStatuses = new[] {
+                    AppConstants.AppointmentStatus.Rejected,
+                    AppConstants.AppointmentStatus.Failed,
+                    AppConstants.AppointmentStatus.Expired
+                };
                 // Trùng lịch bác sĩ
                 bool doctorConflict = await _context.Appointments.AnyAsync(a =>
                     a.DoctorId == model.SelectedDoctorId &&
                     a.Date == model.AppointmentDate &&
                     a.SlotId == model.SelectedSlotId &&
-                    a.Status != "Rejected");
+                    !excludedStatuses.Contains(a.Status));
 
                 if (doctorConflict)
                 {
-                    _context.Appointments.Add(new Appointment
+                    var failedAppointment = new Appointment
                     {
                         PatientId = patientId,
                         DoctorId = model.SelectedDoctorId,
@@ -56,8 +61,12 @@ namespace HospitalManagement.Services
                         Date = model.AppointmentDate,
                         Status = "Failed",
                         Note = "Bác sĩ đã có lịch trong khung giờ này."
-                    });
+                    };
+                    _context.Appointments.Add(failedAppointment);
                     await _context.SaveChangesAsync();
+                    // Gửi email báo lỗi cho bệnh nhân
+                    var body = EmailBuilder.BuildFailedAppointmentEmail(failedAppointment, "Bác sĩ đã có lịch trong khung giờ này. Vui lòng chọn khung giờ khác.");
+                    await _emailService.SendEmailAsync(patient.Email, "Đặt lịch không thành công", body);
                     continue;
                 }
 
@@ -66,11 +75,11 @@ namespace HospitalManagement.Services
                     a.PatientId == patientId &&
                     a.Date == model.AppointmentDate &&
                     a.SlotId == model.SelectedSlotId &&
-                    a.Status != "Rejected");
+                    !excludedStatuses.Contains(a.Status));
 
                 if (patientConflict)
                 {
-                    _context.Appointments.Add(new Appointment
+                    var failedAppointment = new Appointment
                     {
                         PatientId = patientId,
                         DoctorId = model.SelectedDoctorId,
@@ -80,8 +89,12 @@ namespace HospitalManagement.Services
                         Date = model.AppointmentDate,
                         Status = "Failed",
                         Note = "Bạn đã đặt lịch trong khung giờ này."
-                    });
+                    };
+                    _context.Appointments.Add(failedAppointment);
                     await _context.SaveChangesAsync();
+                    // Gửi email báo lỗi cho bệnh nhân
+                    var body = EmailBuilder.BuildFailedAppointmentEmail(failedAppointment, "Bạn đã đặt lịch trong khung giờ này. Vui lòng chọn khung giờ khác.");
+                    await _emailService.SendEmailAsync(patient.Email, "Đặt lịch không thành công", body);
                     continue;
                 }
 

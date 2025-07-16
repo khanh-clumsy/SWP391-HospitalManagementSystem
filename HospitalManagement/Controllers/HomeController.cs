@@ -17,14 +17,27 @@ namespace HospitalFETemplate.Controllers
     {
         private readonly IDoctorRepository _doctorRepo;
         private readonly HospitalManagementContext _context;
-        public HomeController(IDoctorRepository doctorRepo, HospitalManagementContext context)
+        private readonly IPatientRepository _patientRepo;
+        private readonly IFeedbackRepository _feedbackRepo;
+        public HomeController(IDoctorRepository doctorRepo, HospitalManagementContext context, IPatientRepository patientRepo, IFeedbackRepository feedbackRepo)
         {
             _doctorRepo = doctorRepo;
             _context = context;
+            _patientRepo = patientRepo;
+            _feedbackRepo = feedbackRepo;
         }
 
         public async Task<IActionResult> Index()
         {
+            var (xetNghiem, doctors) = await _doctorRepo.CountDoctorsByDepartmentAsync();
+            ViewBag.XetNghiemCount = xetNghiem;
+            ViewBag.OtherCount = doctors;
+            var patientCount = await _patientRepo.CountActivePatientsAsync();
+            ViewBag.PatientCount = patientCount;
+            var specialFeedbacks = await _feedbackRepo.GetSpecialFeedbacksAsync();
+            ViewBag.SpecialFeedbacks = specialFeedbacks;
+
+
             // Nếu là bệnh nhân
             if (User.Identity.IsAuthenticated && User.IsInRole("Patient"))
             {
@@ -53,7 +66,7 @@ namespace HospitalFETemplate.Controllers
                         // 1. Phòng khám đầu tiên
                         var clinic = allTrackings
                             .Where(t => t.Room?.RoomType == AppConstants.RoomTypes.Clinic)
-                            .OrderBy(t => t.Time)
+                            .OrderByDescending(t => t.Time)
                             .FirstOrDefault();
                         Console.WriteLine($"clinic: {(clinic != null ? clinic.Room?.RoomName : "null")}, TrackingBatch: {(clinic != null ? clinic.TrackingBatch.ToString() : "null")}");
 
@@ -71,23 +84,26 @@ namespace HospitalFETemplate.Controllers
 
                         foreach (var batch in groupedByBatch)
                         {
-                            var cashier = batch
-                                .FirstOrDefault(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier);
-
                             var unpaid = batch
                                 .Where(t => t.TestRecord?.TestStatus == AppConstants.TestStatus.WaitingForPayment)
                                 .ToList();
 
-                            var others = batch
-                                .Except(unpaid)
-                                .Where(t => t.Room?.RoomType != AppConstants.RoomTypes.Cashier)
+                            var ongoingTests = batch
+                                .Where(t => t.TestRecord != null &&
+                                           t.TestRecord.TestStatus != AppConstants.TestStatus.Completed &&
+                                           t.TestRecord.TestStatus != AppConstants.TestStatus.WaitingForPayment)
+                                .OrderBy(t => t.Time)
                                 .ToList();
 
-                            if (cashier != null && unpaid.Any())
-                                sortedTrackings.Add(cashier);
+                            var completedTests = batch
+                                .Where(t => t.TestRecord != null &&
+                                           t.TestRecord.TestStatus == AppConstants.TestStatus.Completed)
+                                .ToList();
 
+                            // Thêm theo thứ tự: unpaid -> ongoing -> completed
                             sortedTrackings.AddRange(unpaid);
-                            sortedTrackings.AddRange(others);
+                            sortedTrackings.AddRange(ongoingTests);
+                            sortedTrackings.AddRange(completedTests);
                         }
                         Console.WriteLine("sortedTrackings:");
                         foreach (var t in sortedTrackings)
@@ -96,10 +112,7 @@ namespace HospitalFETemplate.Controllers
                         }
                         bool isClinicDone = clinic != null && groupedByBatch.Any(g =>
                                 g.Key == clinic.TrackingBatch &&
-                                g.Any(t =>
-                                    t.Room?.RoomType == AppConstants.RoomTypes.Cashier ||
-                                    t.TestRecord != null 
-                                )
+                                g.Any(t => t.TestRecord != null)
                             );
                         Console.WriteLine($"isClinicDone: {isClinicDone}");
 
@@ -116,25 +129,31 @@ namespace HospitalFETemplate.Controllers
                             // Sau khi khám xong
                             foreach (var batch in groupedByBatch)
                             {
-                                var cashier = batch.FirstOrDefault(t => t.Room?.RoomType == AppConstants.RoomTypes.Cashier);
                                 var unpaid = batch
                                     .Where(t => t.TestRecord?.TestStatus == AppConstants.TestStatus.WaitingForPayment)
                                     .ToList();
 
-                                var testSteps = batch
+                                var ongoingTests = batch
                                     .Where(t => t.TestRecord != null &&
-                                                t.TestRecord.TestStatus != AppConstants.TestStatus.Completed)
+                                               t.TestRecord.TestStatus != AppConstants.TestStatus.Completed &&
+                                               t.TestRecord.TestStatus != AppConstants.TestStatus.WaitingForPayment)
+                                    .OrderBy(t => t.Time)
                                     .ToList();
 
-                                if (cashier != null && unpaid.Any())
+                                // Nếu có test cần thanh toán, hướng dẫn đến lễ tân
+                                if (unpaid.Any())
                                 {
-                                    nextTracking = cashier;
-                                    break;
+                                    ViewBag.PatientCurrentRoom = "Bạn hãy tới lễ tân để thanh toán";
+                                    ViewBag.PatientCurrentAppointmentId = appointment.AppointmentId;
+                                    return View();
                                 }
 
-                                nextTracking = testSteps.FirstOrDefault();
-                                if (nextTracking != null)
+                                // Nếu có test đang diễn ra, hướng dẫn đến phòng test đầu tiên
+                                if (ongoingTests.Any())
+                                {
+                                    nextTracking = ongoingTests.First();
                                     break;
+                                }
                             }
                         }
                         Console.WriteLine($"nextTracking: {(nextTracking != null ? nextTracking.Room?.RoomName : "null")}, RoomType: {(nextTracking != null ? nextTracking.Room?.RoomType : "null")}");
@@ -146,7 +165,7 @@ namespace HospitalFETemplate.Controllers
                         }
                         else
                         {
-                            ViewBag.PatientCurrentRoom = $"Không có phòng nào cần tới lúc này.";
+                            ViewBag.PatientCurrentRoom = "";
                         }
                     }
                 }

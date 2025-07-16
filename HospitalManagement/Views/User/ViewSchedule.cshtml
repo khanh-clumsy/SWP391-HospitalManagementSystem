@@ -9,6 +9,7 @@
 	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-((int)new DateTime(selectedYear, 1, 1).DayOfWeek + 6) % 7);
 	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-((int)new DateTime(selectedYear, 12, 25).DayOfWeek + 6) % 7);
 
+	var doctor = ViewBag.Doctor as Doctor;
 
 	DateOnly prevWeek = selectedWeekStart.AddDays(-7);
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
@@ -107,7 +108,7 @@
 	</div>
 	<br>
 	<div class="justify-content-center">
-		<h1 class="mb-3">Lịch làm việc trong tuần của @Model[0].DoctorName</h1>
+		<h1 class="mb-3">Lịch làm việc trong tuần của @doctor.FullName</h1>
 	</div>
 		
 	<!-- Bộ chọn tuần, nút điều hướng -->
@@ -267,7 +268,7 @@
 		? (new Date(newyear, 0, 1)).toLocaleDateString().split('T')[0]
 		: document.getElementById("weekDropdown").value;
 		// Lấy doctorId từ Model
-		const doctorId = @Model[0].DoctorId;
+		const doctorId = @doctor.DoctorId;
 
 		// Chuyển hướng về controller User/ViewSchedule
 		const url = `/User/ViewSchedule?id=${doctorId}&year=${year}&weekStart=${weekStart}`;

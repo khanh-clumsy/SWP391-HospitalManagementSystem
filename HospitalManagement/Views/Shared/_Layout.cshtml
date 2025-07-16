@@ -73,12 +73,6 @@
 						<small class="fa fa-phone-alt text-primary me-2"></small>
 						<small>+012 345 6789</small>
 					</div>
-					<div class="h-100 d-inline-flex align-items-center">
-						<a class="btn btn-sm-square rounded-circle bg-white text-primary me-1" href=""><i class="fab fa-facebook-f"></i></a>
-						<a class="btn btn-sm-square rounded-circle bg-white text-primary me-1" href=""><i class="fab fa-twitter"></i></a>
-						<a class="btn btn-sm-square rounded-circle bg-white text-primary me-1" href=""><i class="fab fa-linkedin-in"></i></a>
-						<a class="btn btn-sm-square rounded-circle bg-white text-primary me-0" href=""><i class="fab fa-instagram"></i></a>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -131,7 +125,7 @@
 				<div class="navbar-nav ms-auto p-4 p-lg-0">
 					<a asp-action="Index" asp-controller="Home" class="nav-item nav-link">Trang chủ</a>
 					<a asp-action="About" asp-controller="Home" class="nav-item nav-link">Về chúng tôi</a>
-					<a asp-action="Service" asp-controller="Home" class="nav-item nav-link">Dịch vụ</a>
+					<a asp-action="Index" asp-controller="Service" class="nav-item nav-link">Dịch vụ</a>
 					<a asp-action="ViewDoctors" asp-controller="Home" class="nav-item nav-link">Chuyên gia</a>
 					<a asp-action="News" asp-controller="News" class="nav-item nav-link">Tin tức</a>
 					<a asp-action="Index" asp-controller="Package" class="nav-item nav-link">Gói khám sức khỏe</a>
@@ -163,11 +157,10 @@
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
 								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
-													User.FindFirst("IsDepartmentHead")?.Value == "True")
+															User.FindFirst("IsDepartmentHead")?.Value == "True")
 								{
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
-
 								}
 								else
 								{
@@ -195,7 +188,7 @@
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ViewSchedule">Xem lịch làm việc</a>
 								@if (User.HasClaim(c => c.Type == "IsDepartmentHead") &&
-													User.FindFirst("IsDepartmentHead")?.Value == "True")
+															User.FindFirst("IsDepartmentHead")?.Value == "True")
 								{
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
 									<a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
@@ -218,11 +211,19 @@
 						<div class="nav-item dropdown">
 							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
 							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Quản lý tài khoản</a>
-								<a class="dropdown-item" asp-controller="User" asp-action="ManageRoom">Quản lý phòng</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Quản lý Cuộc hẹn</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="News" asp-action="Index">Quản lý Tin tức</a>
+								<a class="dropdown-item" asp-controller="Appointment" asp-action="ApproveAppointment">Xét duyệt cuộc hẹn</a>
+								<a class="dropdown-item" asp-controller="Tracking" asp-action="StartAppointmentProcess">Bắt đầu quy trình khám bệnh</a>
+								<div class="dropdown-submenu position-relative">
+									<a href="#" class="dropdown-item dropdown-toggle">Quản lý</a>
+									<div class="dropdown-menu dropdown-menu-end rounded-0 rounded-bottom m-0 position-absolute end-100 top-0 mt-0" style="min-width: 220px; left: auto; right: 100%;">
+										<a class="dropdown-item" asp-controller="User" asp-action="ManageAccount">Quản lý tài khoản</a>
+										<a class="dropdown-item" asp-controller="User" asp-action="ManageRoom">Quản lý phòng</a>
+										<a class="dropdown-item" asp-controller="Appointment" asp-action="Index">Quản lý cuộc hẹn</a>
+										<a class="dropdown-item" asp-controller="Test" asp-action="Index">Quản lý xét nghiệm</a>
+										<a class="dropdown-item" asp-controller="Service" asp-action="Index">Quản lý dịch vụ</a>
+									</div>
+								</div>
+								<a class="dropdown-item" asp-controller="Feedback" asp-action="ManageFeedback">Đánh giá của bệnh nhân</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ManageSchedule">Thêm lịch làm việc</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="ChangeSchedule">Điều chỉnh lịch làm việc</a>
 								<a class="dropdown-item" asp-controller="Schedule" asp-action="UpdateExpiredSlots">Kiểm soát lịch bỏ trống</a>
@@ -254,22 +255,6 @@
 						</div>
 						<a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Tạo cuộc hẹn<i class="fa fa-arrow-right ms-3"></i></a>
 					}
-					else if (User.IsInRole("Cashier"))
-					{
-						<!-- Cashier -->
-						<div class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle active" data-bs-toggle="dropdown">Hồ sơ</a>
-							<div class="dropdown-menu rounded-0 rounded-bottom m-0">
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Appointment" asp-action="MyAppointments">Cuộc hẹn</a>
-								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
-								<a class="dropdown-item" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
-							</div>
-						</div>
-						<a asp-action="Create" asp-controller="Appointment" class="btn btn-primary rounded-0 py-4 px-lg-5 d-none d-lg-block">Tạo cuộc hẹn<i class="fa fa-arrow-right ms-3"></i></a>
-					}
 					else if (User.IsInRole("Receptionist"))
 					{
 						<!-- Receptionist -->
@@ -279,7 +264,6 @@
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ViewProfile">Xem hồ sơ</a>
 								<a class="dropdown-item" asp-controller="Tracking" asp-action="StartAppointmentProcess">Bắt đầu quy trình khám bệnh</a>
 								<a class="dropdown-item" asp-controller="Tracking" asp-action="ViewInvoiceList">Danh sách hoá đơn</a>
-
 								<a class="dropdown-item" asp-controller="Test" asp-action="Index">Xem xét nghiệm</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
 								<a class="dropdown-item" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
@@ -381,7 +365,7 @@
 						setTimeout(() => alert.remove(), 500);
 					}, index * 500); // Stagger the animations
 				});
-				
+
 				// Remove the container after all alerts are gone
 				setTimeout(() => {
 					if (notificationsContainer.children.length === 0) {

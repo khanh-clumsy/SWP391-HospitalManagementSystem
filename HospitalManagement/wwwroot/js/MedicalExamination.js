@@ -10,8 +10,9 @@ $(document).ready(function () {
             $('#availableRoomListContainer').html('<select class="medical-form-select form-control flex-grow-1" id="roomSelector"><option value="">-- Vui lòng chọn loại xét nghiệm trước --</option></select>');
             return;
         }
+        const AppointmentId = $('input[name="AppointmentId"]').val();
 
-        $.get('/Tracking/GetRoomsByTest', { testId }, function (rooms) {
+        $.get('/Tracking/GetRoomsByTest', { testId, AppointmentId }, function (rooms) {
             console.log(rooms);
             if (rooms && rooms.length > 0) {
                 let roomOptions = '<select class="medical-form-select form-control flex-grow-1" id="roomSelector"><option value="">-- Vui lòng chọn phòng --</option>';
@@ -112,13 +113,7 @@ $(document).ready(function () {
             }
 
             if (tracking.roomType === 'Phòng khám') {
-                html += `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${tracking.roomName} - ${tracking.roomType}</strong>
-                    </div>
-                </li>
-            `;
+
             } else {
                 html += `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -129,7 +124,7 @@ $(document).ready(function () {
                     </div>
                     <div class="d-flex align-items-center">
                         ${testStatus === 'Completed' ? `
-                            <a href="/Tracking/TestDetail/${tracking.testListId}" class="btn btn-sm btn-outline-primary me-2">
+                            <a href="/Test/ViewTestResult/${tracking.testRecordID}" class="btn btn-sm btn-outline-primary me-2">
                                 Xem kết quả
                             </a>
                         ` : ''}

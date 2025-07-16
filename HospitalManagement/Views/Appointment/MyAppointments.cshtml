@@ -34,13 +34,6 @@
 
 			<a asp-action="MyAppointments" asp-route-Type="Completed"
 			   class="btn @(ViewBag.Type == "Completed" ? "btn-danger fw-bold" : "btn-outline-danger")">Hoàn thành</a>
-
-			@if (User.IsInRole("Doctor"))
-			{
-				<a asp-controller="User" asp-action="OngoingPatientScreen" class="btn btn-primary ms-3">
-					Xem bệnh nhân sắp tới
-				</a>
-			}
 		</div>
 
 		<form method="get" asp-action="MyAppointments" asp-controller="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">
@@ -109,13 +102,15 @@
 						<th>Mô tả</th>
 						<th>Tên bác sĩ</th>
 						<th>Khoa</th>
-						<th>Tên nhân viên</th>
+						<th>Tên nhân viên tạo</th>
 						<th>Ngày</th>
 						<th>Giờ bắt đầu</th>
 						<th>Giờ kết thúc</th>
 						<th>Dịch vụ</th>
 						<th>Trạng thái</th>
 						<th>Hành động</th>
+						<th>Thanh toán</th>
+
 					</tr>
 				</thead>
 				<tbody>
@@ -168,6 +163,10 @@
 											@(isPaid == "Paid" ? "Hoàn thành - Đã thanh toán" : "Hoàn thành - Chưa thanh toán")
 										</span>
 									}
+									else if (item.Status == "Expired")
+									{
+										<span class="badge bg-dark text-white">Đã hết hạn</span>
+									}
 									else
 									{
 										<span class="badge bg-secondary">@item.Status</span>
@@ -178,9 +177,53 @@
 										<a asp-action="Detail"
 										   asp-controller="Appointment"
 										   asp-route-appId="@item.AppointmentId"
+										   asp-route-returnUrl="@Context.Request.Path"
 										   class="btn btn-sm btn-info">
 											<i class="fas fa-eye"></i> Chi tiết
 										</a>
+										@if(User.IsInRole("Patient") && item.Status == "Completed")
+										{
+											<a asp-action="Create"
+											   asp-controller="Feedback"
+											   asp-route-packageId="@item.PackageId"
+											   asp-route-serviceId="@item.ServiceId"
+											   class="btn btn-sm btn-info mt-2">
+												<i class="fas fa-pen"></i> Đánh giá
+											</a>
+										}
+									</div>
+								</td>
+								<td>
+									<div class="mt-2">
+										
+										@if(User.IsInRole("Patient") && item.Status == "Confirmed")
+										{
+											var openInvoice = item.InvoiceDetails
+											.OrderBy(i => i.InvoiceDetailId)
+											.FirstOrDefault();
+
+											if(openInvoice.PaymentStatus=="Unpaid")
+											{
+												<a asp-action="PayStartAppointmentForPatient"
+											   asp-controller="Payment"
+											   asp-route-packageId="@item.PackageId"
+											   asp-route-serviceId="@item.ServiceId"
+											   class="btn btn-sm btn-info mt-2">
+												<i class="fas fa-pen"></i> Thanh toán trước
+											</a>
+											}
+											else if(openInvoice.PaymentStatus=="Paid"){
+											<p>
+												 Đã thanh toán trước
+											</p>
+											}
+											
+										}
+										else{
+											<p> 
+												Cuộc hẹn chưa được xác nhận
+											</p>
+											}
 									</div>
 								</td>
 							</tr>

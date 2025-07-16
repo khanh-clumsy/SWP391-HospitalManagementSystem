@@ -23,6 +23,12 @@
                     @foreach (var item in Model.Items)
                     {
                         var status = item.Status ?? "Không xác định";
+                        var statusText = status switch
+                        {
+                            "Paid" => "Đã thanh toán",
+                            "Unpaid" => "Chưa thanh toán",
+                            _ => status
+                        };
                         var badgeClass = status switch
                         {
                             "Paid" => "bg-success",
@@ -33,7 +39,7 @@
                         <tr>
                             <td>@item.TestName</td>
                             <td>
-                                <span class="badge @badgeClass px-3 py-2 rounded-pill">@status</span>
+                                <span class="badge @badgeClass px-3 py-2 rounded-pill">@statusText</span>
                             </td>
                             <td>@item.CompletedAt?.ToString("dd/MM/yyyy HH:mm:ss")</td>
                             <td class="text-success fw-bold">@($"{item.Amount:#,##0}₫")</td>

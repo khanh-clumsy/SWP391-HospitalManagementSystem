@@ -10,6 +10,7 @@ public partial class Room
 
     [Required(ErrorMessage = "Tên phòng không được để trống")]
     [RegularExpression(@"^[A-Z][0-9]{3,4}$", ErrorMessage = "Tên phòng phải có dạng A101 hoặc A1001")]
+
     public string RoomName { get; set; } = null!;
 
     public string? Status { get; set; }
@@ -22,6 +23,7 @@ public partial class Room
     public virtual ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
 
     public virtual ICollection<Tracking> Trackings { get; set; } = new List<Tracking>();
+
 
     public string GetFullRoomStatus()
     {

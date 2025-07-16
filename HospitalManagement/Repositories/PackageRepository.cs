@@ -17,9 +17,14 @@ namespace HospitalManagement.Repositories
             _context = context;
         }
 
-        public async Task<IPagedList<PackageViewModel>> FilterPackagesAsync(string? categoryFilter, string? ageFilter, string? genderFilter, string? priceRangeFilter, int pageNumber, int pageSize)
+        public async Task<IPagedList<PackageViewModel>> FilterPackagesAsync(string? categoryFilter, string? ageFilter, string? genderFilter, string? priceRangeFilter, int pageNumber, int pageSize, bool includeDeleted = false)
         {
             var query = _context.Packages.AsQueryable();
+
+            if (includeDeleted)
+            {
+                query = query.IgnoreQueryFilters();
+            }
 
             if (!string.IsNullOrEmpty(categoryFilter))
             {
@@ -79,6 +84,7 @@ namespace HospitalManagement.Repositories
                     AgeFrom = p.AgeFrom,
                     AgeTo = p.AgeTo,
                     Thumbnail = p.Thumbnail,
+                    IsDeleted = p.IsDeleted,
                     PackageCategory = new Models.PackageCategory
                     {
                         CategoryName = p.PackageCategory.CategoryName

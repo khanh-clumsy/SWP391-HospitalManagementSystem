@@ -9,16 +9,5 @@
 
         public int? DoctorID { get; set; }
         public string? DoctorName { get; set; }
-        public string GetFullRoomStatus()
-        {
-            if (this.Status == "Active")
-            {
-                return "Hoạt động";
-            }
-            else
-            {
-                return "Bảo trì";
-            }
-        }
     }   
 }

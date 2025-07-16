@@ -1,37 +1,41 @@
 ﻿@model News
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>@ViewData["Title"]</title>
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
 
+@{
+    ViewData["Title"] = "Tạo bài viết mới";
+}
+
+<form asp-controller="News" asp-action="Create" method="post" enctype="multipart/form-data">
+    <div class="container mt-4">
+        <h3>Tiêu đề bài viết</h3>
+        <input type="text" class="form-control mb-3" name="Title" placeholder="Nhập tiêu đề"
+               value="@ViewBag.Title"required />
+
+        <h5>Mô tả ngắn</h5>
+        <textarea class="form-control mb-3" name="Description" rows="3" placeholder="Nhập mô tả ngắn tại đây" required>@(ViewBag.Description ?? "")</textarea>
+
+        <h5>Ảnh đại diện (Thumbnail)</h5>
+        <input required type="file" name="photo" class="form-control mb-3" accept="image/*" />
+
+        <h5>Nội dung chi tiết</h5>
+        <textarea id="summernote" name="Content">@ViewBag.Content</textarea>
+
+        <button type="submit" class="btn btn-primary mt-3"  required>Lưu bài viết</button>
+    </div>
+</form>
+
+@section Scripts {
     <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.js"></script>
-</head>
-<body>
-    <form asp-controller="News" asp-action="Create" method="post" enctype="multipart/form-data">
-        <div class="container mt-4">
-            <h3>Tiêu đề bài viết</h3>
-            <input type="text" class="form-control mb-3" name="Title" placeholder="Nhập tiêu đề"
-                   value="@ViewBag.Title"required />
 
-            <h5>Mô tả ngắn</h5>
-            <textarea class="form-control mb-3" name="Description" rows="3" placeholder="Nhập mô tả ngắn tại đây" required>@(ViewBag.Description ?? "")</textarea>
-
-            <h5>Ảnh đại diện (Thumbnail)</h5>
-            <input required type="file" name="photo" class="form-control mb-3" accept="image/*" />
-
-            <h5>Nội dung chi tiết</h5>
-            <textarea id="summernote" name="Content">@ViewBag.Content</textarea>
-
-            <button type="submit" class="btn btn-primary mt-3"  required>Lưu bài viết</button>
-        </div>
-    </form>
     <script>
         $('#summernote').summernote({
             placeholder: 'Nhập nội dung bài viết...',
@@ -39,5 +43,4 @@
             height: 200
         });
     </script>
-</body>
-</html>
+}

@@ -204,15 +204,18 @@ $(document).ready(function () {
                 }
 
                 data.forEach(function (doctor) {
+                    const imageUrl = doctor.profileImage
+                        ? "/img/" + doctor.profileImage
+                        : "/img/logo.jpg";
                     const card = `
-                <div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
-                    <div class="card-body">
-                        <img src="${doctor.profileImage ? 'data:image/png;base64,' + doctor.profileImage : '/img/logo.jpg'}"
-                             class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
-                        <h6 class="card-title mb-0">${doctor.doctorName}</h6>
-                        <p class="text-muted small mb-0">${doctor.departmentName}</p>
-                    </div>
-                </div>`;
+                        <div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
+                            <div class="card-body">
+                                <img src="${imageUrl}"
+                                     class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
+                                <h6 class="card-title mb-0">${doctor.doctorName}</h6>
+                                <p class="text-muted small mb-0">${doctor.departmentName}</p>
+                            </div>
+                        </div>`;
                     $list.append(card);
                 });
                 $('.doctor-section').show();
@@ -265,10 +268,14 @@ $(document).ready(function () {
                 }
 
                 data.forEach(function (doctor) {
+                    const imageUrl = doctor.profileImage
+                        ? "/img/" + doctor.profileImage
+                        : "/img/logo.jpg";
+
                     const card = `
 					<div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
 						<div class="card-body">
-							<img src="${doctor.profileImage ? 'data:image/png;base64,' + doctor.profileImage : '/img/logo.jpg'}"
+							<img src="${imageUrl}"
 								class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
 							<h6 class="card-title mb-0">${doctor.fullName}</h6>
 							<p class="text-muted small mb-0">${doctor.departmentName}</p>
@@ -373,7 +380,7 @@ $(document).ready(function () {
     });
     // Submit form
     $('.submit-btn').on('click', function (e) {
-        e.preventDefault(); 
+        e.preventDefault();
         $(this).prop('disabled', true);
         $('#doctorForm').submit();
     });
@@ -389,4 +396,3 @@ $(document).ready(function () {
     // Khởi tạo
     updateSubmitButton();
 });
-    
