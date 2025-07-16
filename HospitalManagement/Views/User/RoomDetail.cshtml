@@ -1,0 +1,334 @@
+﻿@using HospitalManagement.ViewModels
+@model RoomDetailViewModel
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Chi tiết phòng và lịch sử dụng";
+    int selectedYear = (int)ViewBag.SelectedYear;
+    DateOnly selectedWeekStart = (DateOnly)ViewBag.SelectedWeekStart;
+    DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+    DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-((int)new DateTime(selectedYear, 1, 1).DayOfWeek + 6) % 7);
+    DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-((int)new DateTime(selectedYear, 12, 25).DayOfWeek + 6) % 7);
+
+    DateOnly prevWeek = selectedWeekStart.AddDays(-7);
+    DateOnly nextWeek = selectedWeekStart.AddDays(7);
+
+    var daysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
+    var grouped = Model.Schedule.GroupBy(s => (s.SlotId, s.Day)).ToDictionary(g => g.Key, g => g.ToList());
+
+    var slots = ViewBag.Slots as List<Slot>; // được truyền từ controller
+}
+
+<head>
+    <meta charset="utf-8">
+    <title>Klinik - Clinic Website Template</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+    <link href="/lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css" rel="stylesheet" />
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <style>
+        .popup-alert {
+            position: fixed;
+            text-align: center;
+            top: 5px;
+            right: 5px;
+        }
+
+        .schedule-card {
+            border: 1px solid #007bff;
+            border-top: 4px solid #007bff;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f8faff;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
+        }
+
+            .schedule-card i {
+                color: #007bff;
+            }
+
+        .slot-inactive {
+            border: 1px solid #007bff;
+            border-top: 4px solid #007bff;
+            background-color: #f8faff;
+            color: black;
+        }
+
+        .slot-active {
+            border: 1px solid #fed03a;
+            border-top: 4px solid #fed03a;
+            background-color: #fff3cd;
+            color: black;
+        }
+
+        .slot-disabled {
+            background-color: #eee;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        @if (TempData["error"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-danger alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["error"]</div>
+            </div>
+        }
+        @if (TempData["success"] != null)
+        {
+            <div id="popup-alert" class="popup-alert alert alert-success alert-dismissible fade show text-center" role="alert" style="z-index: 1055; border-radius: 8px;">
+                <div>@TempData["success"]</div>
+            </div>
+        }
+    </div>
+    <div class="container mt-4 mb-3">
+        <div class="row mb-4">
+            <div class="col-12">
+                <a asp-action="ManageRoom" asp-controller="User" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Trở về danh sách phòng
+                </a>
+            </div>
+        </div>
+        <h1 class="mb-4">Chi tiết phòng: @Model.RoomName</h1>
+
+        <!-- Form chỉnh sửa thông tin phòng -->
+        <form asp-action="UpdateRoom" method="post" class="mb-5">
+            <input type="hidden" asp-for="RoomId" />
+            <div class="mb-3">
+                <label asp-for="RoomName" class="form-label">Tên phòng</label>
+                <input asp-for="RoomName" class="form-control" readonly="" />
+                <span asp-validation-for="RoomName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="RoomType" class="form-label">Loại phòng</label>
+                <span asp-validation-for="RoomType" class="text-danger"></span>
+                <select asp-for="RoomType" class="input100 form-select" asp-items="ViewBag.Units">
+                </select>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Status" class="form-label">Trạng thái</label>
+                <select asp-for="Status" class="input100 form-select">
+                    <option value="Active">Hoạt động</option>
+                    <option value="Maintain">Bảo trì</option>
+                </select>
+            </div>
+            <input type="hidden" name="weekStart" value="@ViewBag.SelectedWeekStart" />
+            <button type="submit" class="btn btn-success">Lưu thay đổi</button>
+        </form>
+
+        <!-- Bộ chọn tuần -->
+        <div class="d-flex justify-content-center align-items-center mb-3">
+            <div class="d-flex gap-2 align-items-center">
+                <select id="yearDropdown" class="form-select d-inline-block" style="width:100px;" onchange="onYearChange(this)">
+                    @for (int y = 2023; y <= DateTime.Now.Year + 1; y++)
+                    {
+                        <option value="@y" selected="@(y == selectedYear)">@y</option>
+                    }
+                </select>
+                <button class="btn btn-outline-primary" onclick="changeWeek(-1)" @(selectedWeekStart <= firstWeekStart ? "disabled" : "")>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <select id="weekDropdown" class="form-select" style="width:250px;" onchange="onWeekChange(this)">
+                    @{
+                        var start = firstWeekStart;
+                        while (start <= lastWeekStart)
+                        {
+                            var label = $"{start:dd/MM} - {start.AddDays(6):dd/MM}";
+                            <option value="@start.ToString("yyyy-MM-dd")" selected="@(start == selectedWeekStart)">
+                                @label
+                            </option>
+                            ;
+                            start = start.AddDays(7);
+                        }
+                    }
+                </select>
+
+                <button class="btn btn-outline-primary" onclick="changeWeek(1)" @(selectedWeekStart >= lastWeekStart ? "disabled" : "")>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+                <div style="width:100px;"></div>
+                <button class="btn btn-warning mt-3" onclick="openRoomChangePopup()">Đổi phòng</button>
+            </div>
+        </div>
+
+        <!-- Bảng lịch -->
+        <table class="table table-bordered text-center">
+            <thead class="table-light">
+                <tr>
+                    <th>Slot</th>
+                    @foreach (var day in daysInWeek)
+                    {
+                        <th>@day.ToString("ddd dd/MM")</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var slot in slots)
+                {
+                    <tr>
+                        <td><strong>Slot @slot.SlotId</strong><br />@slot.StartTime - @slot.EndTime</td>
+                        @foreach (var day in daysInWeek)
+                        {
+                            var key = (slot.SlotId, day);
+                            <td>
+                                @if (grouped.ContainsKey(key))
+                                {
+                                    @foreach (var item in grouped[key])
+                                    {
+                                        var scheduleEnd = item.Day.ToDateTime(item.EndTime);
+                                        var isPast = scheduleEnd < DateTime.Now;
+
+                                        <div class="schedule-card @(isPast ? "slot-disabled" : "slot-inactive")"
+                                             onclick="@(isPast ? "null" : "toggleSchedule(this)")"
+                                             style="@(isPast ? "opacity: 0.5;" : "")">
+                                            <input type="hidden" name="selectedSchedules[@item.ScheduleId]" value="false" />
+                                            <div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
+                                            <div>
+                                                <i class="bi bi-person me-1"></i>
+                                                <a asp-action="DoctorDetail" asp-controller="User" asp-route-id="@item.DoctorId">@item.DoctorName</a>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="roomChangeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Chọn phòng trống</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function onYearChange(select) {
+            const year = parseInt(select.value);
+
+            // Tìm ngày 1/1 của năm đó
+            const jan1 = new Date(year, 0, 1);
+            const dayOfWeek = jan1.getDay(); // Chủ nhật = 0 ... Thứ bảy = 6
+
+            // Tính offset để đến thứ Hai gần nhất sau 1/1
+            const offset = (dayOfWeek+6)%7;
+
+            // Tính ngày bắt đầu tuần đầu tiên
+            const weekStartDate = new Date(jan1);
+            weekStartDate.setDate(jan1.getDate() - offset + 1);
+
+            const formattedWeekStart = weekStartDate.toISOString().split("T")[0];
+            const roomId = "@Model.RoomId";
+            const url = `/User/RoomDetail?id=${roomId}&weekStart=${formattedWeekStart}`;
+            window.location.href = url;
+        }
+
+        function onWeekChange(select) {
+            const week = select.value;
+            const roomId = "@Model.RoomId"; // Thêm dòng này
+            const url = `/User/RoomDetail?id=${roomId}&weekStart=${week}`;
+            window.location.href = url;
+        }
+
+        function changeWeek(delta) {
+            const weekSelect = document.getElementById("weekDropdown");
+            const options = weekSelect.options;
+            const currentIndex = weekSelect.selectedIndex;
+            const newIndex = currentIndex + delta;
+
+            if (newIndex >= 0 && newIndex < options.length) {
+                const newWeek = options[newIndex].value;
+                const roomId = "@Model.RoomId"; // Thêm dòng này
+                const url = `/User/RoomDetail?id=${roomId}&weekStart=${newWeek}`;
+                window.location.href = url;
+            }
+        }
+
+        function toggleSchedule(el) {
+            const hiddenInput = el.parentElement.querySelector("input[type=hidden]");
+            const current = hiddenInput.value === "true";
+
+            if (current) {
+                //Chuyển về false
+                hiddenInput.value = "false";
+                el.classList.remove("slot-active");
+                el.classList.add("slot-inactive");
+            } else {
+                //Chuyển sang true
+                hiddenInput.value = "true";
+                el.classList.remove("slot-inactive");
+                el.classList.add("slot-active");
+            }
+        }
+
+        function openRoomChangePopup() {
+            const selected = Array.from(document.querySelectorAll('input[name^="selectedSchedules"]'))
+                .filter(input => input.value === "true")
+                .map(input => input.getAttribute("name").match(/\d+/)[0]); // Lấy ScheduleId từ tên
+
+            if (selected.length === 0) {
+                alert("Vui lòng chọn ít nhất một lịch để đổi phòng.");
+                return;
+            }
+
+            // Gửi AJAX lên server lấy danh sách phòng trống
+            $.ajax({
+                url: '/User/GetAvailableRooms',
+                type: 'POST',
+                data: JSON.stringify(selected),
+                contentType: 'application/json',
+                success: function (partialHtml) {
+                    $('#roomChangeModal .modal-body').html(partialHtml);
+                    $('#roomChangeModal').modal('show');
+                },
+                error: function () {
+                    alert("Đã có lỗi xảy ra khi tải danh sách phòng.");
+                }
+            });
+        }
+
+        // Auto-hide popup alerts after 3 seconds
+        window.setTimeout(function () {
+            const alertBox = document.getElementById('popup-alert');
+            if (alertBox) {
+                alertBox.classList.remove('show');
+                alertBox.classList.add('hide');
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 3000);
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/lib/wow/wow.min.js"></script>
+    <script src="/lib/easing/easing.min.js"></script>
+    <script src="/lib/waypoints/waypoints.min.js"></script>
+    <script src="/lib/counterup/counterup.min.js"></script>
+    <script src="/lib/owlcarousel/owl.carousel.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment.min.js"></script>
+    <script src="/lib/tempusdominus/js/moment-timezone.min.js"></script>
+    <script src="/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    <script src="~/js/main.js"></script>
+
+</body>

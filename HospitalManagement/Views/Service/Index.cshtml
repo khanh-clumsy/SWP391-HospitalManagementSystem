@@ -1,0 +1,56 @@
+@model IEnumerable<HospitalManagement.Models.Service>
+@{
+	ViewBag.Title = "Quản lý dịch vụ";
+	int stt = 1;
+}
+<div class="container py-4">
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<h2 class="text-primary">Danh sách dịch vụ</h2>
+		@if (User.IsInRole("Admin"))
+		{
+			<a asp-action="Create" class="btn btn-success">+ Thêm dịch vụ</a>
+		}
+	</div>
+	<table class="table table-bordered table-hover align-middle text-center">
+		<thead class="table-light">
+			<tr>
+				<th>STT</th>
+				<th>Tên dịch vụ</th>
+				<th>Giá</th>
+				<th>Trạng thái</th>
+				<th>Hành động</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model)
+			{
+				<tr>
+					<td>@stt++</td>
+					<td>@item.ServiceType</td>
+					<td>@String.Format("{0:N0}", item.ServicePrice) ₫</td>
+					<td>
+						@if (item.IsDeleted)
+						{
+							<span class="badge bg-danger">Đã ẩn</span>
+						}
+						else
+						{
+							<span class="badge bg-success">Đang hiện</span>
+						}
+					</td>
+					<td>
+						<a asp-action="Update" asp-route-id="@item.ServiceId" class="btn btn-sm btn-primary">Cập nhật</a>
+						@if (!item.IsDeleted)
+						{
+							<a asp-action="SoftDelete" asp-route-id="@item.ServiceId" class="btn btn-sm btn-danger ms-1">Ẩn</a>
+						}
+						else
+						{
+							<a asp-action="Restore" asp-route-id="@item.ServiceId" class="btn btn-sm btn-warning ms-1">Khôi phục</a>
+						}
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div> 
