@@ -9,7 +9,14 @@
 	// Tạo danh sách các PatientId đang có cuộc hẹn Ongoing
 	var ongoingPatientIds = Model.Where(a => a.Status == "Ongoing").Select(a => a.PatientId).Distinct().ToList();
 }
-
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
 <div class="container-xxl py-5">
 	<div class="container">
 		<div class="text-center mb-4">

@@ -1180,7 +1180,7 @@ namespace HospitalManagement.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.PackageId.ToString(),
-                    Text = $"{s.PackageName} - {s.FinalPrice.ToString("N0", culture)}k"
+                    Text = $"{s.PackageName} - {s.FinalPrice.ToString("N0", culture)} VND"
                 })
                 .ToListAsync();
         }

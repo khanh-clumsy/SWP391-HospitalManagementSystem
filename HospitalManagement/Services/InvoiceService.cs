@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Data;
+using HospitalManagement.Helpers;
 using HospitalManagement.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -66,7 +67,7 @@ namespace HospitalManagement.Services
                     ItemId = itemId,
                     ItemName = itemName,
                     UnitPrice = unitPrice,
-                    PaymentStatus = "Pending",
+                    PaymentStatus = AppConstants.PaymentStatus.Unpaid,
                     CreatedAt = DateTime.Now
                 };
 
