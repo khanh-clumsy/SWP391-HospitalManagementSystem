@@ -32,10 +32,42 @@
 
 								<td>@item.Patient.FullName</td>
 								<td>@item.Date</td>
-								<td>@($"{item.Slot?.StartTime:hh\\:mm} - {item.Slot?.EndTime:hh\\:mm}")</td>
+								<td>@($"{item.Slot?.StartTime:HH\\:mm} - {item.Slot?.EndTime:HH\\:mm}")</td>
 								<td>
-									@(item.Status == "Ongoing" ? "Đang diễn ra" : item.Status == "Completed" ? "Hoàn thành" : "Không xác định")
+									@if (item.Status == "Pending")
+									{
+										<span class="badge bg-warning text-dark">Chờ xác nhận</span>
+									}
+									else if (item.Status == "Ongoing")
+									{
+										<span class="badge bg-info text-white">Đang diễn ra</span>
+									}
+									else if (item.Status == "Rejected")
+									{
+										<span class="badge bg-danger">Từ chối</span>
+									}
+									else if (item.Status == "Confirmed")
+									{
+										<span class="badge bg-success">Đã xác nhận</span>
+									}
+									else if (item.Status == "Completed")
+									{
+										var isPaid = item.PaymentStatus;
+										<span class="badge @(isPaid == "Paid" ? "bg-primary" : "bg-secondary")">
+											@(isPaid == "Paid" ? "Hoàn thành - Đã thanh toán" : "Hoàn thành - Chưa thanh toán")
+										</span>
+									}
+									else if (item.Status == "Expired")
+									{
+										<span class="badge bg-dark text-white">Đã hết hạn</span>
+									}
+									else
+									{
+										<span class="badge bg-secondary">@item.Status</span>
+									}
 								</td>
+
+
 
 								<td>
 									@if (item.Status != "Completed")

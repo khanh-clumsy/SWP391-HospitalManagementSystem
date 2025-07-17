@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using HospitalManagement.Services;
 
 namespace HospitalManagement.Models;
 
-public partial class Service
+public partial class Service : ISoftDelete
 {
     public int ServiceId { get; set; }
 

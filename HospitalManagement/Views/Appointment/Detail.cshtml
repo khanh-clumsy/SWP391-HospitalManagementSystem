@@ -3,7 +3,7 @@
 	ViewData["Title"] = "Chi tiết cuộc hẹn";
 	var sortedTrackings = ViewBag.SortedTrackings as List<Tracking>;
 }
-
+@using HospitalManagement.Helpers
 <!-- Appointment Details Start -->
 <div class="container-xxl py-5">
 	<div class="container">
@@ -60,7 +60,7 @@
 								</div>
 								<div>
 									<h6 class="mb-1">Khung giờ</h6>
-									<p class="mb-0 text-muted">@Model.Slot?.StartTime - @Model.Slot?.EndTime</p>
+									<p class="mb-0 text-muted">@Model.Slot?.StartTime.ToString("HH\\:mm") - @Model.Slot?.EndTime.ToString("HH\\:mm")</p>
 								</div>
 							</div>
 							<div class="d-flex align-items-center">
@@ -90,6 +90,10 @@
 											case "Confirmed":
 												badgeClass += "bg-success";
 												badgeText = "Đã xác nhận";
+												break;
+											case "Cancelled":
+												badgeClass += "bg-danger";
+												badgeText = "Đã hủy bởi bệnh nhân";
 												break;
 											case "Completed":
 												if (Model.PaymentStatus == "Paid")
@@ -297,7 +301,7 @@
 									<i class="fa fa-arrow-left me-2"></i> Quay lại
 								</a>
 
-								@if ((User.IsInRole("Patient") || User.IsInRole("Receptionist"))
+								@if ((User.IsInRole("Patient") || User.IsInRole("Receptionist") || User.IsInRole("Admin"))
 																&& Model.InvoiceDetails != null
 																&& Model.InvoiceDetails.Any())
 								{

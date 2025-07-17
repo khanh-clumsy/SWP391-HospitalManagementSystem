@@ -21,7 +21,7 @@
 <div class="container-xxl" style="max-width: 100%;">
 	<div class="container" style="max-width: 100%;">
 		<div class="mb-4">
-			<h2 class="text-primary">Danh Sách Cuộc Hẹn</h2>
+			<h2 class="text-primary text-center">Xét duyệt cuộc hẹn</h2>
 		</div>
 		<div class="row g-4 mb-4">
 			<div class="col-12">
@@ -66,7 +66,7 @@
 					foreach (var slot in ViewBag.SlotOptions)
 					{
 						var isSelected = ViewBag.SlotFilter != null && ViewBag.SlotFilter == slot.SlotId.ToString();
-						var timeLabel = $"{slot.StartTime:hh\\:mm} - {slot.EndTime:hh\\:mm}";
+						var timeLabel = $"{slot.StartTime:HH\\:mm} - {slot.EndTime:HH\\:mm}";
 						<option value="@slot.SlotId" selected="@(isSelected ? "selected" : null)">@timeLabel</option>
 					}
 				}
@@ -133,8 +133,8 @@
 								<td>@(item.Doctor?.DepartmentName ?? "N/A")</td>
 								<td>@(item.CreatedByStaff?.FullName ?? "N/A")</td>
 								<td>@item.Date</td>
-								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
-								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>
+								<td>@(item.Slot?.StartTime.ToString("HH\\:mm") ?? "N/A")</td>
+								<td>@(item.Slot?.EndTime.ToString("HH\\:mm") ?? "N/A")</td>
 								<td>
 									@if (item.ServiceId != null)
 									{
@@ -161,6 +161,10 @@
 									else if (item.Status == "Confirmed")
 									{
 										<span class="badge bg-success">Đã xác nhận</span>
+									}
+									else if (item.Status == "Cancelled")
+									{
+										<span class="badge bg-danger">Đã hủy bởi bệnh nhân</span>
 									}
 									else if (item.Status == "Completed")
 									{

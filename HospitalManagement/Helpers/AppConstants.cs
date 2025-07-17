@@ -111,6 +111,8 @@ namespace HospitalManagement.Helpers
                 public const string PatientHasCompletedAppointment = "Bệnh nhân đã có cuộc hẹn đã hoàn thành. Không thể bắt đầu cuộc hẹn mới.";
                 public const string AppointmentAlreadyCompletdCanNotAssignTest = "Cuộc hẹn đã hoàn thành khám, không thể chỉ định thêm xét nghiệm.";
                 public const string NoPermission = "Bạn không có quyền truy cập vào cuộc hẹn này!";
+                public const string CancelSuccessful = "Đã hủy lịch khám thành công!";
+                public const string OnlyAppointmentOngoingCanAccess = "Chỉ được thao tác với cuộc hẹn đang diễn ra.";
             }
 
             public static class Tracking
@@ -203,6 +205,13 @@ namespace HospitalManagement.Helpers
                 public const string InvalidData = "Không hợp lệ!";
                 public const string DepartmentRequired = "Department name is required.";
             }
+            public static class Service
+            {
+                public const string CreateSuccess = "Thêm dịch vụ thành công!";
+                public const string UpdateSuccess = "Cập nhật dịch vụ thành công!";
+                public const string SoftDeleteSuccess = "Dịch vụ đã được ẩn!";
+                public const string RestoreSuccess = "Khôi phục dịch vụ thành công!";
+            }
         }
 
         public static class InvoiceItemTypes
@@ -212,5 +221,7 @@ namespace HospitalManagement.Helpers
             public const string Test = "Test";
             public const string Medicine = "Medicine";
         }
+
+
     }
 }

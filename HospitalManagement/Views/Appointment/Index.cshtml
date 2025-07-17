@@ -1,66 +1,76 @@
-﻿@{
-	var startTime = new TimeSpan(7, 0, 0);
-	var endTime = new TimeSpan(17, 0, 0);
-	var slotDuration = new TimeSpan(1, 0, 0);
-}
-@model List<Appointment>
-<head>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-</head>
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<Appointment>
 
-<div class="container-xxl py-5">
-	<div class="container">
-		<div class="mb-4">
-			<h2 class="text-primary">Danh sách lịch hẹn</h2>
+<div class="container-xxl" style="max-width: 100%;">
+	<div class="container" style="max-width: 100%;">
+		<div class="mb-4 text-center">
+			<h2 class="text-primary">Danh sách tất cả cuộc hẹn</h2>
 		</div>
 
-		<!-- Filter Form -->
-		<form method="get" asp-action="Index" class="d-flex flex-wrap gap-3 align-items-center mb-4">
+		<div class="btn-group mb-3" role="group">
+			<a asp-action="Index" asp-route-Type="All"
+			   class="btn @(string.IsNullOrEmpty(ViewBag.Type) || ViewBag.Type == "All" ? "btn-primary fw-bold" : "btn-outline-primary")">Tất cả</a>
+			<a asp-action="Index" asp-route-Type="Today"
+			   class="btn @(ViewBag.Type == "Today" ? "btn-success fw-bold" : "btn-outline-success")">Hôm nay</a>
+			<a asp-action="Index" asp-route-Type="Ongoing"
+			   class="btn @(ViewBag.Type == "Ongoing" ? "btn-warning text-white fw-bold" : "btn-outline-warning")">Sắp tới</a>
+			<a asp-action="Index" asp-route-Type="Completed"
+			   class="btn @(ViewBag.Type == "Completed" ? "btn-danger fw-bold" : "btn-outline-danger")">Hoàn thành</a>
+		</div>
+
+		<form method="get" asp-action="Index" asp-controller="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">
 			<div class="input-group" style="width: 250px;">
-				<input type="text" name="searchName" class="form-control" placeholder="Tìm theo tên bệnh nhân" />
+				<input type="text" name="SearchName" value="@ViewBag.SearchName" class="form-control" placeholder="Tìm theo tên bệnh nhân hoặc bác sĩ" />
 				<span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
 			</div>
-
-			<select name="timeFilter" class="form-select" style="width: 150px;">
-				<option value="">Khung giờ</option>
-				@for (var time = startTime; time <= endTime; time += slotDuration)
+			<select name="SlotFilter" class="form-select" style="width: 150px;">
+				<option value="">Chọn khung giờ</option>
+				@if (ViewBag.SlotOptions != null)
 				{
-					var display = DateTime.Today.Add(time).ToString("HH:mm");
-					<option value="@display">@display</option>
+					foreach (var slot in ViewBag.SlotOptions)
+					{
+						var isSelected = ViewBag.SlotFilter != null && ViewBag.SlotFilter == slot.SlotId.ToString();
+						var timeLabel = $"{slot.StartTime:HH\\:mm} - {slot.EndTime:HH\\:mm}";
+						<option value="@slot.SlotId" selected="@(isSelected ? "selected" : null)">@timeLabel</option>
+					}
+				}
+				else
+				{
+					<option disabled selected>Không có khung giờ</option>
 				}
 			</select>
-
-			<input type="date" id="dateFilter" name="dateFilter" class="form-control" style="width: 180px;" />
-
-			<select name="statusFilter" class="form-select" style="width: 150px;">
+			<input type="date" name="DateFilter" value="@ViewBag.DateFilter" class="form-control" style="width: 180px;" />
+			<select name="StatusFilter" class="form-select" style="width: 150px;">
 				<option value="" selected="@(ViewBag.StatusFilter == null ? "selected" : null)">Tất cả trạng thái</option>
 				<option value="Pending" selected="@(ViewBag.StatusFilter == "Pending" ? "selected" : null)">Chờ xử lý</option>
 				<option value="Confirmed" selected="@(ViewBag.StatusFilter == "Confirmed" ? "selected" : null)">Đã xác nhận</option>
 				<option value="Ongoing" selected="@(ViewBag.StatusFilter == "Ongoing" ? "selected" : null)">Đang diễn ra</option>
 				<option value="Completed" selected="@(ViewBag.StatusFilter == "Completed" ? "selected" : null)">Hoàn thành</option>
 				<option value="Cancelled" selected="@(ViewBag.StatusFilter == "Cancelled" ? "selected" : null)">Đã hủy</option>
+				<option value="Failed" selected="@(ViewBag.StatusFilter == "Cancelled" ? "selected" : null)">Thất bại (hủy bởi hệ thống)</option>
 			</select>
-
 			<button type="submit" class="btn btn-primary">Lọc</button>
+			<a asp-controller="Appointment" asp-action="Index" class="btn btn-outline-secondary">
+				<i class="fas fa-times me-1"></i>Xóa bộ lọc
+			</a>
 		</form>
 
-		<!-- Appointment Table -->
-		<div class="table-responsive">
-			<table class="table table-bordered text-center">
+		<div class="table-responsive" style="min-width: 100%;">
+			<table class="table table-bordered table-hover text-center align-middle text-center w-100">
 				<thead class="table-light">
 					<tr>
 						<th>Mã lịch hẹn</th>
-						<th>Tên</th>
 						<th>Email</th>
 						<th>Số điện thoại</th>
 						<th>Mô tả</th>
 						<th>Tên bác sĩ</th>
 						<th>Khoa</th>
-						<th>Tên nhân viên</th>
+						<th>Tên nhân viên tạo</th>
 						<th>Ngày</th>
 						<th>Giờ bắt đầu</th>
 						<th>Giờ kết thúc</th>
+						<th>Dịch vụ</th>
 						<th>Trạng thái</th>
 						<th>Hành động</th>
 					</tr>
@@ -72,16 +82,15 @@
 						{
 							<tr>
 								<td>@item.AppointmentId</td>
-								<td>@item.Patient.FullName</td>
 								<td>@item.Patient.Email</td>
 								<td>@item.Patient.PhoneNumber</td>
 								<td>@item.Note</td>
-								<th>@(item.Doctor?.FullName ?? "N/A")</th>
-								<th>@(item.Doctor?.DepartmentName ?? "N/A")</th>
-								<th>@(item.CreatedByStaff?.FullName ?? "N/A")</th>
+								<td>@(item.Doctor?.FullName ?? "N/A")</td>
+								<td>@(item.Doctor?.DepartmentName ?? "N/A")</td>
+								<td>@(item.CreatedByStaff?.FullName ?? "N/A")</td>
 								<td>@item.Date</td>
-								<td>@(item.Slot?.StartTime.ToString("hh\\:mm") ?? "N/A")</td>
-								<td>@(item.Slot?.EndTime.ToString("hh\\:mm") ?? "N/A")</td>
+								<td>@(item.Slot?.StartTime.ToString("HH\\:mm") ?? "N/A")</td>
+								<td>@(item.Slot?.EndTime.ToString("HH\\:mm") ?? "N/A")</td>
 								<td>
 									@if (item.ServiceId != null)
 									{
@@ -92,7 +101,7 @@
 										@:Gói khám nâng cao: @item.Package?.PackageName
 									}
 								</td>
-								<td>
+								<td class="text-center align-middle">
 									@if (item.Status == "Pending")
 									{
 										<span class="badge bg-warning text-dark">Chờ xác nhận</span>
@@ -101,7 +110,7 @@
 									{
 										<span class="badge bg-info text-white">Đang diễn ra</span>
 									}
-									else if (item.Status == "Rejected")
+									else if (item.Status == "Rejected" || item.Status == "Failed")
 									{
 										<span class="badge bg-danger">Từ chối</span>
 									}
@@ -109,8 +118,12 @@
 									{
 										<span class="badge bg-success">Đã xác nhận</span>
 									}
+									else if (item.Status == "Cancelled")
+									{
+										<span class="badge bg-danger">Đã hủy bởi bệnh nhân</span>
+									}
 									else if (item.Status == "Completed")
-									{	
+									{
 										var isPaid = item.PaymentStatus;
 										<span class="badge @(isPaid == "Paid" ? "bg-primary" : "bg-secondary")">
 											@(isPaid == "Paid" ? "Hoàn thành - Đã thanh toán" : "Hoàn thành - Chưa thanh toán")
@@ -134,6 +147,16 @@
 										   class="btn btn-sm btn-info">
 											<i class="fas fa-eye"></i> Chi tiết
 										</a>
+										@if(User.IsInRole("Patient") && item.Status == "Completed")
+										{
+											<a asp-action="Create"
+											   asp-controller="Feedback"
+											   asp-route-packageId="@item.PackageId"
+											   asp-route-serviceId="@item.ServiceId"
+											   class="btn btn-sm btn-info mt-2">
+												<i class="fas fa-pen"></i> Đánh giá
+											</a>
+										}
 									</div>
 								</td>
 							</tr>
@@ -142,17 +165,37 @@
 					else
 					{
 						<tr>
-							<td colspan="14" class="text-center text-muted">Không có lịch hẹn.</td>
+							<td colspan="11" class="text-center text-muted">Không có lịch hẹn.</td>
 						</tr>
 					}
 				</tbody>
 			</table>
 		</div>
-		@* <script> *@
-		@* 	flatpickr("#dateFilter", { *@
-		@* 		dateFormat: "d/m/Y", *@
-		@* 		defaultDate: "today" *@
-		@* 	}); *@
-		@* </script> *@
+		@if (Model != null && Model.PageCount > 1)
+		{
+			<div class="d-flex justify-content-center mt-4">
+				@Html.PagedListPager(Model, page => Url.Action("MyAppointments", new
+					{
+						page,
+						SearchName = ViewBag.SearchName,
+						SlotFilter = ViewBag.SlotFilter,
+						DateFilter = ViewBag.DateFilter,
+						StatusFilter = ViewBag.StatusFilter,
+						Type = ViewBag.Type
+
+					}), new PagedListRenderOptions
+				{
+					DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+					DisplayLinkToLastPage = PagedListDisplayMode.Always,
+					DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+					DisplayLinkToNextPage = PagedListDisplayMode.Always,
+					DisplayLinkToIndividualPages = true,
+					MaximumPageNumbersToDisplay = 5,
+					UlElementClasses = new[] { "pagination" },
+					LiElementClasses = new[] { "page-item" },
+					PageClasses = new[] { "page-link" }
+				})
+			</div>
+		}
 	</div>
 </div>

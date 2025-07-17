@@ -1,6 +1,8 @@
-﻿using System.Security.Claims;
+﻿using System.Globalization;
+using System.Security.Claims;
 using System.Text;
 using HospitalManagement.Data;
+using HospitalManagement.Helpers;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
 using HospitalManagement.Services;
@@ -15,7 +17,7 @@ using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Newtonsoft.Json;
 using X.PagedList.Extensions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using HospitalManagement.Helpers;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace HospitalManagement.Controllers
 {
@@ -244,8 +246,8 @@ namespace HospitalManagement.Controllers
                     {
                         Day = s.Day,
                         SlotId = s.SlotId,
-                        StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
-                        EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
+                        StartTime = s.Slot.StartTime.ToString(@"HH\:mm"),
+                        EndTime = s.Slot.EndTime.ToString(@"HH\:mm"),
                         RoomName = s.Room.RoomName
                     })
                     .ToListAsync();
@@ -253,7 +255,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SelectedYear = selectedYear;
             ViewBag.SelectedWeekStart = selectedWeekStart;
             ViewBag.DaysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
-            ViewBag.SlotsPerDay = 6;
+            ViewBag.SlotsPerDay = await _context.Slots.CountAsync();
             var model = new BookingByDoctorViewModel
             {
                 SelectedDepartmentId = departmentName,
@@ -355,8 +357,8 @@ namespace HospitalManagement.Controllers
                 {
                     Day = s.Day,
                     SlotId = s.SlotId,
-                    StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
-                    EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
+                    StartTime = s.Slot.StartTime.ToString(@"HH\:mm"),
+                    EndTime = s.Slot.EndTime.ToString(@"HH\:mm"),
                     RoomName = s.Room.RoomName
                 })
                 .ToListAsync();
@@ -375,21 +377,65 @@ namespace HospitalManagement.Controllers
             ViewBag.SelectedYear = selectedYear;
             ViewBag.SelectedWeekStart = selectedWeekStart;
             ViewBag.DaysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
-            ViewBag.SlotsPerDay = 6;
+            ViewBag.SlotsPerDay = await _context.Slots.CountAsync();
 
             return PartialView("~/Views/Appointment/_ScheduleTablePartial.cshtml", schedules);
         }
 
-        [HttpGet]
         [Authorize(Roles = AppConstants.Roles.Admin)]
-        public async Task<IActionResult> Index(string? searchName, string? timeFilter, string? dateFilter, string? statusFilter)
+        [HttpGet]
+        public async Task<IActionResult> Index(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter, string? Type, int? page)
         {
-            var appointments = await _appointmentRepository.FilterForAdmin(searchName, timeFilter, dateFilter, statusFilter);
+            int pageSize = 12;
+            int pageNumber = page ?? 1;
 
-            var slots = await _context.Slots.ToListAsync();
-            ViewBag.SlotOptions = slots;
+            // Chuẩn hóa tên
+            SearchName = NormalizeName(SearchName);
 
-            return View(appointments);
+            // Trả lại giá trị cho Views
+            ViewBag.SlotOptions = await _context.Slots.ToListAsync();
+            ViewBag.SearchName = SearchName;
+            ViewBag.SlotFilter = SlotFilter;
+            ViewBag.DateFilter = DateFilter;
+            ViewBag.StatusFilter = StatusFilter;
+
+            // Truy vấn lọc
+            var filteredList = await _appointmentRepository.FilterForAdmin(SearchName, SlotFilter, DateFilter, StatusFilter);
+
+            // Lọc thêm theo filterType 
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var now = TimeOnly.FromDateTime(DateTime.Now);
+
+            if (string.IsNullOrEmpty(Type))
+                Type = AppConstants.FilterTypes.All;
+            ViewBag.Type = Type;
+            ViewBag.FilterType = Type;
+            if (!string.IsNullOrEmpty(Type))
+            {
+                switch (Type)
+                {
+                    case AppConstants.FilterTypes.Today:
+                        filteredList = filteredList.Where(a => a.Date == today).ToList();
+                        break;
+                    case AppConstants.FilterTypes.Ongoing:
+                        filteredList = filteredList.Where(a => a.Date > today).ToList();
+                        break;
+                    case AppConstants.FilterTypes.Completed:
+                        filteredList = filteredList.Where(a => a.Status == AppConstants.AppointmentStatus.Completed).ToList();
+                        break;
+                    case AppConstants.FilterTypes.All:
+                    default:
+                        // Không lọc thêm gì nữa
+                        break;
+                }
+            }
+
+            // Phân trang
+            var pagedAppointments = filteredList
+                .OrderByDescending(a => a.AppointmentId)
+                .ToPagedList(pageNumber, pageSize);
+
+            return View(pagedAppointments);
         }
 
         [Authorize(Roles = AppConstants.Roles.Patient + "," + AppConstants.Roles.Sales + "," + AppConstants.Roles.Doctor)]
@@ -491,8 +537,8 @@ namespace HospitalManagement.Controllers
                     {
                         Day = s.Day,
                         SlotId = s.SlotId,
-                        StartTime = s.Slot.StartTime.ToString(@"hh\:mm"),
-                        EndTime = s.Slot.EndTime.ToString(@"hh\:mm"),
+                        StartTime = s.Slot.StartTime.ToString(@"HH\:mm"),
+                        EndTime = s.Slot.EndTime.ToString(@"HH\:mm"),
                         RoomName = s.Room.RoomName
                     })
                     .ToListAsync();
@@ -501,7 +547,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SelectedYear = selectedYear;
             ViewBag.SelectedWeekStart = selectedWeekStart;
             ViewBag.DaysInWeek = Enumerable.Range(0, 7).Select(i => selectedWeekStart.AddDays(i)).ToList();
-            ViewBag.SlotsPerDay = 6;
+            ViewBag.SlotsPerDay = await _context.Slots.CountAsync();
 
             var model = new CreateAppointmentViewModel
             {
@@ -644,7 +690,7 @@ namespace HospitalManagement.Controllers
             ViewBag.SearchName = searchName;
             ViewBag.SlotFilter = timeFilter;
             ViewBag.DateFilter = dateFilter;
-            var filteredList = await _appointmentRepository.FilterApproveAppointment(statusFilter, searchName, timeFilter, dateFilter);
+            var filteredList = _appointmentRepository.FilterApproveAppointment(statusFilter, searchName, timeFilter, dateFilter);
 
             // Phân trang
             var pagedAppointments = filteredList
@@ -779,6 +825,22 @@ namespace HospitalManagement.Controllers
             TempData["success"] = AppConstants.Messages.Doctor.AssignSuccess;
             return RedirectToAction("ApproveAppointment");
         }
+        [Authorize(Roles = AppConstants.Roles.Patient)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null || appointment.Status != AppConstants.AppointmentStatus.Pending && appointment.Status != AppConstants.AppointmentStatus.Confirmed)
+                return NotFound();
+
+            appointment.Status = AppConstants.AppointmentStatus.Cancelled;
+            _context.Appointments.Update(appointment);
+            await _context.SaveChangesAsync();
+
+            TempData["success"] = AppConstants.Messages.Appointment.CancelSuccessful;
+            return RedirectToAction("MyAppointments", "Appointment");
+        }
 
         [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]
         [HttpPost]
@@ -911,7 +973,7 @@ namespace HospitalManagement.Controllers
                 AppointmentId = appointmentId,
                 AppointmentDate = dateOnly,
                 SlotId = slotId,
-                SlotTimeText = $"{appointment.Slot.StartTime:hh\\:mm} - {appointment.Slot.EndTime:hh\\:mm}",
+                SlotTimeText = $"{appointment.Slot.StartTime:HH\\:mm} - {appointment.Slot.EndTime:HH\\:mm}",
                 Doctors = doctors
             };
 
@@ -969,7 +1031,7 @@ namespace HospitalManagement.Controllers
                 .Select(s => new
                 {
                     s.SlotId,
-                    SlotTime = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}",
+                    SlotTime = $"{s.StartTime:HH\\:mm} - {s.EndTime:HH\\:mm}",
                     IsBooked = false // Không kiểm tra, luôn là false
                 })
                 .ToListAsync();
@@ -1004,7 +1066,7 @@ namespace HospitalManagement.Controllers
                 .Select(s => new
                 {
                     s.SlotId,
-                    SlotTime = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}",
+                    SlotTime = $"{s.StartTime:HH\\:mm} - {s.EndTime:HH\\:mm}",
                     IsBooked = bookedSlotIds.Contains(s.SlotId)
                 })
                 .ToListAsync();
@@ -1073,14 +1135,17 @@ namespace HospitalManagement.Controllers
         //Lấy service cho vào SelectListItem để hiện ra ở form
         private async Task<List<SelectListItem>> GetServiceListAsync()
         {
+            var culture = new CultureInfo("vi-VN");
+
             return await _context.Services
                 .Select(s => new SelectListItem
                 {
                     Value = s.ServiceId.ToString(),
-                    Text = $"{s.ServiceType} - {s.ServicePrice.ToString("0")}k"
+                    Text = $"{s.ServiceType} - {s.ServicePrice.ToString("N0", culture)} VND"
                 })
                 .ToListAsync();
         }
+
 
         private async Task<List<SelectListItem>> GetDepartmentListAsync(bool? containTestDoc)
         {
@@ -1111,11 +1176,12 @@ namespace HospitalManagement.Controllers
 
         private async Task<List<SelectListItem>> GetPackageListAsync()
         {
+            var culture = new CultureInfo("vi-VN");
             return await _context.Packages
                 .Select(s => new SelectListItem
                 {
                     Value = s.PackageId.ToString(),
-                    Text = $"{s.PackageName} - {s.FinalPrice.ToString("0")}k"
+                    Text = $"{s.PackageName} - {s.FinalPrice.ToString("N0", culture)}k"
                 })
                 .ToListAsync();
         }
@@ -1127,7 +1193,7 @@ namespace HospitalManagement.Controllers
                 .Select(s => new SelectListItem
                 {
                     Value = s.SlotId.ToString(),
-                    Text = $"{s.StartTime:hh\\:mm} - {s.EndTime:hh\\:mm}"
+                    Text = $"{s.StartTime:HH\\:mm} - {s.EndTime:HH\\:mm}"
                 })
                 .ToListAsync();
         }

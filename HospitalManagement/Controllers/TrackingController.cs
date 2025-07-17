@@ -199,14 +199,9 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = AppConstants.Messages.Appointment.NoPermission;
                 return RedirectToAction("Index", "Home");
             }
-            if (appointment.Status == AppConstants.AppointmentStatus.Rejected)
+            if (appointment.Status != AppConstants.AppointmentStatus.Ongoing)
             {
-                TempData["error"] = AppConstants.Messages.Appointment.Failed;
-                return RedirectToAction("Index", "Home");
-            }
-            if (appointment.Status == AppConstants.AppointmentStatus.Completed)
-            {
-                TempData["error"] = "Cuộc hẹn này đã hoàn thành khám, không thể tiếp tục.";
+                TempData["error"] = AppConstants.Messages.Appointment.OnlyAppointmentOngoingCanAccess;
                 return RedirectToAction("Detail", "Appointment", new { appId = appointment.AppointmentId });
             }
 
