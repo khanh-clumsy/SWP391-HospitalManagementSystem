@@ -208,7 +208,7 @@ namespace HospitalManagement.Repositories
 
         public async Task<List<int>> GetAvailableYearsWithCompletedAppointmentsAsync()
         {
-            return await _context.Appointments
+            return await _context.Appointments.IgnoreQueryFilters()
                 .Where(a => a.Status == "Completed")
                 .Select(a => a.Date.Year)
                 .Distinct()
@@ -218,6 +218,7 @@ namespace HospitalManagement.Repositories
         public async Task<(List<AppointmentDetailDto> Details, int TotalCount)> GetMonthlyAppointmentDetailsAsync(int year, int month, int page, int pageSize)
         {
             var query = _context.Appointments
+                .IgnoreQueryFilters()
                 .Where(a => a.Status == "Completed" && a.Date.Year == year && a.Date.Month == month)
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)

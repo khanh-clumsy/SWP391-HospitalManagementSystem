@@ -267,6 +267,89 @@ namespace HospitalManagement.Controllers
             var fileName = $"Appointments_{month:D2}_{year}.xlsx";
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
+        public async Task<IActionResult> SearchRevenue(DateTime? fromDate, DateTime? toDate)
+        {
+            // Mặc định lấy đầu và cuối tháng nếu không nhập
+            var now = DateTime.Today;
+            var from = fromDate ?? new DateTime(now.Year, now.Month, 1);
+            var to = toDate ?? new DateTime(now.Year, now.Month, DateTime.DaysInMonth(now.Year, now.Month));
+
+            // ✅ Kiểm tra lỗi ngày
+            if (to < from)
+            {
+                TempData["Error"] = "Ngày kết thúc không được nhỏ hơn ngày bắt đầu.";
+                return RedirectToAction("SearchRevenue");
+            }
+
+            var invoices = await _invoiceRepo.GetInvoiceDetailsByDateRangeAsync(from, to);
+            var totalRevenue = await _invoiceRepo.GetTotalRevenueByDateRangeAsync(from, to);
+
+            ViewBag.TotalRevenue = totalRevenue;
+            ViewBag.FromDate = from.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = to.ToString("yyyy-MM-dd");
+
+            return View(invoices);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ExportSearchRevenueToExcel(DateTime fromDate, DateTime toDate)
+        {
+            var data = await _invoiceRepo.GetInvoiceDetailsByDateRangeAsync(fromDate, toDate);
+            var displayRange = $"{fromDate:dd-MM-yyyy}_den_{toDate:dd-MM-yyyy}";
+
+            using (var package = new ExcelPackage())
+            {
+                var ws = package.Workbook.Worksheets.Add($"DoanhThu_{displayRange}");
+
+                // Title
+                ws.Cells["A1"].Value = $"CHI TIẾT DOANH THU TỪ {fromDate:dd/MM/yyyy} ĐẾN {toDate:dd/MM/yyyy}";
+                ws.Cells["A1:F1"].Merge = true;
+                ws.Cells["A1"].Style.Font.Bold = true;
+                ws.Cells["A1"].Style.Font.Size = 16;
+                ws.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                // Column headers
+                ws.Cells["A3"].Value = "Tên bệnh nhân";
+                ws.Cells["B3"].Value = "Loại dịch vụ";
+                ws.Cells["C3"].Value = "Tên dịch vụ";
+                ws.Cells["D3"].Value = "Đơn giá";
+                ws.Cells["E3"].Value = "Trạng thái";
+                ws.Cells["F3"].Value = "Thời gian thanh toán";
+
+                ws.Cells["A3:F3"].Style.Font.Bold = true;
+
+                int row = 4;
+                foreach (var item in data)
+                {
+                    ws.Cells[row, 1].Value = item.PatientName;
+                    ws.Cells[row, 2].Value = item.ItemType;
+                    ws.Cells[row, 3].Value = item.ItemName;
+                    ws.Cells[row, 4].Value = item.UnitPrice;
+                    ws.Cells[row, 4].Style.Numberformat.Format = "#,##0";
+                    ws.Cells[row, 5].Value = item.PaymentStatus;
+                    ws.Cells[row, 6].Value = item.PaymentTime?.ToString("dd/MM/yyyy");
+                    row++;
+                }
+
+                // 👉 Thêm dòng tổng
+                decimal totalRevenue = data.Sum(x => x.UnitPrice);
+                ws.Cells[row, 3].Value = "TỔNG DOANH THU:";
+                ws.Cells[row, 3].Style.Font.Bold = true;
+                ws.Cells[row, 4].Value = totalRevenue;
+                ws.Cells[row, 4].Style.Numberformat.Format = "#,##0";
+                ws.Cells[row, 4].Style.Font.Bold = true;
+
+                // Auto fit toàn bộ
+                ws.Cells[$"A3:F{row}"].AutoFitColumns();
+
+                var stream = new MemoryStream(package.GetAsByteArray());
+                var fileName = $"DoanhThu_{displayRange}.xlsx";
+
+                return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            }
+        }
+
+
 
     }
 }

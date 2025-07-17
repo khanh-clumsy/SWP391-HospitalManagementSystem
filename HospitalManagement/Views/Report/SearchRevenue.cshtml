@@ -1,0 +1,67 @@
+﻿@model List<HospitalManagement.ViewModels.InvoiceDetailDto>
+
+@{
+    ViewBag.Title = "Tìm kiếm doanh thu theo thời gian";
+}
+<style>
+    #loadingOverlay {
+        display: none !important;
+    }
+</style>
+<div class="container mt-5">
+    <h3 class="mb-3">Tìm kiếm doanh thu theo khoảng thời gian</h3>
+
+    <form method="get" asp-action="SearchRevenue" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <label for="fromDate" class="form-label">Từ ngày</label>
+            <input type="date" class="form-control" id="fromDate" name="fromDate" value="@ViewBag.FromDate" />
+        </div>
+        <div class="col-md-3">
+            <label for="toDate" class="form-label">Đến ngày</label>
+            <input type="date" class="form-control" id="toDate" name="toDate" value="@ViewBag.ToDate" />
+        </div>
+        <div class="col-md-3 align-self-end">
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Tên bệnh nhân</th>
+                <th>Loại dịch vụ</th>
+                <th>Tên dịch vụ</th>
+                <th>Đơn giá</th>
+                <th>Trạng thái</th>
+                <th>Thời gian thanh toán</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.PatientName</td>
+                    <td>@item.ItemType</td>
+                    <td>@item.ItemName</td>
+                    <td>@String.Format("{0:N0}", item.UnitPrice) VND</td>
+                    <td>@item.PaymentStatus</td>
+                    <td>@item.PaymentTime?.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-3 fw-bold">
+        Tổng doanh thu: @String.Format("{0:N0}", ViewBag.TotalRevenue) VND
+    </div>
+    <div class="text-end mb-3">
+        <form asp-action="ExportSearchRevenueToExcel" method="post">
+            <input type="hidden" name="fromDate" value="@ViewBag.FromDate" />
+            <input type="hidden" name="toDate" value="@ViewBag.ToDate" />
+            <button type="submit" class="btn btn-success">📥 Tải Excel</button>
+        </form>
+    </div>
+
+
+
+</div>
