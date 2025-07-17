@@ -16,7 +16,7 @@ namespace HospitalManagement.Controllers
             // Đăng xuất người dùng khỏi Identity (cookie authentication)
             await HttpContext.SignOutAsync();
 
-            TempData["success"] = "Logout successful!";
+            TempData["success"] = "Đăng xuất thành công!";
             return RedirectToAction("Index", "Home");
         }
     }

@@ -115,13 +115,13 @@ namespace HospitalManagement.Controllers
 
             if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.OldPassword) != PasswordVerificationResult.Success)
             {
-                TempData["error"] = "Current password not match";
+                TempData["error"] = "Mật khẩu hiện tại không đúng";
                 return View();
             }
 
             if (model.NewPassword != model.ConfirmPassword)
             {
-                TempData["error"] = "2 new passwords not match";
+                TempData["error"] = "Hai mật khẩu mới không khớp";
                 return View();
             }
 
@@ -135,7 +135,7 @@ namespace HospitalManagement.Controllers
 
             }
 
-            TempData["success"] = "Change password successful!";
+            TempData["success"] = "Đổi mật khẩu thành công!";
             return View();
         }
 
@@ -167,7 +167,7 @@ namespace HospitalManagement.Controllers
                 var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/jpg", "image/webp" };
                 if (!allowedTypes.Contains(photo.ContentType))
                 {
-                    TempData["error"] = "Không đúng địng dạng ảnh cho phép";
+                    TempData["error"] = "Định dạng ảnh không được phép";
                     return RedirectToAction("UpdateProfile");
                 }
                 if (photo.Length > 2 * 1024 * 1024)
@@ -197,7 +197,7 @@ namespace HospitalManagement.Controllers
 
                 // Cập nhật lại session
                 //HttpContext.Session.SetString("StaffSession", JsonConvert.SerializeObject(user));
-                TempData["success"] = "Update successful!";
+                TempData["success"] = "Cập nhật thành công!";
                 return RedirectToAction("UpdateProfile");
 
             }
@@ -234,20 +234,20 @@ namespace HospitalManagement.Controllers
                 // check if phone start with 0 and 9 digits back
                 if (model.PhoneNumber == null)
                 {
-                    TempData["error"] = "Phone number is invalid.";
+                    TempData["error"] = "Số điện thoại không hợp lệ.";
                     return RedirectToAction("UpdateProfile");
                 }
 
                 if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
                 {
-                    TempData["error"] = "Phone number is invalid.";
+                    TempData["error"] = "Số điện thoại không hợp lệ.";
                     return RedirectToAction("UpdateProfile");
                 }
 
                 //check if phone is non - number
                 foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
                     {
-                        TempData["error"] = "Phone number is invalid.";
+                        TempData["error"] = "Số điện thoại không hợp lệ.";
                         return RedirectToAction("UpdateProfile");
                     }
 
@@ -256,7 +256,7 @@ namespace HospitalManagement.Controllers
 
                 if (phoneOwner != null && phoneOwner.StaffId != curUser.StaffId)
                 {
-                    TempData["error"] = "This phone number was used before.";
+                    TempData["error"] = "Số điện thoại này đã được sử dụng trước đó.";
                     return RedirectToAction("UpdateProfile");
                 }
 
@@ -273,7 +273,7 @@ namespace HospitalManagement.Controllers
                 //HttpContext.Session.SetString("StaffSession", JsonConvert.SerializeObject(sessionUser));
             }
 
-            TempData["success"] = "Update successful!";
+            TempData["success"] = "Cập nhật thành công!";
 
             return RedirectToAction("UpdateProfile");
         }
@@ -284,7 +284,7 @@ namespace HospitalManagement.Controllers
             // Đăng xuất người dùng khỏi Identity (cookie authentication)
             await HttpContext.SignOutAsync();
 
-            TempData["success"] = "Logout successful!";
+            TempData["success"] = "Đăng xuất thành công!";
             return RedirectToAction("Index", "Home");
         }
 

@@ -17,7 +17,7 @@
             <div class="row mb-4">
                 <div class="col-12">
                     <a asp-controller="Home" asp-action="Index" class="back-to-list">
-                        <i class="fas fa-arrow-left"></i> Back to Home Page
+                        <i class="fas fa-arrow-left"></i> Về trang chủ
                     </a>
                 </div>
             </div>
@@ -35,9 +35,9 @@
 						</div>
                         <div class="profile-buttons">
                             <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                <a class="btn btn-primary flex-fill" asp-controller="Staff" asp-action="UpdateProfile">Update Profile</a>
-                                <a class="btn btn-primary flex-fill" asp-controller="Staff" asp-action="ChangePassword">Change Password</a>
-                                <a class="btn btn-outline-primary flex-fill" asp-controller="Staff" asp-action="Logout">Logout</a>
+                                <a class="btn btn-primary flex-fill" asp-controller="Staff" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
+                                <a class="btn btn-primary flex-fill" asp-controller="Staff" asp-action="ChangePassword">Đổi mật khẩu</a>
+                                <a class="btn btn-outline-primary flex-fill" asp-controller="Staff" asp-action="Logout">Đăng xuất</a>
                             </div>
                         </div>
                     </div>
@@ -47,12 +47,12 @@
                 <div class="col-lg-8">
                     <div class="profile-card">
                         <div class="profile-info">
-                            <h2>Profile Details</h2>
+                            <h2>Thông tin nhân viên</h2>
 
                             <div class="info-item">
                                 <div class="info-icon"><i class="fas fa-user"></i></div>
                                 <div class="info-content">
-                                    <h5>Full Name</h5>
+                                    <h5>Họ và tên</h5>
                                     <p>@Model.FullName</p>
                                 </div>
                             </div>
@@ -68,7 +68,7 @@
                             <div class="info-item">
                                 <div class="info-icon"><i class="fas fa-phone"></i></div>
                                 <div class="info-content">
-                                    <h5>Phone Number</h5>
+                                    <h5>Số điện thoại</h5>
                                     <p>@Model.PhoneNumber</p>
                                 </div>
                             </div>
@@ -76,7 +76,7 @@
                             <div class="info-item">
                                 <div class="info-icon"><i class="fas fa-venus-mars"></i></div>
                                 <div class="info-content">
-                                    <h5>Gender</h5>
+                                    <h5>Giới tính</h5>
                                     <p>@Model.GetFullGender()</p>
                                 </div>
                             </div>
@@ -84,8 +84,16 @@
                             <div class="info-item">
                                 <div class="info-icon"><i class="fas fa-briefcase"></i></div>
                                 <div class="info-content">
-                                    <h5>Role</h5>
-                                    <p>@Model.RoleName</p>
+                                    <h5>Chức vụ</h5>
+                                    <p>
+                                        @{
+                                            var roleVi = Model.RoleName;
+                                            if (roleVi == "Admin") { roleVi = "Quản trị viên"; }
+                                            else if (roleVi == "Sales") { roleVi = "Nhân viên kinh doanh"; }
+                                            else if (roleVi == "Receptionist") { roleVi = "Lễ tân"; }
+                                        }
+                                        @roleVi
+                                    </p>
                                 </div>
                             </div>
 

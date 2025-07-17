@@ -24,7 +24,7 @@
 				<div class="col-12">
 					<a asp-controller="Home" asp-action="Index" class="back-to-list">
 						<i class="fas fa-arrow-left"></i>
-						Back to Home Page
+						Về trang chủ
 					</a>
 				</div>
 			</div>
@@ -65,26 +65,26 @@
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
 					<div class="profile-card">
 						<div class="profile-info">
-							<h2> Update Details</h2>
+							<h2>Cập nhật thông tin</h2>
 
 							<form asp-action="UpdateProfile" asp-controller="Doctor" method="post">
 								<div class="form-group">
-									<label>Full Name</label>
+									<label>Họ và tên</label>
 									<input asp-for="FullName" class="form-control" />
 								</div>
 								<div class="form-group">
-									<label>Gender</label>
+									<label>Giới tính</label>
 									<select asp-for="Gender" class="form-select">
-										<option value="M">Male</option>
-										<option value="F">Female</option>
-										<option value="O">Other</option>
+										<option value="M">Nam</option>
+										<option value="F">Nữ</option>
+										<option value="O">Khác</option>
 									</select>
 								</div>
 								<div class="form-group">
-									<label>Phone</label>
+									<label>Số điện thoại</label>
 									<input asp-for="PhoneNumber" class="form-control" />
 								</div>
-								<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
+								<button type="submit" class="btn btn-dark mt-3 w-100">Lưu thay đổi</button>
 							</form>
 						</div>
 					</div>
