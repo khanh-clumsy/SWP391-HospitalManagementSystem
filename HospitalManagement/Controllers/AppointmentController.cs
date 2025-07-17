@@ -833,7 +833,6 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments.FindAsync(id);
             if (appointment == null || appointment.Status != AppConstants.AppointmentStatus.Pending && appointment.Status != AppConstants.AppointmentStatus.Confirmed)
                 return NotFound();
-
             appointment.Status = AppConstants.AppointmentStatus.Cancelled;
             _context.Appointments.Update(appointment);
             await _context.SaveChangesAsync();

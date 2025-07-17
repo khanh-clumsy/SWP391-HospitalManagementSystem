@@ -25,6 +25,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Service)
                 .Include(a => a.Package)
                 .Include(a => a.CreatedByStaff)
+                .Include(a => a.InvoiceDetails)
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
@@ -317,6 +318,7 @@ namespace HospitalManagement.Repositories
                             && a.Date == DateOnly.FromDateTime(DateTime.Today))
                             .OrderBy(a => a.Date).ThenBy(a => a.Slot.StartTime)
                             .ToListAsync();
+
         }
 
         public async Task<Appointment> GetAppointmentByIdAsync(int appointmentId)

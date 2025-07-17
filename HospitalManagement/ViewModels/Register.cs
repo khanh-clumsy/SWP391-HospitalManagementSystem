@@ -11,9 +11,9 @@ namespace HospitalManagement.ViewModels
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu.")]
         [DataType(DataType.Password)]
-        [Compare("Password", ErrorMessage = "Passwords do not match.")]
+        [Compare("Password", ErrorMessage = "Mật khẩu xác nhận không khớp.")]
         public string ConfirmPassword { get; set; } = null!;
 
 

@@ -11,7 +11,9 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Net;
 using System.Text.RegularExpressions;
-
+using System.Security.Cryptography;
+using System.Text;
+using System.Linq;
 public class PaymentController : Controller
 {
     private readonly HospitalManagementContext _context;
@@ -26,7 +28,6 @@ public class PaymentController : Controller
         _configuration = configuration; // gán vào field
 
     }
-
 
     [HttpGet]
     public async Task<IActionResult> PayStartAppointment(int invoiceId)
@@ -54,6 +55,32 @@ public class PaymentController : Controller
         return View(invoicedetail);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> PayStartAppointmentForPatient(int? packageId, int? serviceId)
+    {
+        var invoicedetail = await _context.InvoiceDetails
+            .Include(x => x.Appointment)
+            .FirstOrDefaultAsync(a => (a.ItemType == "Package" && a.ItemId==packageId) || (a.ItemType == "Service" && a.ItemId==serviceId));
+
+
+        if (invoicedetail == null)
+            return NotFound();
+
+        var paymentModel = new VnPayViewModel
+        {
+            Name = "Name",
+            Amount = invoicedetail.UnitPrice,
+            OrderDescription = $"{invoicedetail.ItemType} - {invoicedetail.ItemName}",
+            OrderType = "other",
+            InvoiceId = invoicedetail.InvoiceDetailId
+        };
+
+        string paymentUrl = _vnPayService.CreatePaymentUrl(paymentModel, HttpContext);
+        ViewBag.PaymentUrl = paymentUrl;
+        ViewBag.InvoiceDetailId = invoicedetail.InvoiceDetailId;
+        return View(invoicedetail);
+    }
+
     public IActionResult GenerateQr(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
@@ -73,11 +100,19 @@ public class PaymentController : Controller
     }
 
     [HttpGet]
-    public IActionResult PaymentCallbackVnpay() // bank 
+    public IActionResult PaymentCallbackVnpay()
     {
         var vnpayData = Request.Query;
         var responseData = new SortedList<string, string>();
 
+        // Check chữ ký hợp lệ
+        var isValidSignature = ValidateVnpaySignature(vnpayData, _configuration["Vnpay:HashSecret"]);
+        if (!isValidSignature)
+        {
+            TempData["error"] = "Chữ ký không hợp lệ. Nghi ngờ gian lận!";
+            return RedirectToAction("Index", "Home");
+        }
+        
         foreach (var key in vnpayData.Keys)
         {
             if (key.StartsWith("vnp_"))
@@ -86,119 +121,59 @@ public class PaymentController : Controller
             }
         }
 
-        // Lấy mã giao dịch và mã đơn hàng
         string responseCode = responseData["vnp_ResponseCode"];
-        string txnRef = responseData["vnp_TxnRef"];
+        string orderInfo = responseData["vnp_OrderInfo"];
+        int invoiceId = 0;
 
-        switch (responseCode)
+        var match = Regex.Match(orderInfo, @"Invoice:(\d+)");
+        if (match.Success)
         {
-            case "00":
-                // Lấy OrderInfo và trích InvoiceId
-                string orderInfo = responseData["vnp_OrderInfo"];
-                int invoiceId = 0;
-
-                if (orderInfo.StartsWith("Invoice:"))
-                {
-                    // Cắt chuỗi trước dấu " -"
-                    var match = Regex.Match(orderInfo, @"Invoice:(\d+)");
-                    if (match.Success)
-                    {
-                        invoiceId = int.Parse(match.Groups[1].Value);
-                    }
-                }
-
-                if (invoiceId > 0)
-                {
-                    var invoiceDetail = _context.InvoiceDetails
-                        .Include(i => i.Appointment)
-                        .FirstOrDefault(i => i.InvoiceDetailId == invoiceId);
-
-                    if (invoiceDetail != null)
-                    {
-                        invoiceDetail.PaymentMethod = "Banking";
-                        invoiceDetail.PaymentStatus = "Paid";
-                        invoiceDetail.PaymentTime = DateTime.Now;
-
-                        if (invoiceDetail.ItemType == "Test")
-                        {
-                            var testRecord = _context.TestRecords.FirstOrDefault(tr =>
-                                tr.AppointmentId == invoiceDetail.AppointmentId &&
-                                tr.TestRecordId == invoiceDetail.ItemId);
-
-                            if (testRecord != null)
-                            {
-                                testRecord.TestStatus = "Ongoing";
-                            }
-                        }
-                        _context.SaveChanges();
-
-                        ViewBag.PaymentMethod = invoiceDetail.PaymentMethod;
-                        ViewBag.PaymentTime = invoiceDetail.PaymentTime;
-                    }
-
-
-                    ViewBag.Message = "Thanh toán thành công.";
-                }
-                else
-                {
-                    ViewBag.Message = "Không xác định được hóa đơn cần cập nhật.";
-                }
-
-                break;
-            case "07":
-                ViewBag.Message = "Giao dịch bị nghi ngờ gian lận.";
-                break;
-            case "09":
-                ViewBag.Message = "Tài khoản chưa đăng ký Internet Banking.";
-                break;
-            case "10":
-                ViewBag.Message = "Xác thực giao dịch thất bại (sai OTP).";
-                break;
-            case "11":
-                ViewBag.Message = "Giao dịch hết hạn.";
-                break;
-            case "12":
-                ViewBag.Message = "Dữ liệu gửi đi không hợp lệ.";
-                break;
-            case "13":
-                ViewBag.Message = "Tài khoản bị khóa hoặc không đủ số dư.";
-                break;
-            case "24":
-                ViewBag.Message = "Giao dịch đã bị hủy bởi người dùng.";
-                break;
-            case "51":
-                ViewBag.Message = "Tài khoản không đủ số dư.";
-                break;
-            case "65":
-                ViewBag.Message = "Tài khoản vượt quá hạn mức giao dịch.";
-                break;
-            case "75":
-                ViewBag.Message = "Ngân hàng đang bảo trì.";
-                break;
-            case "91":
-                ViewBag.Message = "Không nhận được phản hồi từ ngân hàng.";
-                break;
-            case "93":
-                ViewBag.Message = "Lỗi hệ thống ngân hàng hoặc VNPAY.";
-                break;
-            case "94":
-                ViewBag.Message = "Giao dịch bị trùng lặp.";
-                break;
-            case "95":
-                ViewBag.Message = "Không tìm thấy giao dịch.";
-                break;
-            case "97":
-                ViewBag.Message = "Lỗi CSRF hoặc tham số không hợp lệ.";
-                break;
-            case "99":
-                ViewBag.Message = "Lỗi không xác định.";
-                break;
-            default:
-                ViewBag.Message = $"Giao dịch thất bại. Mã lỗi: {responseCode}";
-                break;
+            invoiceId = int.Parse(match.Groups[1].Value);
         }
 
-        return View("PaymentResult");
+        if (invoiceId <= 0) return NotFound();
+
+        var invoiceDetail = _context.InvoiceDetails
+            .Include(i => i.Appointment)
+            .FirstOrDefault(i => i.InvoiceDetailId == invoiceId);
+
+        if (invoiceDetail == null) return NotFound();
+
+        if (invoiceDetail.PaymentStatus == "Paid")
+        {
+            TempData["error"] = "Nghi ngờ giao dịch gian lận.";
+            return NotFound();
+        }
+
+        if (responseCode == "00")
+        {
+            invoiceDetail.PaymentMethod = "Banking";
+            invoiceDetail.PaymentStatus = "Paid";
+            invoiceDetail.PaymentTime = DateTime.Now;
+
+            if (invoiceDetail.ItemType == "Test")
+            {
+                var testRecord = _context.TestRecords.FirstOrDefault(tr =>
+                    tr.AppointmentId == invoiceDetail.AppointmentId &&
+                    tr.TestRecordId == invoiceDetail.ItemId);
+
+                if (testRecord != null)
+                {
+                    testRecord.TestStatus = "Ongoing";
+                }
+            }
+
+            _context.SaveChanges();
+
+            TempData["success"] = "Thanh toán thành công.";
+        }
+        else
+        {
+            TempData["error"] = $"Giao dịch thất bại. Mã lỗi: {responseCode}";
+        }
+
+        // 👉 Redirect về trang chủ sau khi xử lý xong
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpPost]
@@ -250,6 +225,7 @@ public class PaymentController : Controller
     [HttpGet]
     public async Task<IActionResult> TotalInvoiceDetail(int id)
     {
+
         var appointment = await _context.Appointments
             .Include(a => a.Patient)
             .Include(a => a.Slot)
@@ -339,6 +315,26 @@ public class PaymentController : Controller
 
             return View(invoice);
         }
+    }
+    
+    public bool ValidateVnpaySignature(IQueryCollection vnpayData, string secretKey)
+    {
+        var inputData = new SortedList<string, string>();
+        foreach (var key in vnpayData.Keys)
+        {
+            if (key.StartsWith("vnp_") && key != "vnp_SecureHash" && key != "vnp_SecureHashType")
+            {
+                inputData.Add(key, vnpayData[key]);
+            }
+        }
+
+        var rawData = string.Join("&", inputData.Select(x => $"{x.Key}={WebUtility.UrlEncode(x.Value)}"));
+        var hashBytes = new HMACSHA512(Encoding.UTF8.GetBytes(secretKey)).ComputeHash(Encoding.UTF8.GetBytes(rawData));
+        var computedHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+
+        var receivedHash = vnpayData["vnp_SecureHash"].ToString().ToLower();
+
+        return computedHash == receivedHash;
     }
 
 

@@ -53,9 +53,6 @@ CodeCoverage/
 ## VS Code settings (nếu team có dùng VS Code)
 .vscode/
 
-## LibMan front-end libraries (nếu bạn dùng LibMan)
-wwwroot/lib/
-
 ## Temp files
 ~$*
 *~~$*

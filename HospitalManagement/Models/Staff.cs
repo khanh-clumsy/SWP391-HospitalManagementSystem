@@ -31,15 +31,15 @@ public partial class Staff
     {
         if (this.Gender == "M")
         {
-            return "Male";
+                        return "Nam";
         }
         else if (this.Gender == "F")
         {
-            return "Female";
+            return "Nữ";
         }
         else
         {
-            return "Other";
+            return "Khác";
         }
     }
 }

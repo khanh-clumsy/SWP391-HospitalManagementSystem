@@ -24,7 +24,7 @@
 				<div class="col-12">
 					<a asp-controller="Home" asp-action="Index" class="back-to-list">
 						<i class="fas fa-arrow-left"></i>
-						Back to Home Page
+						Về trang chủ
 					</a>
 				</div>
 			</div>
@@ -65,38 +65,38 @@
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
 					<div class="profile-card">
 						<div class="profile-info">
-							<h2> Update Details</h2>
+							<h2>Cập nhật thông tin</h2>
 
 							<form asp-action="UpdateProfile" asp-controller="Patient" method="post">
 								<div class="form-group">
-									<label>Full Name</label>
+									<label>Họ và tên</label>
 									<input asp-for="FullName" class="form-control" />
 								</div>
 								<div class="form-group">
-									<label>Gender</label>
+									<label>Giới tính</label>
 									<select asp-for="Gender" class="form-select">
-										<option value="M">Male</option>
-										<option value="F">Female</option>
-										<option value="O">Other</option>
+										<option value="M">Nam</option>
+										<option value="F">Nữ</option>
+										<option value="O">Khác</option>
 									</select>
 								</div>
 								<div class="form-group">
-									<label>Phone</label>
+									<label>Số điện thoại</label>
 									<input asp-for="PhoneNumber" class="form-control" />
 								</div>
 
 								<div class="form-group">
-									<label>Date of Birth</label>
+									<label>Ngày sinh</label>
 									<input asp-for="Dob" type="date" class="form-control" max="@DateTime.Today.ToString("yyyy-MM-dd")" />
 								</div>
 
 								<div class="form-group">
-									<label>Address</label>
+									<label>Địa chỉ</label>
 									<input asp-for="Address" class="form-control" />
 								</div>
 
 								<div class="form-group">
-									<label>Health Insurance</label> 						
+									<label>Bảo hiểm y tế</label> 						
 									<span asp-validation-for="HealthInsurance" class="text-danger small"></span>
 
 									<input asp-for="HealthInsurance"
@@ -104,15 +104,15 @@
 										   name="HealthInsurance"
 										   class="form-control"
 										   data-val="true"
-										   data-val-regex="Health Insurance must contain 2 uppercase characters and 13 digits."
+										   data-val-regex="Mã bảo hiểm phải gồm 2 chữ in hoa và 13 số."
 										   data-val-regex-pattern="^[A-Z]{2}\d{13}$" />
 
 								</div>
 
 								<div class="form-group">
-									<label>Blood Group</label>
+									<label>Nhóm máu</label>
 									<select asp-for="BloodGroup" class="form-select">
-										<option value="">Select</option>
+										<option value="">Chọn</option>
 										<option value="A+">A+</option>
 										<option value="A-">A-</option>
 										<option value="B+">B+</option>
@@ -125,7 +125,7 @@
 								</div>
 
 
-								<button type="submit" class="btn btn-dark mt-3 w-100">Save Changes</button>
+								<button type="submit" class="btn btn-dark mt-3 w-100">Lưu thay đổi</button>
 							</form>
 						</div>
 					</div>

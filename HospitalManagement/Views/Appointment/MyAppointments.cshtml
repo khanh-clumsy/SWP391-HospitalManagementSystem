@@ -109,6 +109,8 @@
 						<th>Dịch vụ</th>
 						<th>Trạng thái</th>
 						<th>Hành động</th>
+						<th>Thanh toán</th>
+
 					</tr>
 				</thead>
 				<tbody>
@@ -193,15 +195,39 @@
 												<i class="fas fa-pen"></i> Đánh giá
 											</a>
 										}
-										@if (User.IsInRole("Patient") && (item.Status == "Pending" || item.Status == "Confirmed"))
+									</div>
+								</td>
+								<td>
+									<div class="mt-2">
+										
+										@if(User.IsInRole("Patient") && item.Status == "Confirmed")
 										{
-											<form asp-action="Cancel" asp-controller="Appointment" method="post" onsubmit="return confirm('Bạn có chắc muốn hủy lịch khám này không?');">
-												<input type="hidden" name="id" value="@item.AppointmentId" />
-												<button type="submit" class="btn btn-sm btn-danger mt-2">
-													<i class="fas fa-times"></i> Hủy
-												</button>
-											</form>
+											var openInvoice = item.InvoiceDetails
+											.OrderBy(i => i.InvoiceDetailId)
+											.FirstOrDefault();
+
+											if(openInvoice.PaymentStatus=="Unpaid")
+											{
+												<a asp-action="PayStartAppointmentForPatient"
+											   asp-controller="Payment"
+											   asp-route-packageId="@item.PackageId"
+											   asp-route-serviceId="@item.ServiceId"
+											   class="btn btn-sm btn-info mt-2">
+												<i class="fas fa-pen"></i> Thanh toán trước
+											</a>
+											}
+											else if(openInvoice.PaymentStatus=="Paid"){
+											<p>
+												 Đã thanh toán trước
+											</p>
+											}
+											
 										}
+										else{
+											<p> 
+												Cuộc hẹn chưa được xác nhận
+											</p>
+											}
 									</div>
 								</td>
 							</tr>

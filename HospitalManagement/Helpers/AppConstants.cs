@@ -113,6 +113,7 @@ namespace HospitalManagement.Helpers
                 public const string NoPermission = "Bạn không có quyền truy cập vào cuộc hẹn này!";
                 public const string CancelSuccessful = "Đã hủy lịch khám thành công!";
                 public const string OnlyAppointmentOngoingCanAccess = "Chỉ được thao tác với cuộc hẹn đang diễn ra.";
+
             }
 
             public static class Tracking

@@ -20,7 +20,7 @@
 				<div class="col-12">
 					<a asp-controller="Home" asp-action="Index" class="back-to-list">
 						<i class="fas fa-arrow-left"></i>
-						Back to Home Page
+						Về trang chủ
 					</a>
 				</div>
 			</div>
@@ -39,9 +39,9 @@
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
-								<a class="btn btn-primary flex-fill text-center" asp-controller="Doctor" asp-action="UpdateProfile">Update Profile</a>
-								<a class="btn btn-primary flex-fill text-center" asp-controller="Doctor" asp-action="ChangePassword">Change Password</a>
-								<a class="btn btn-outline-primary flex-fill text-center" asp-controller="Doctor" asp-action="Logout">Logout</a>
+								<a class="btn btn-primary flex-fill text-center" asp-controller="Doctor" asp-action="UpdateProfile">Cập nhật hồ sơ</a>
+								<a class="btn btn-primary flex-fill text-center" asp-controller="Doctor" asp-action="ChangePassword">Đổi mật khẩu</a>
+								<a class="btn btn-outline-primary flex-fill text-center" asp-controller="Doctor" asp-action="Logout">Đăng xuất</a>
 							</div>
 						</div>
 
@@ -52,14 +52,14 @@
 				<div class="col-lg-8 wow fadeInUp" data-wow-delay="0.3s">
 					<div class="profile-card">
 						<div class="profile-info">
-							<h2> Doctor Details</h2>
+							<h2>Thông tin bác sĩ</h2>
 
 							<div class="info-item">
 								<div class="info-icon">
 									<i class="fas fa-user"></i>
 								</div>
 								<div class="info-content">
-									<h5>Full Name</h5>
+									<h5>Họ và tên</h5>
 									<p>@Model.FullName</p>
 								</div>
 							</div>
@@ -69,18 +69,18 @@
 									<i class="fas fa-venus-mars"></i>
 								</div>
 								<div class="info-content">
-									<h5>Gender</h5>
+									<h5>Giới tính</h5>
 									@if (Model.Gender[0] == 'M')
 									{
-										<p>Male</p>
+										<p>Nam</p>
 									}
 									else if (Model.Gender[0] == 'F')
 									{
-										<p>Female</p>
+										<p>Nữ</p>
 									}
 									else
 									{
-										<p>Other</p>
+										<p>Khác</p>
 
 									}
 								</div>
@@ -101,7 +101,7 @@
 									<i class="fas fa-phone"></i>
 								</div>
 								<div class="info-content">
-									<h5>Phone</h5>
+									<h5>Số điện thoại</h5>
 									<p>@Model.PhoneNumber</p>
 								</div>
 							</div>
@@ -112,7 +112,7 @@
 									<i class="fas fa-building"></i>
 								</div>
 								<div class="info-content">
-									<h5>Department</h5>
+									<h5>Khoa</h5>
 									<p>@Model.DepartmentName</p>
 								</div>
 							</div>
@@ -123,7 +123,7 @@
 									<i class="fas fa-user-graduate"></i>
 								</div>
 								<div class="info-content">
-									<h5>Degree</h5>
+									<h5>Bằng cấp</h5>
 									<p>@Model.Degree</p>
 								</div>
 							</div>
@@ -134,8 +134,8 @@
 									<i class="fas fa-briefcase"></i>
 								</div>
 								<div class="info-content">
-									<h5>Experience</h5>
-									<p>@Model.ExperienceYear years</p>
+									<h5>Kinh nghiệm</h5>
+									<p>@Model.ExperienceYear năm</p>
 								</div>
 							</div>
 
@@ -145,8 +145,8 @@
 									<i class="fas fa-user-tie"></i>
 								</div>
 								<div class="info-content">
-									<h5>Department Head</h5>
-									<p>@(Model.IsDepartmentHead == true ? "Yes" : "No")</p>
+									<h5>Trưởng khoa</h5>
+									<p>@(Model.IsDepartmentHead == true ? "Có" : "Không")</p>
 								</div>
 							</div>
 
@@ -156,8 +156,8 @@
 									<i class="fas fa-star"></i>
 								</div>
 								<div class="info-content">
-									<h5>Special Doctor</h5>
-									<p>@(Model.IsSpecial == true ? "Yes" : "No")</p>
+									<h5>Bác sĩ chuyên khoa</h5>
+									<p>@(Model.IsSpecial == true ? "Có" : "Không")</p>
 								</div>
 							</div>
 
