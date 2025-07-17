@@ -59,6 +59,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<FeedbackManageViewModel>> SearchFeedbackAsync(string? name, int? rating, DateOnly? date, int page, int pageSize)
         {
             var query = _context.Feedbacks
+                .IgnoreQueryFilters()
                 .Include(f => f.Patient)
                 .Include(f => f.Service)
                 .Include(f => f.Package)
@@ -93,6 +94,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<Feedback>> GetSpecialFeedbacksAsync()
         {
             return await _context.Feedbacks
+                .IgnoreQueryFilters()
                 .Include(f => f.Patient)
                 .Include(f => f.Service)
                 .Include(f => f.Package)

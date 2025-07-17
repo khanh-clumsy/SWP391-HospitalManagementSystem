@@ -229,48 +229,35 @@
 </div>
 <!-- Feature End -->
 <!-- Testimonial Start -->
-<div class="container-xxl py-5">
-	<div class="container">
-		<div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
-			<p class="d-inline-block border rounded-pill py-1 px-4">Ý Kiến Khách Hàng</p>
-			<h1>Bệnh Nhân Nói Gì Về Chúng Tôi?</h1>
-		</div>
-		<div class="owl-carousel testimonial-carousel wow fadeInUp" data-wow-delay="0.1s">
-
-
-			@* <div class="testimonial-item text-center">
-				<img class="img-fluid bg-light rounded-circle p-2 mx-auto mb-4" src="/img/testimonial-1.jpg" style="width: 100px; height: 100px;">
-				<div class="testimonial-text rounded text-center p-4">
-					<p>Comment của feedback</p>
-					<h5 class="mb-1">Tên bệnh nhân</h5>
-					<span class="fst-italic">Dịch vụ: Tên dịch vụ</span>
-				</div>
-
-			</div> *@
-
-			@if (feedbacks != null && feedbacks.Any())
-			{
-				@foreach (var f in feedbacks)
-				{
-					<div class="testimonial-item text-center">
-						<img class="img-fluid bg-light rounded-circle p-2 mx-auto mb-4"
-							 src="@(string.IsNullOrEmpty(f.Patient.ProfileImage)
-                                ? Url.Content("~/img/logo.jpg")
-                                : Url.Content("~/img/" + f.Patient.ProfileImage))"
-							 style="width: 100px; height: 100px;">
-						<div class="testimonial-text rounded text-center p-4">
-							<p>@f.Comment</p>
-							<h5 class="mb-1">@f.Patient?.FullName</h5>
-							<span class="fst-italic">
-								Dịch vụ:
-								@(f.Service?.ServiceType ?? f.Package?.PackageName ?? "Không rõ")
-							</span>
-						</div>
-					</div>
-				}
-			}
-
-		</div>
-	</div>
-</div>
+@if (feedbacks != null && feedbacks.Any())
+{
+    <div class="container-xxl py-5">
+        <div class="container">
+            <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                <p class="d-inline-block border rounded-pill py-1 px-4">Ý Kiến Khách Hàng</p>
+                <h1>Bệnh Nhân Nói Gì Về Chúng Tôi?</h1>
+            </div>
+            <div class="owl-carousel testimonial-carousel wow fadeInUp" data-wow-delay="0.1s">
+                @foreach (var f in feedbacks)
+                {
+                <div class="testimonial-item text-center">
+                        <img class="img-fluid bg-light rounded-circle p-2 mx-auto mb-4"
+                             src="@(string.IsNullOrEmpty(f.Patient.ProfileImage)
+                                                             ? Url.Content("~/img/logo.jpg")
+                                                             : Url.Content("~/img/" + f.Patient.ProfileImage))"
+                         style="width: 100px; height: 100px;">
+                    <div class="testimonial-text rounded text-center p-4">
+                        <p>@f.Comment</p>
+                        <h5 class="mb-1">@f.Patient?.FullName</h5>
+                        <span class="fst-italic">
+                            Dịch vụ:
+                            @(f.Service?.ServiceType ?? f.Package?.PackageName ?? "Không rõ")
+                        </span>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+}
 <!-- Testimonial End -->

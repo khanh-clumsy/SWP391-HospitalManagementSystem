@@ -26,6 +26,7 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Package)
                 .Include(a => a.CreatedByStaff)
                 .Include(a => a.InvoiceDetails)
+
                 .Where(a =>
                     (RoleKey == "PatientID" && a.PatientId == UserID) ||
                     (RoleKey == "StaffID" && a.CreatedByStaffId == UserID) ||
@@ -60,6 +61,7 @@ namespace HospitalManagement.Repositories
             else if (RoleKey == "DoctorID")
             {
                 query = query.Where(a => a.Status != AppConstants.AppointmentStatus.Pending && a.Status != AppConstants.AppointmentStatus.Expired);
+
             }
             return await query.ToListAsync();
         }
@@ -219,7 +221,8 @@ namespace HospitalManagement.Repositories
         public async Task<(List<AppointmentDetailDto> Details, int TotalCount)> GetMonthlyAppointmentDetailsAsync(int year, int month, int page, int pageSize)
         {
             var query = _context.Appointments
-                .Where(a => a.Status == AppConstants.AppointmentStatus.Completed && a.Date.Year == year && a.Date.Month == month)
+                .IgnoreQueryFilters()
+                .Where(a => a.Status == "Completed" && a.Date.Year == year && a.Date.Month == month)
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.CreatedByStaff)
@@ -273,7 +276,6 @@ namespace HospitalManagement.Repositories
                 .Include(a => a.Slot)
                 .Include(a => a.InvoiceDetails)
                 .Where(a => a.Status == AppConstants.AppointmentStatus.Confirmed && a.Date == today);
-
             if (!string.IsNullOrEmpty(phone))
             {
                 phone = string.Join("", phone.Split(" ", StringSplitOptions.RemoveEmptyEntries));
@@ -318,7 +320,6 @@ namespace HospitalManagement.Repositories
                             && a.Date == DateOnly.FromDateTime(DateTime.Today))
                             .OrderBy(a => a.Date).ThenBy(a => a.Slot.StartTime)
                             .ToListAsync();
-
         }
 
         public async Task<Appointment> GetAppointmentByIdAsync(int appointmentId)

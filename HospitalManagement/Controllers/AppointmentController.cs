@@ -836,7 +836,6 @@ namespace HospitalManagement.Controllers
             appointment.Status = AppConstants.AppointmentStatus.Cancelled;
             _context.Appointments.Update(appointment);
             await _context.SaveChangesAsync();
-
             TempData["success"] = AppConstants.Messages.Appointment.CancelSuccessful;
             return RedirectToAction("MyAppointments", "Appointment");
         }

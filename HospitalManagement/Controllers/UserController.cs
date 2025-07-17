@@ -156,7 +156,7 @@ namespace HospitalManagement.Controllers
             }
 
             _context.SaveChanges();
-            TempData["success"] = "Status updated successfully.";
+            TempData["success"] = "Cập nhật trạng thái thành công";
             return RedirectToAction("ManageAccount", new { type = "Patient" });
         }
 
@@ -196,20 +196,20 @@ namespace HospitalManagement.Controllers
                     transaction.Rollback();
 
                     var deptName = string.Join(", ", violate);
-                    TempData["error"] = $"Each department can have only one Department Head. Conflict in departments: {deptName}";
+                    TempData["error"] = $"Mỗi khoa chỉ được phép có một trưởng khoa, Lỗi ở khoa: {deptName}";
                     return RedirectToAction("ManageAccount", new { type = "Doctor" });
                 }
 
                 // Không có vi phạm => commit thay đổi
                 transaction.Commit();
 
-                TempData["success"] = "Status updated successfully.";
+                TempData["success"] = "Cập nhật trạng thái thành công";
                 return RedirectToAction("ManageAccount", new { type = "Doctor" });
             }
             catch (Exception ex)
             {
                 transaction.Rollback();
-                TempData["error"] = "An error occurred while updating doctor status.";
+                TempData["error"] = "Lỗi xảy ra khi cập nhật trạng thái";
                 return RedirectToAction("ManageAccount", new { type = "Doctor" });
             }
         }
@@ -228,7 +228,7 @@ namespace HospitalManagement.Controllers
             }
 
             _context.SaveChanges();
-            TempData["success"] = "Status updated successfully.";
+            TempData["success"] = "Cập nhật trạng thái thành công";
             return RedirectToAction("ManageAccount", new { type = "Staff" });
         }
 
@@ -432,7 +432,7 @@ namespace HospitalManagement.Controllers
             if (existingAccount != null)
             {
 
-                TempData["error"] = "Email is already registered.";
+                TempData["error"] = "Email đã được sử dụng rồi!";
                 return View(model);
             }
 
@@ -441,29 +441,29 @@ namespace HospitalManagement.Controllers
             // check if phone start with 0 and 9 digits back
             if (model.PhoneNumber == null)
             {
-                TempData["error"] = "Phone number is invalid.";
+                TempData["error"] = "Số điện thoại không hợp lệ";
                 return View(model);
             }
 
             if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
             {
-                TempData["error"] = "Phone number is invalid.";
+                TempData["error"] = "Số điện thoại không hợp lệ";
                 return View(model);
             }
 
             // check if phone is non-number
             foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
                 {
-                    TempData["error"] = "Phone number is invalid.";
+                    TempData["error"] = "Số điện thoại không hợp lệ";
                     return View(model);
                 }
 
-            // check phone is used(not this user)
+            // check phone is used
             var phoneOwner = _context.Doctors.FirstOrDefault(u => u.PhoneNumber == model.PhoneNumber);
 
             if (phoneOwner != null)
             {
-                TempData["error"] = "This phone number was used before.";
+                TempData["error"] = "Số điện thoại đã được sử dụng rồi";
                 return View(model);
             }
 
@@ -494,35 +494,35 @@ namespace HospitalManagement.Controllers
                 try
                 {
                     var emailBody = $@"
-                        <h3>✅ Welcome! Your New Employee Account Details</h3>
+                        <h3>✅ Chào mừng! Thông tin tài khoản bác sĩ của bạn</h3>
                         <p><strong>Email:</strong> {model.Email}</p>
-                        <p><strong>Password:</strong> {password}</p>
+                        <p><strong>Mật khẩu:</strong> {password}</p>
                         ";
 
                     await _emailService.SendEmailAsync(
                         toEmail: model.Email,
-                        subject: "✅ Your New Account Information",
+                        subject: "✅ Thông tin tài khoản mới của bạn",
                         body: emailBody
                     );
                 }
                 catch (Exception ex)
                 {
-                    TempData["error"] = $"Failed to send email";
+                    TempData["error"] = $"Không gửi được email";
                     return View(model);
                 }
 
-                TempData["success"] = "Doctor added successfully!";
+                TempData["success"] = "Thêm tài khoản bác sĩ thành công";
                 return RedirectToAction("ManageAccount", new { type = "Doctor" });
             }
             catch (DbUpdateException ex)
             {
                 if (ex.InnerException != null && ex.InnerException.Message.Contains("Cannot insert duplicate key row"))
                 {
-                    TempData["error"] = "Email is already registered.";
+                    TempData["error"] = "Email đã được sử dụng rồi!";
                     return View(model);
                 }
 
-                TempData["error"] = "An unexpected error occurred while saving the doctor account.";
+                TempData["error"] = "Lỗi xảy ra khi lưu thông tin bác sĩ";
                 return View(model);
             }
         }
@@ -536,7 +536,7 @@ namespace HospitalManagement.Controllers
             if (existingAccount != null)
             {
 
-                TempData["error"] = "Email is already registered.";
+                TempData["error"] = "Email đã được sử dụng rồi!";
                 return View(model);
             }
 
@@ -545,20 +545,20 @@ namespace HospitalManagement.Controllers
             // check if phone start with 0 and 9 digits back
             if (model.PhoneNumber == null)
             {
-                TempData["error"] = "Phone number is invalid.";
+                TempData["error"] = "Số điện thoại không hợp lệ";
                 return View(model);
             }
 
             if (model.PhoneNumber[0] != '0' || model.PhoneNumber.Length != 10)
             {
-                TempData["error"] = "Phone number is invalid.";
+                TempData["error"] = "Số điện thoại không hợp lệ";
                 return View(model);
             }
 
             // check if phone is non-number
             foreach (char u in model.PhoneNumber) if (u < '0' || u > '9')
                 {
-                    TempData["error"] = "Phone number is invalid.";
+                    TempData["error"] = "Số điện thoại không hợp lệ";
                     return View(model);
                 }
 
@@ -567,7 +567,7 @@ namespace HospitalManagement.Controllers
 
             if (phoneOwner != null)
             {
-                TempData["error"] = "This phone number was used before.";
+                TempData["error"] = "Số điện thoại đã được sử dụng rồi";
                 return View(model);
             }
             string password = UserController.RandomString(10);
@@ -592,14 +592,14 @@ namespace HospitalManagement.Controllers
                 try
                 {
                     var emailBody = $@"
-                    <h3>✅ Welcome! Your New Account Details</h3>
+                    <h3>✅ Chào mừng! Thông tin tài khoản nhân viên của bạn</h3>
                     <p><strong>Email:</strong> {model.Email}</p>
-                    <p><strong>Password:</strong> {password}</p>
+                    <p><strong>Mật khẩu:</strong> {password}</p>
                     ";
 
                     await _emailService.SendEmailAsync(
                         toEmail: model.Email,
-                        subject: "✅ Your New Account Information",
+                        subject: "✅ Thông tin tài khoản mới của bạn",
                         body: emailBody
                     );
                 }
@@ -692,14 +692,14 @@ namespace HospitalManagement.Controllers
                 try
                 {
                     var emailBody = $@"
-                    <h3>✅ Welcome! Your New Employee Account Details</h3>
+                    <h3>✅ Chào mừng! Your New Employee Account Details</h3>
                     <p><strong>Email:</strong> {model.Email}</p>
                     <p><strong>Password:</strong> {password}</p>
                     ";
 
                     await _emailService.SendEmailAsync(
                         toEmail: model.Email,
-                        subject: "✅ Your New Account Information",
+                        subject: "✅ Thông tin tài khoản mới của bạn",
                         body: emailBody
                     );
                 }
@@ -761,8 +761,15 @@ namespace HospitalManagement.Controllers
         [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> OngoingPatientScreen()
         {
+            // 1. Lấy DoctorId từ claims
+            int doctorId = int.Parse(User.FindFirst("DoctorID")?.Value ?? "0");
+
+            // 2. Lấy thông tin bác sĩ
+            var doctor = await _doctorRepo.GetByIdAsync(doctorId);
+            ViewBag.DoctorName = doctor.FullName;
             return View();
         }
+
         [HttpGet]
         [Authorize(Roles = "Doctor,TestDoctor")]
         public async Task<IActionResult> GetTodayPatients()

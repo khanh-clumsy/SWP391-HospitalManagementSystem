@@ -41,6 +41,13 @@
 
 			<a asp-action="MyAppointments" asp-route-Type="Completed"
 			   class="btn @(ViewBag.Type == "Completed" ? "btn-danger fw-bold" : "btn-outline-danger")">Hoàn thành</a>
+			@if (User.IsInRole("Doctor"))
+			{
+				<a asp-controller="User" asp-action="OngoingPatientScreen" class="btn btn-primary ms-3">
+					Xem bệnh nhân sắp tới
+				</a>
+			}
+
 		</div>
 
 		<form method="get" asp-action="MyAppointments" asp-controller="Appointment" class="d-flex flex-wrap gap-3 align-items-center mb-4">

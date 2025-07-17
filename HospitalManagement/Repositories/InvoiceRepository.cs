@@ -24,6 +24,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<RevenueMonthDto>> GetMonthlyRevenueStatisticsAsync(int year)
         {
             var invoices = await _context.InvoiceDetails
+                .IgnoreQueryFilters()
                 .Where(i => i.PaymentStatus == "Paid" && i.PaymentTime != null && i.PaymentTime.Value.Year == year)
                 .ToListAsync();
 
@@ -45,6 +46,7 @@ namespace HospitalManagement.Repositories
             var end = start.AddMonths(1);
 
             return await _context.InvoiceDetails
+                .IgnoreQueryFilters()
                 .Include(i => i.Appointment)
                 .ThenInclude(a => a.Patient)
                 .Where(i => i.PaymentStatus == "Paid" && i.PaymentTime >= start && i.PaymentTime < end)
@@ -58,6 +60,28 @@ namespace HospitalManagement.Repositories
                     PaymentTime = i.PaymentTime
                 })
                 .ToListAsync();
+        }
+        public async Task<List<InvoiceDetailDto>> GetInvoiceDetailsByDateRangeAsync(DateTime fromDate, DateTime toDate)
+        {
+            return await _context.InvoiceDetails.IgnoreQueryFilters()
+                .Where(i => i.PaymentTime >= fromDate && i.PaymentTime <= toDate)
+                .Select(i => new InvoiceDetailDto
+                {
+                    PatientName = i.Appointment.Patient.FullName,
+                    ItemType = i.ItemType,
+                    ItemName = i.ItemName,
+                    UnitPrice = i.UnitPrice,
+                    PaymentStatus = i.PaymentStatus,
+                    PaymentTime = i.PaymentTime
+                })
+                .ToListAsync();
+        }
+
+        public async Task<decimal> GetTotalRevenueByDateRangeAsync(DateTime fromDate, DateTime toDate)
+        {
+            return await _context.InvoiceDetails.IgnoreQueryFilters()
+                .Where(i => i.PaymentTime >= fromDate && i.PaymentTime <= toDate)
+                .SumAsync(i => (decimal?)i.UnitPrice) ?? 0;
         }
 
     }

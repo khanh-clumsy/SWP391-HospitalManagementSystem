@@ -123,7 +123,7 @@ namespace HospitalManagement.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Sales")]
         public async Task<IActionResult> ManageFeedback(string? name, int? rating, DateOnly? date, int? page)
         {
             name = HomeController.NormalizeName(name);
@@ -144,7 +144,26 @@ namespace HospitalManagement.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Sales")]
+        public async Task<IActionResult> DeleteFeedback(int id)
+        {
+            var feedback = await _context.Feedbacks.FindAsync(id);
+            if (feedback != null)
+            {
+                _context.Feedbacks.Remove(feedback);
+                await _context.SaveChangesAsync();
+                TempData["success"] = "Xóa đánh giá thành công!";
+            }
+            else
+            {
+                TempData["error"] = "Không tìm thấy đánh giá cần xóa.";
+            }
+
+            return RedirectToAction(nameof(ManageFeedback));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Sales")]
         public async Task<IActionResult> UpdateFeedbackSpecial(List<FeedbackManageViewModel> feedbacks)
         {
             foreach (var item in feedbacks)

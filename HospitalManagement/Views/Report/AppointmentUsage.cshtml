@@ -7,6 +7,10 @@
 
 <div class="container mt-4">
     <h2 class="text-center mb-4 text-primary">📊 Thống kê cuộc hẹn theo năm @Model.Year</h2>
+    @if(Model == null)
+    {
+
+    }
     <!-- Form chọn năm -->
     <form asp-action="AppointmentUsageByYear" method="get" class="mb-4">
         <label class="me-2 fw-bold">Chọn năm:</label>

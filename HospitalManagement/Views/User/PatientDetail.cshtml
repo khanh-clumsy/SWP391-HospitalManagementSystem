@@ -45,7 +45,7 @@
 	<div class="container-xxl doctor-profile py-5">
 		<div class="container">
 
-			<<div class="col-12">
+			<div class="col-12">
 				<a href="javascript:history.back()" class="back-to-list">
 					<i class="fas fa-arrow-left"></i> Trở về
 				</a>
@@ -58,10 +58,10 @@
 					<div class="profile-card text-center">
 						<!-- Ảnh hiện tại -->
 						<div class="profile-image">
-							<img src="@(Model.ProfileImage != null
-									 			? $"data:image/png;base64,{Model.ProfileImage}"
-									 			: Url.Content("~/img/logo.jpg"))"
-								 alt="Current Photo" class="shadow mb-2" />
+							<img src="@(string.IsNullOrEmpty(Model.ProfileImage)
+										? Url.Content("~/img/logo.jpg")
+										: Url.Content("~/img/" + Model.ProfileImage))"
+								 alt="Patient Photo" class="shadow mb-2" />
 						</div>
 						<div class="profile-buttons">
 							<div class="d-flex gap-2 justify-content-center flex-wrap">
@@ -82,7 +82,7 @@
 									<i class="fas fa-user"></i>
 								</div>
 								<div class="info-content">
-									<h5>Tên đầy đủ</h5>
+									<h5>Họ và tên</h5>
 									<p>@Model.FullName</p>
 								</div>
 							</div>
