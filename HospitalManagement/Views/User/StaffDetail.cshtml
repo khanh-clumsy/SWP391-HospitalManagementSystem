@@ -58,9 +58,9 @@
 					<div class="profile-card text-center">
 						<!-- Ảnh hiện tại -->
 						<div class="profile-image">
-							<img src="@(Model.ProfileImage != null
-									 						? $"data:image/png;base64,{Model.ProfileImage}"
-															: Url.Content("~/img/logo.jpg"))"
+							<img src="@(string.IsNullOrEmpty(Model.ProfileImage)
+										? Url.Content("~/img/logo.jpg")
+										: Url.Content("~/img/" + Model.ProfileImage))"
 								 alt="Current Photo" class="shadow mb-2" />
 						</div>
 						<div class="profile-buttons">

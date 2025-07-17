@@ -157,7 +157,7 @@
                             <span>Trống</span>
                         }
                     </p>
-                    <p class="card-text"><strong>Trạng thái:</strong> @room.Status</p>
+                    <p class="card-text"><strong>Trạng thái:</strong> @room.GetFullRoomStatus()</p>
                 </div>
                 <div class="card-footer bg-transparent border-top-0 text-center">
                     <a asp-action="RoomDetail" asp-controller="User" asp-route-id="@room.RoomId" class="btn btn-warning">Chi tiết</a>
