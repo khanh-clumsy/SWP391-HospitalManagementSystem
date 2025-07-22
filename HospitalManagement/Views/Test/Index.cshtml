@@ -1,11 +1,14 @@
-﻿@model List<HospitalManagement.Models.Test>
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using HospitalManagement.Helpers
+@model IPagedList<HospitalManagement.Models.Test>
 
 @{
 
 	ViewData["Title"] = "Danh sách xét nghiệm";
 	var isAdmin = User.IsInRole("Admin");
 }
-@section Styles{
+@section Styles {
 	<style>
 		#loadingOverlay {
 			display: none !important;
@@ -31,7 +34,7 @@
 			<h2 class="text-primary">Danh sách xét nghiệm</h2>
 			@if (isAdmin)
 			{
-				<a asp-action="Create" class="btn btn-success">
+				<a asp-action="Create" class="btn btn-primary">
 					<i class="fas fa-plus me-2"></i>Thêm xét nghiệm mới
 				</a>
 			}
@@ -56,54 +59,60 @@
 			</div>
 		</form>
 		<div class="table-responsive">
-			<table class="table table-bordered text-center">
+			<table class="table table-bordered table-hover align-middle text-center">
 				<thead class="table-light">
 					<tr>
-						<th>Mã</th>
+						<th>ID</th>
 						<th>Tên xét nghiệm</th>
-						<th>Mô tả</th>
-						<th>Giá tiền</th>
+						<th>Giá</th>
 						<th>Loại phòng</th>
-						@if (isAdmin)
+						@if (User.IsInRole(AppConstants.Roles.Admin))
 						{
-							<th>Thao tác</th>
+							<th>Hành động</th>
 						}
 					</tr>
 				</thead>
 				<tbody>
-					@if (Model != null && Model.Any())
-					{
-						foreach (var item in Model)
-						{
-							<tr>
-								<td>@item.TestId</td>
-								<td>@item.Name</td>
-								<td>@item.Description</td>
-								<td>@item.Price.ToString("N0") đ</td>
-								<td>@(string.IsNullOrEmpty(item.RoomType) ? "Chưa phân loại" : item.RoomType)</td>
-								@if (isAdmin)
-								{
-									<td>
-										<a asp-action="Update" asp-route-id="@item.TestId" class="btn btn-sm btn-primary">
-											<i class="fas fa-edit"></i> Sửa
-										</a>
-									</td>
-								}
-							</tr>
-						}
-					}
-					else
+					@foreach (var item in Model)
 					{
 						<tr>
-							<td colspan="@(isAdmin ? "6" : "5")" class="text-center py-4">
-								<i class="fas fa-flask fa-2x text-muted mb-2"></i>
-								<p class="text-muted mb-0">Không có xét nghiệm nào</p>
-							</td>
+							<td>@item.TestId</td>
+							<td>@item.Name</td>
+							<td>@String.Format("{0:N0}", item.Price) ₫</td>
+							<td>@item.RoomType</td>
+							@if (User.IsInRole(AppConstants.Roles.Admin))
+							{
+								<td>
+									<a asp-action="Update" asp-route-id="@item.TestId" class="btn btn-sm btn-primary">Cập nhật</a>
+								</td>
+							}
 						</tr>
 					}
-
 				</tbody>
 			</table>
+			@if (Model.PageCount > 1)
+			{
+				<div class="d-flex justify-content-center mt-4">
+					@Html.PagedListPager(Model, page => Url.Action("Index", new {
+					page,
+								searchName = ViewBag.CurrentSearchName,
+								sortOrder = ViewBag.CurrentSortOrder,
+								minPrice = ViewBag.CurrentMinPrice,
+								maxPrice = ViewBag.CurrentMaxPrice
+								}), new PagedListRenderOptions
+				{
+					DisplayLinkToFirstPage = PagedListDisplayMode.Always,
+					DisplayLinkToLastPage = PagedListDisplayMode.Always,
+					DisplayLinkToPreviousPage = PagedListDisplayMode.Always,
+					DisplayLinkToNextPage = PagedListDisplayMode.Always,
+					DisplayLinkToIndividualPages = true,
+					MaximumPageNumbersToDisplay = 5,
+					UlElementClasses = new[] { "pagination" },
+					LiElementClasses = new[] { "page-item" },
+					PageClasses = new[] { "page-link" }
+				})
+			</div>
+						}
 		</div>
 	</div>
 </div>

@@ -27,7 +27,7 @@ public class AppointmentExpirationService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             await CheckExpiredAppointmentsAsync();
-            await Task.Delay(TimeSpan.FromMinutes(5), stoppingToken);
+            await Task.Delay(TimeSpan.FromMinutes(59), stoppingToken);
            // await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
         }
         _logger.LogInformation("AppointmentExpirationService is stopping.");

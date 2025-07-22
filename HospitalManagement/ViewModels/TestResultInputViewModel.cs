@@ -12,7 +12,7 @@
         public int PatientID { get; set; }
         public string PatientFullName { get; set; } = "";
         public string Gender { get; set; } = "";
-        public DateTime DOB { get; set; }
+        public DateTime? DOB { get; set; }
 
         // Ghi chú bác sĩ
         public string Note { get; set; } = "";

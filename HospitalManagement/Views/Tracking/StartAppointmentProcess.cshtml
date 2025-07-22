@@ -10,7 +10,6 @@
 	var ongoingPatientIds = Model.Where(a => a.Status == "Ongoing").Select(a => a.PatientId).Distinct().ToList();
 }
 @section Styles {
-	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
 	<style>
 		#loadingOverlay {
 			display: none !important;

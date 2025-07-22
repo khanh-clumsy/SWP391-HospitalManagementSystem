@@ -442,7 +442,7 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> MyAppointments(string? SearchName, string? SlotFilter, string? DateFilter, string? StatusFilter, string? Type, int? page)
         {
-            int pageSize = 12;
+            int pageSize = 6;
             int pageNumber = page ?? 1;
 
             // Chuẩn hóa tên
@@ -645,7 +645,6 @@ namespace HospitalManagement.Controllers
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointment.AppointmentId);
-
             if (confirmedAppointment == null)
             {
                 TempData["error"] = AppConstants.Messages.Appointment.NotFound;
@@ -655,7 +654,33 @@ namespace HospitalManagement.Controllers
                 model.WeeklySchedule = new List<DoctorScheduleViewModel.ScheduleItem>();
                 return View(model);
             }
+            await _invoiceService.CreateInvoiceForAppointmentAsync(confirmedAppointment);
+            if (confirmedAppointment.PackageId != null)
+            {
+                var package = await _context.Packages
+                    .Include(p => p.PackageTests).ThenInclude(pt => pt.Test)
+                    .FirstOrDefaultAsync(p => p.PackageId == confirmedAppointment.PackageId);
+                if (package == null)
+                {
+                    TempData["error"] = AppConstants.Messages.Package.NotFound;
+                    return RedirectToAction("Create");
+                }
 
+                if (package.PackageTests != null)
+                {
+                    foreach (var test in package.PackageTests)
+                    {
+                        var testRecord = new TestRecord
+                        {
+                            AppointmentId = confirmedAppointment.AppointmentId,
+                            TestId = test.TestId,
+                            TestStatus = AppConstants.TestStatus.Pending
+                        };
+                        _context.TestRecords.Add(testRecord);
+
+                    }
+                }
+            }
             try
             {
                 var emailBody = EmailBuilder.BuildConfirmedAppointmentEmail(confirmedAppointment);
@@ -954,7 +979,7 @@ namespace HospitalManagement.Controllers
             // - Có lịch trực trong khung giờ đó
             // - KHÔNG có lịch hẹn trùng giờ
             var doctors = _context.Doctors
-                .Include(d => d.Schedules)
+                .AsNoTracking()
                 .Where(d =>
                     d.Schedules.Any(s => s.Day == dateOnly && s.SlotId == slotId) &&
                     !_context.Appointments.Any(a =>
@@ -964,8 +989,15 @@ namespace HospitalManagement.Controllers
                         a.Status != AppConstants.AppointmentStatus.Rejected &&
                         a.Status != AppConstants.AppointmentStatus.Expired)
                 )
+                .Where(d => d.IsActive)
+                .Select(d => new Doctor
+                {
+                    DoctorId = d.DoctorId,
+                    FullName = d.FullName,
+                    DepartmentName = d.DepartmentName,
+                    ProfileImage = d.ProfileImage
+                })
                 .ToList();
-
             var viewModel = new AssignDoctorViewModel
             {
                 AppointmentId = appointmentId,

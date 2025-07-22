@@ -45,7 +45,7 @@ namespace HospitalManagement.Controllers
                 TestName = testRecord.Test.Name,
                 PatientFullName = testRecord.Appointment.Patient.FullName,
                 Gender = testRecord.Appointment.Patient.Gender,
-                DOB = testRecord.Appointment.Patient.Dob ?? DateTime.MinValue
+                DOB = testRecord.Appointment.Patient.Dob
             };
 
             return View(model);

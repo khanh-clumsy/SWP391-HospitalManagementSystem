@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using X.PagedList;
+using X.PagedList.Extensions;
 
 namespace HospitalManagement.Controllers
 {
@@ -20,14 +22,21 @@ namespace HospitalManagement.Controllers
             _context = context;
         }
 
-        public IActionResult Index(string searchName, string sortOrder, decimal? minPrice, decimal? maxPrice)
+        public IActionResult Index(string searchName, string sortOrder, decimal? minPrice, decimal? maxPrice, int? page)
         {
-            var tests = _testRepository.Search(searchName, sortOrder, minPrice, maxPrice);
+            int pageSize = 5;
+            int pageNumber = page ?? 1;
+            var tests = _testRepository.Search(searchName, sortOrder, minPrice, maxPrice).ToPagedList(pageNumber, pageSize);
 
             ViewBag.SearchName = searchName;
             ViewBag.SortOrder = sortOrder;
             ViewBag.MinPrice = minPrice;
             ViewBag.MaxPrice = maxPrice;
+
+            ViewBag.CurrentSearchName = searchName;
+            ViewBag.CurrentSortOrder = sortOrder;
+            ViewBag.CurrentMinPrice = minPrice;
+            ViewBag.CurrentMaxPrice = maxPrice;
 
             return View(tests);
         }
@@ -124,7 +133,7 @@ namespace HospitalManagement.Controllers
             {
                 PatientFullName = testRecord.Appointment?.Patient?.FullName,
                 Gender = testRecord.Appointment?.Patient?.Gender,
-                DOB = testRecord.Appointment?.Patient?.Dob ?? DateTime.MinValue,
+                DOB = testRecord.Appointment?.Patient?.Dob,
                 TestName = testRecord.Test?.Name,
                 Note = testRecord.TestNote,
                 ResultFileName = testRecord.Result,

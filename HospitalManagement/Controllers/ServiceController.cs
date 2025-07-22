@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HospitalManagement.Helpers;
+using X.PagedList;
+using X.PagedList.Extensions;
+using X.PagedList.EF;
 
 namespace HospitalManagement.Controllers
 {
@@ -18,17 +21,18 @@ namespace HospitalManagement.Controllers
 
         //  Danh sách dịch vụ (mọi role đều xem được)
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
+            int pageSize = 6;
+            int pageNumber = page ?? 1;
             var services = User.IsInRole("Admin")
                 ? await _context.Services
                     .IgnoreQueryFilters()
                     .OrderByDescending(s => s.ServiceId)
-                    .ToListAsync()
+                    .ToPagedListAsync(pageNumber, pageSize)
                 : await _context.Services
                     .OrderByDescending(s => s.ServiceId)
-                    .ToListAsync();
-
+                    .ToPagedListAsync(pageNumber, pageSize);
             return View(services);
         }
 

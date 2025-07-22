@@ -164,7 +164,7 @@ namespace HospitalManagement.Controllers
 
             var appointmentList = await _appointmentRepo.GetOngoingAppointmentsByDoctorIdAsync(doctorId);
             int pageNumber = page ?? 1;
-            int pageSize = 10;
+            int pageSize = 4;
             var pagedAppointments = appointmentList.ToPagedList(pageNumber, pageSize);
 
             return View(pagedAppointments);
@@ -176,7 +176,7 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments
                 .Include(a => a.Doctor)
                 .Include(a => a.Patient)
-                .FirstOrDefaultAsync(a => a.AppointmentId == id);
+                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.Status == AppConstants.AppointmentStatus.Ongoing);
             var doctorIdClaim = User.FindFirst(AppConstants.ClaimTypes.DoctorId)?.Value;
             if (doctorIdClaim == null)
             {
@@ -276,8 +276,14 @@ namespace HospitalManagement.Controllers
 
                     if (!roomDict.ContainsKey(testId))
                     {
+                        var now = TimeOnly.FromDateTime(DateTime.Now);
+                        var today = DateOnly.FromDateTime(DateTime.Now);
                         var rooms = await _context.Rooms
                             .Where(r => r.RoomType == testRecord.Test.RoomType)
+                            .Where(r => r.Schedules.Any(s => s.RoomId == r.RoomId && s.Day == today
+                            //&& s.Slot.StartTime <= now 
+                            //&& now < s.Slot.EndTime
+                            ))
                             .OrderBy(r => r.RoomName)
                             .ToListAsync();
 
@@ -758,13 +764,17 @@ namespace HospitalManagement.Controllers
             {
                 return Json(new { success = false, message = AppConstants.Messages.Room.InvalidRoomType });
             }
+            var now = TimeOnly.FromDateTime(DateTime.Now);
+            var today = DateOnly.FromDateTime(DateTime.Today);
             var schedule = await _context.Schedules
                 .Include(s => s.Room)
                 .Include(s => s.Slot)
                 .Where(s => s.Day == DateOnly.FromDateTime(DateTime.Today)
                 && s.Room.RoomType != null
                 && s.Room.RoomType == roomType
-                && s.Room.Status != AppConstants.RoomStatus.Maintain)
+                && s.Room.Status != AppConstants.RoomStatus.Maintain
+                //&& s.Slot.StartTime <= now && now < s.Slot.EndTime
+                )
                 .ToListAsync();
 
             var rooms = schedule.Select(s => new

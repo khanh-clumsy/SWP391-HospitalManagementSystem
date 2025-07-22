@@ -317,7 +317,8 @@ namespace HospitalManagement.Repositories
                             .Include(a => a.Slot)
                             .Where(a => a.DoctorId == doctorId
                             && a.Status == AppConstants.AppointmentStatus.Ongoing
-                            && a.Date == DateOnly.FromDateTime(DateTime.Today))
+                            //&& a.Date == DateOnly.FromDateTime(DateTime.Today)
+                            )
                             .OrderBy(a => a.Date).ThenBy(a => a.Slot.StartTime)
                             .ToListAsync();
         }

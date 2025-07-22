@@ -3,13 +3,23 @@
 @{
     ViewData["Title"] = "Kết quả xét nghiệm";
 }
+@section Styles{
+    <style>
+        .form-control-plaintext {
+            color: #212529; /* Gần như đen, Bootstrap mặc định dùng */
+            font-weight: 600; /* Tăng độ đậm chữ */
+        }
+    </style>
+}
 
 <div class="container my-5">
     <h2 class="text-primary fw-bold mb-4">Kết quả xét nghiệm</h2>
     <div class="p-4 shadow-sm border rounded bg-white">
         <div class="mb-3">
             <label class="form-label fw-bold">Ngày sinh:</label>
-            <div class="form-control-plaintext">@Model.DOB.ToString("dd/MM/yyyy")</div>
+            <div class="form-control-plaintext">
+                @(Model.DOB == null ? "Chưa có" : Model.DOB.Value.ToString("dd/MM/yyyy"))
+            </div>
         </div>
         <div class="mb-3">
             <label class="form-label fw-bold">Tên xét nghiệm:</label>

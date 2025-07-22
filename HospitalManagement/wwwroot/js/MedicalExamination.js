@@ -188,6 +188,7 @@ $(document).ready(function () {
                 renderTrackingList();
                 $testSelect.prop('selectedIndex', 0).trigger('change');
                 alert("Thêm phòng thành công ✅");
+                updateTestSelectOptions();
             },
             error: function (xhr) {
                 console.error("Error:", xhr.status, xhr.responseText);

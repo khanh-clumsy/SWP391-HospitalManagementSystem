@@ -47,6 +47,7 @@ $(document).on("click", ".open-assign-modal", function (e) {
     e.preventDefault();
     const appId = $(this).data("appointment-id");
     const date = $(this).data("appointment-date");
+    $("#assignDoctorModalBody").html('<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>');
 
     $.get("/Appointment/LoadAssignDoctorModal", { appointmentId: appId, date: date }, function (html) {
         $("#assignDoctorModalBody").html(html);
@@ -63,11 +64,16 @@ $(document).on('click', '.doctor-card', function () {
     console.log("Doctor ID: " + selectedId);
 });
 
-$("#doctorSearchInput").on("keyup", function () {
+let timer;
+$(document).on("keyup", "#doctorSearch", function () {
+    clearTimeout(timer);
     const keyword = $(this).val().toLowerCase();
-    $(".doctor-card").each(function () {
-        const name = $(this).find(".card-title").text().toLowerCase();
-        const dept = $(this).find(".text-muted").text().toLowerCase();
-        $(this).toggle(name.includes(keyword) || dept.includes(keyword));
-    });
+    timer = setTimeout(() => {
+        $(".doctor-card").each(function () {
+            const name = $(this).find(".card-title").text().toLowerCase();
+            const dept = $(this).find(".text-muted").text().toLowerCase();
+            $(this).toggle(name.includes(keyword) || dept.includes(keyword));
+        });
+    }, 200); // đợi 200ms sau khi gõ mới lọc
 });
+
