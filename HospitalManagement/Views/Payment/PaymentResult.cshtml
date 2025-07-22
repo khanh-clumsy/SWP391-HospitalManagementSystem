@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "Kết quả thanh toán";
+    var message = ViewBag.Message as string ?? "Không có thông báo.";
+    var paymentMethod = ViewBag.PaymentMethod as string;
+    var paymentTime = ViewBag.PaymentTime as DateTime?;
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="card shadow-lg rounded" style="max-width: 600px; width: 100%;">
+        <div class="card-header text-white text-center" style="background-color: #007BFF;">
+            <h3 class="mb-0">Kết Quả Thanh Toán</h3>
+        </div>
+        <div class="card-body text-center" style="background-color: #F8F9FA;">
+            <h4 class="mb-3">@message</h4>
+
+            @if (!string.IsNullOrEmpty(paymentMethod))
+            {
+                var paymentMethodText = paymentMethod switch
+                {
+                    "VNPAY" => "Chuyển khoản",
+                    "Cash" => "Tiền mặt",
+                    _ => paymentMethod
+                };
+                <p><strong>Phương thức thanh toán:</strong> @paymentMethodText</p>
+            }
+
+            @if (paymentTime.HasValue)
+            {
+                <p><strong>Thời gian thanh toán:</strong> @paymentTime.Value.ToString("dd/MM/yyyy HH:mm:ss")</p>
+            }
+
+            <a href="/Home/Index" class="btn btn-primary mt-3">
+                <i class="fas fa-home"></i> Về trang chủ
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,177 @@
+﻿@using HospitalManagement.ViewModels
+@using HospitalManagement.ViewModels.Package
+@model PackageDetailViewModel
+@{
+    string gender = "";
+    if (Model.Package.TargetGender == "M") { gender = "Nữ"; }
+    else if (Model.Package.TargetGender == "A")
+    {
+        gender = "Tất cả";
+    }
+    else { gender = "Nam"; }
+    var isAdmin = User.IsInRole("Admin");
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/Package/PackageDetail.css" />
+}
+
+<div class="container-xxl py-5">
+    <div class="container">
+        <!-- Package Header Card -->
+        <div class="package-header-card mb-5">
+            <div class="row g-0">
+                <div class="col-md-8">
+                    <div class="package-image">
+                        <img src="@(string.IsNullOrEmpty(Model.Package.Thumbnail)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/Package/"+Model.Package.Thumbnail))"
+                             alt="@Model.Package.PackageName"
+                             class="w-100 h-100" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="package-info">
+                        <h3 class="package-title">@Model.Package.PackageName</h3>
+
+                        <div class="package-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-venus-mars text-primary me-2"></i>
+                                <span>@gender</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                <span>@Model.Package.AgeFrom - @Model.Package.AgeTo tuổi</span>
+                            </div>
+                        </div>
+
+                        <div class="package-pricing">
+                            @if (Model.Package.DiscountPercent > 0)
+                            {
+                                <span class="original-price">@Model.Package.OriginalPrice.ToString("N0") đ</span>
+                                <span class="discount-badge">-@($"{Model.Package.DiscountPercent?.ToString("0")}%")</span>
+                            }
+                            <div class="final-price">@Model.Package.FinalPrice.ToString("N0") đ</div>
+                        </div>
+
+                        @if (!isAdmin)
+                        {
+                            <div class="package-actions">
+                                <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
+                                   class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-calendar-plus me-2"></i>Đặt lịch ngay
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Package Details Section -->
+        <div class="row g-4">
+            <!-- Package Information -->
+            <div class="col-lg-6">
+                <div class="info-card">
+                    <h4 class="section-title">Thông tin gói khám</h4>
+                    <div class="info-table">
+                        <div class="info-row">
+                            <div class="info-label">Giới tính</div>
+                            <div class="info-value">@gender</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Độ tuổi</div>
+                            <div class="info-value">@Model.Package.AgeFrom - @Model.Package.AgeTo tuổi</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Số lần đặt</div>
+                            <div class="info-value text-success">@Model.BookingCount</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Danh mục</div>
+                            <div class="info-value">@(Model.Package.PackageCategory.CategoryName ?? "Chưa có danh mục")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Description -->
+            <div class="col-lg-6">
+                <div class="info-card">
+                    <h4 class="section-title">Mô tả</h4>
+                    <div class="description-content">
+                        <p><strong>* Nội dung gói dịch vụ:</strong></p>
+                        <p>@(Model.Package.Description ?? "Đánh giá tình trạng sức khỏe toàn diện, kiểm tra các chỉ số quan trọng để phát hiện sớm các vấn đề sức khỏe...")</p>
+                        <div class="health-benefits">
+                            <p asp-for="Description"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tests List Section -->
+        <div class="tests-section mt-5">
+            <div class="tests-card">
+                <h4 class="section-title mb-4">Danh sách các xét nghiệm</h4>
+                @if (Model.Tests != null && Model.Tests.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered text-center">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Tên xét nghiệm</th>
+                                    <th>Giá xét nghiệm</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Tests.Count; i++)
+                                {
+                                    <tr>
+                                        <td>@(i + 1)</td>
+                                        <td>@Model.Tests[i].Name</td>
+                                        <td class="price-cell">@Model.Tests[i].Price.ToString("N0") đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <td colspan="2" class="fw-bold">Tổng giá trị gói khám</td>
+                                    <td class="fw-bold total-price">@Model.Package.OriginalPrice.ToString("N0") đ</td>
+                                </tr>
+                                @if (Model.Package.DiscountPercent > 0)
+                                {
+                                    <tr class="table-success">
+                                        <td colspan="2" class="fw-bold text-success">Giá sau giảm giá: @($"{Model.Package.DiscountPercent?.ToString("0")}%")</td>
+                                        <td class="fw-bold text-success">@Model.Package.FinalPrice.ToString("N0") đ</td>
+                                    </tr>
+                                }
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Chưa có xét nghiệm nào trong gói này</p>
+                    </div>
+                }
+            </div>
+        </div>
+        <!-- End Test List-->
+        <!-- Action Buttons -->
+        <div class="text-center mt-5">
+            <a href="@Url.Action("Index", "Package")" class="btn btn-outline-secondary btn-lg me-3">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+            </a>
+            @if (!isAdmin)
+            {
+                <a asp-action="BookingByService" asp-controller="Appointment" asp-route-packageId="@Model.Package.PackageId"
+                   class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-plus me-2"></i>Đặt lịch khám ngay
+                </a>
+            }
+        </div>
+    </div>
+</div>

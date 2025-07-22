@@ -1,0 +1,90 @@
+@model List<HospitalManagement.Models.InvoiceDetail>
+
+@{
+    ViewBag.Title = "Danh Sách Hóa Đơn";
+    var status = ViewBag.CurrentStatus as string ?? "Unpaid";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-3">Danh Sách Hóa Đơn</h2>
+
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link @(status == "Unpaid" ? "active" : "")" asp-action="ViewInvoiceList" asp-route-status="Unpaid">Chưa thanh toán</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link @(status == "Paid" ? "active" : "")" asp-action="ViewInvoiceList" asp-route-status="Paid">Đã thanh toán</a>
+        </li>
+    </ul>
+
+<form method="get" class="row mb-3">
+    <div class="col-md-3">
+        <input type="text" name="phone" class="form-control" placeholder="Tìm theo số điện thoại" value="@ViewBag.CurrentPhone" />
+    </div>
+    <input type="hidden" name="status" value="@ViewBag.CurrentStatus" />
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+    </div>
+</form>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Số điện thoại</th>
+                <th>Bệnh nhân</th>
+                <th>Ngày tạo</th>
+                <th>Loại</th>
+                <th>Tên dịch vụ/gói khám</th>
+                <th>Giá</th>
+                <th>Trạng thái</th>
+                <th>Phương thức</th>
+                <th>Chi tiết</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var invoice in Model)
+            {
+                <tr>
+                    <td>@invoice.Appointment.Patient.PhoneNumber</td>
+                    <td>@invoice.Appointment.Patient.FullName</td>
+                    <td>@invoice.CreatedAt?.ToString("dd/MM/yyyy")</td>
+                    <td>@invoice.ItemType</td>
+                    <td>@invoice.ItemName</td>
+                    <td>@String.Format("{0:N0}", invoice.UnitPrice) ₫</td>
+                    <td>
+                        @if (invoice.PaymentStatus == "Paid")
+                        {
+                            <span class="text-success fw-bold">Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Chưa thanh toán</span>
+                        }
+                    </td>
+
+                    @if(invoice.PaymentMethod != null){
+                        var paymentMethodText = invoice.PaymentMethod switch
+                        {
+                            "Cash" => "Tiền mặt",
+                            "Banking" => "Chuyển khoản",
+                            "VNPAY" => "Chuyển khoản",
+                            _ => invoice.PaymentMethod
+                        };
+                        <td>@paymentMethodText</td>
+                    }
+                    else{
+                        <td>Chưa rõ</td>
+                    }
+                    
+                    <td>
+                        <a asp-controller="Payment" asp-action="InvoiceDetail" asp-route-id="@invoice.InvoiceDetailId"
+                        class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            <i class="fas fa-file-invoice me-1"></i> Xem
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

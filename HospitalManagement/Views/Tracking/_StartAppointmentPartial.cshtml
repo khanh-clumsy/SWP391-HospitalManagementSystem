@@ -1,0 +1,17 @@
+﻿@model Appointment
+
+<div class="modal-header">
+    <h5 class="modal-title">Bắt đầu khám - @Model.Patient.FullName</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<form method="post" asp-action="StartDiagnosis" asp-controller="Tracking">
+    <div class="modal-body">
+        <p><strong>Bác sĩ:</strong> @Model.Doctor?.FullName</p>
+        <p><strong>Thời gian:</strong> @Model.Date.ToString("dd/MM/yyyy") @Model.Slot?.StartTime</p>
+        <p><strong>Phòng:</strong> @(ViewBag.DoctorRoomName ?? "Không xác định")</p>
+
+        <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
+
+        <button type="submit" class="btn btn-primary mt-3">Bắt đầu quy trình</button>
+    </div>
+</form>

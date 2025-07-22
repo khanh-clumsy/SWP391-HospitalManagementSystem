@@ -1,0 +1,140 @@
+﻿@using HospitalManagement.ViewModels;
+@model AppointmentUsageStatsViewModel
+
+@{
+    ViewData["Title"] = "Thống kê sử dụng cuộc hẹn theo năm";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4 text-primary">📊 Thống kê cuộc hẹn theo năm @Model.Year</h2>
+    @if(Model == null)
+    {
+
+    }
+    <!-- Form chọn năm -->
+    <form asp-action="AppointmentUsageByYear" method="get" class="mb-4">
+        <label class="me-2 fw-bold">Chọn năm:</label>
+        <select name="year" class="form-select w-auto d-inline" onchange="this.form.submit()">
+            @foreach (var y in Model.AvailableYears)
+            {
+                <option value="@y" selected="@(y == Model.Year ? "selected" : null)">@y</option>
+            }
+        </select>
+    </form>
+    <!-- Biểu đồ -->
+    <div class="row">
+        <div class="col-md-7">
+            <div class="d-flex flex-column align-items-center">
+                <h5 class="text-center">📌 Tỷ lệ sử dụng dịch vụ vs gói khám</h5>
+                <canvas id="usagePieChart" style="max-width: 300px; max-height: 300px;"></canvas>
+
+                <h5 class="text-center mt-4">📊 Số lượng cuộc hẹn theo tháng</h5>
+                <div class="d-flex justify-content-center w-100">
+                    <canvas id="usageBarChart" style="height: 350px !important; max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <!-- Bảng thống kê -->
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tháng</th>
+                        <th>Số lượng theo dịch vụ</th>
+                        <th>Số lượng theo gói khám</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 1; i <= 12; i++)
+                    {
+                        var stat = Model.MonthlyStats.FirstOrDefault(x => x.Month == i);
+                        <tr>
+                            <td>@(i.ToString("D2"))/@Model.Year</td>
+                            <td>@(stat?.ServiceCount ?? 0)</td>
+                            <td>@(stat?.PackageCount ?? 0)</td>
+                            <td class="text-center">
+                                <a asp-action="MonthlyDetail"
+                                   asp-route-month="@i"
+                                   asp-route-year="@Model.Year"
+                                   class="btn btn-sm btn-primary">Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+
+                    <tr class="table-info fw-bold">
+                        <td>Tổng cộng</td>
+                        <td>
+                            @Model.MonthlyStats.Sum(x => x.ServiceCount)
+                        </td>
+                        <td>
+                            @Model.MonthlyStats.Sum(x => x.PackageCount)
+                        </td>
+                        <td></td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const stats = @Html.Raw(Json.Serialize(Model.MonthlyStats));
+
+    const labels = stats.map(x => ("0" + x.month).slice(-2) + "/" + @Model.Year);
+    const serviceCounts = stats.map(x => x.serviceCount);
+    const packageCounts = stats.map(x => x.packageCount);
+
+    const totalService = serviceCounts.reduce((a, b) => a + b, 0);
+    const totalPackage = packageCounts.reduce((a, b) => a + b, 0);
+
+    // Pie chart
+    new Chart(document.getElementById('usagePieChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Dịch vụ', 'Gói khám'],
+            datasets: [{
+                data: [totalService, totalPackage],
+                backgroundColor: ['#36A2EB', '#FF6384']
+            }]
+        }
+    });
+
+    // Bar chart
+    new Chart(document.getElementById('usageBarChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Dịch vụ',
+                    data: serviceCounts,
+                    backgroundColor: '#36A2EB'
+                },
+                {
+                    label: 'Gói khám',
+                    data: packageCounts,
+                    backgroundColor: '#FF6384'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0 // loại bỏ phần thập phân
+                    }
+                }
+            }
+    }
+
+    });
+</script>
+

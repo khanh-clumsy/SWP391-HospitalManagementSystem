@@ -1,0 +1,55 @@
+﻿@model HospitalManagement.Models.News
+
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
+
+@{
+    ViewData["Title"] = "Cập nhật bài viết";
+}
+
+<form asp-controller="News" asp-action="Update" asp-route-id="@Model.NewsId" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="NewsId" />
+
+    <div class="container mt-4">
+        <h3>@ViewData["Title"]</h3>
+
+        <label>Tiêu đề bài viết</label>
+        <input type="text" class="form-control mb-3" name="Title" value="@Model?.Title" placeholder="Nhập tiêu đề tại đây" required />
+
+        <label>Mô tả ngắn</label>
+        <textarea class="form-control mb-3" name="Description" rows="3" placeholder="Nhập mô tả ngắn tại đây" required>@Model?.Description</textarea>
+
+        @if (!string.IsNullOrEmpty(Model.Thumbnail))
+        {
+            <img src="@(string.IsNullOrEmpty(Model.Thumbnail)
+												 ? Url.Content("~/img/logo.jpg")
+												 : Url.Content("~/img/" + Model.Thumbnail))"
+                 alt="@Model.Title"
+                 class="news-image" />
+        }
+        <input type="file" name="photo" class="form-control mb-3" accept="image/*" />
+
+        <label>Nội dung chi tiết</label>
+        <textarea id="summernote" name="Content">@Model?.Content</textarea>
+
+        <button type="submit" class="btn btn-primary mt-3">Cập nhật bài viết</button>
+    </div>
+</form>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-bs4.min.js"></script>
+    <script>
+        $('#summernote').summernote({
+            placeholder: 'Nhập nội dung bài viết...',
+            tabsize: 2,
+            height: 200
+        });
+    </script>
+}

@@ -1,0 +1,234 @@
+﻿@using HospitalManagement.ViewModels
+@using HospitalManagement.ViewModels.Package
+@model CreatePackageViewModel
+@{
+	ViewBag.Title = "Tạo gói khám mới";
+}
+
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
+
+<div class="admin-container">
+	<div class="container">
+		<div class="admin-card">
+			<!-- Header -->
+			<div class="admin-header text-center py-3">
+				<h1 class="h2 text-primary"><i class="fas fa-plus-circle me-2"></i>Tạo gói khám mới</h1>
+			</div>
+
+			<!-- Form Content -->
+			<div class="form-container">
+				<form asp-action="Create" method="post" enctype="multipart/form-data" id="createPackageForm">
+					<!-- Basic Information Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-info-circle"></i>
+							Thông tin cơ bản
+						</h3>
+
+						<div class="row">
+							<div class="col-md-8">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-tag"></i>
+										Tên gói khám <span class="required">*</span>
+									</label>
+									<input asp-for="PackageName" class="form-control" placeholder="Nhập tên gói khám..." />
+									<span asp-validation-for="PackageName" class="invalid-feedback"></span>
+								</div>
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-folder"></i>
+										Danh mục gói khám <span class="required">*</span>
+									</label>
+									<select asp-for="SelectedCategoryId" class="form-select" asp-items="@Model.Categories">
+										<option value="">Chọn danh mục</option>
+									</select>
+									<span asp-validation-for="SelectedCategoryId" class="invalid-feedback"></span>
+								</div>
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-align-left"></i>
+										Mô tả gói khám <span class="required">*</span>
+									</label>
+									<textarea asp-for="Description" class="form-control" rows="4"
+											  placeholder="Mô tả chi tiết về gói khám, ý nghĩa và lợi ích..."></textarea>
+									<span asp-validation-for="Description" class="invalid-feedback"></span>
+								</div>
+							</div>
+
+							<div class="col-md-4">
+								<div class="form-group">
+									<label class="form-label fw-bold d-block">
+										Hình ảnh gói khám
+									</label>
+									<div id="imagePreviewWrapper" class="border rounded p-3 mb-3 bg-light"
+										 style="height: 250px; display: flex; align-items: center; justify-content: center;">
+										<img id="thumbnailPreview"
+											 src="@(!string.IsNullOrEmpty(Model.Thumbnail)
+												 ? Url.Content($"~/img/Package/{Model.Thumbnail}")
+												 : Url.Content("~/img/logo.jpg"))"
+											 alt="@Model.PackageName"
+											 class="img-fluid rounded"
+											 style="max-height: 100%; max-width: 100%; object-fit: contain;" />
+
+									</div>
+
+									<input type="file" id="thumbnailInput" asp-for="ThumbnailFile"
+										   class="d-none" accept=".jpg,.jpeg,.png,.gif" />
+
+									<button type="button" class="btn btn-outline-secondary w-100"
+											onclick="document.getElementById('thumbnailInput').click()">
+										<i class="fas fa-upload me-2"></i>Chọn hình ảnh
+									</button>
+
+									<small class="text-muted">Định dạng: JPG, PNG (Max: 5MB)</small>
+								</div>
+							</div>
+
+						</div>
+					</div>
+
+					<!-- Target Demographics Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-users"></i>
+							Đối tượng khám
+						</h3>
+
+						<div class="row">
+							<div class="col-md-4">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-venus-mars"></i>
+										Giới tính <span class="required">*</span>
+									</label>
+									<select asp-for="TargetGender" class="form-select">
+										<option value="A">Tất cả</option>
+										<option value="M">Nam</option>
+										<option value="F">Nữ</option>
+									</select>
+									<span asp-validation-for="TargetGender" class="invalid-feedback"></span>
+								</div>
+							</div>
+
+							<div class="col-md-8">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-calendar-alt"></i>
+										Khoảng tuổi <span class="required">*</span>
+									</label>
+									<select asp-for="AgeRange" class="form-select" asp-items="@Model.AgeOptions">
+									</select>
+									<span asp-validation-for="AgeRange" class="invalid-feedback"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Tests Management Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-flask"></i>
+							Quản lý xét nghiệm
+						</h3>
+
+						<div class="row mb-3">
+							<div class="col-md-8">
+								<select id="availableTests" class="form-select">
+									<option value="">-- Chọn xét nghiệm để thêm --</option>
+									@if (Model.AvailableTests != null)
+									{
+										@foreach (var test in Model.AvailableTests)
+										{
+											<option value="@test.TestId" data-name="@test.Name" data-price="@test.Price" data-description="@test.Description">
+												@test.Name - @test.Price.ToString("N0") đ
+											</option>
+										}
+									}
+								</select>
+							</div>
+							<div class="col-md-4">
+								<button type="button" class="btn btn-primary w-100" onclick="addTest()">
+									<i class="fas fa-plus me-2"></i>Thêm xét nghiệm
+								</button>
+							</div>
+						</div>
+
+						<div class="tests-manager">
+							<div id="selectedTests">
+								<div class="text-center py-4 text-muted">
+									<i class="fas fa-flask fa-2x mb-2"></i>
+									<p>Chưa có xét nghiệm nào được chọn</p>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Pricing Section -->
+					<div class="form-section">
+						<h3 class="section-title">
+							<i class="fas fa-calculator"></i>
+							Tính giá và khuyến mại
+						</h3>
+
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label class="form-label">
+										<i class="fas fa-percentage"></i>
+										Phần trăm giảm giá (%)
+									</label>
+									<input asp-for="DiscountPercent" type="number" class="form-control"
+										   min="0" max="100" step="5" onchange="calculatePricing()" />
+									<span asp-validation-for="DiscountPercent" class="invalid-feedback"></span>
+								</div>
+							</div>
+						</div>
+
+						<!-- Pricing Calculator -->
+						<div class="pricing-calculator">
+							<h5 class="mb-3"><i class="fas fa-calculator me-2"></i>Tính toán giá</h5>
+							<div class="price-row">
+								<span>Tổng giá xét nghiệm:</span>
+								<span id="totalTestsPrice">0 đ</span>
+							</div>
+							<div class="price-row">
+								<span>Giảm giá:</span>
+								<span id="discountAmount">0 đ</span>
+							</div>
+							<div class="price-row">
+								<span>Giá cuối cùng:</span>
+								<span id="finalPrice" class="total-price">0 đ</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- Hidden fields for selected tests -->
+					<div id="hiddenTestFields"></div>
+
+					<!-- Action Buttons -->
+					<div class="action-buttons">
+						<a href="@Url.Action("Index", "Package")" class="btn btn-outline-secondary btn-admin">
+							<i class="fas fa-arrow-left me-2"></i>Hủy bỏ
+						</a>
+						<button type="submit" class="btn btn-success-admin btn-admin">
+							<i class="fas fa-save me-2"></i>Tạo gói khám
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts
+{
+	<script src="~/js/CreatePackage.js"></script>
+}

@@ -1,0 +1,57 @@
+﻿@model HospitalManagement.ViewModels.TestResultInputViewModel
+
+@{
+	ViewData["Title"] = "Nhập kết quả xét nghiệm";
+}
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
+
+<div class="container my-5">
+	<h2 class="text-primary fw-bold mb-4">Nhập kết quả xét nghiệm</h2>
+		<div class="mb-3">
+			<label class="form-label fw-bold">Ngày sinh:</label>
+			<div class="form-control-plaintext">@Model.DOB.ToString("dd/MM/yyyy")</div>
+		</div>
+
+
+	<!-- FORM NHẬP KẾT QUẢ CHÍNH -->
+	<form asp-action="InputTestResult" method="post" enctype="multipart/form-data" class="p-4 shadow-sm border rounded bg-white">
+		<input type="hidden" asp-for="TestRecordID" />
+		<input type="hidden" asp-for="DOB" /> <!-- vẫn gửi DOB trong model -->
+
+		<div class="mb-3">
+			<label class="form-label fw-bold">Tên xét nghiệm:</label>
+			<div class="form-control-plaintext">@Model.TestName</div>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold">Bệnh nhân:</label>
+			<div class="form-control-plaintext">@Model.PatientFullName</div>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label fw-bold">Giới tính:</label>
+			<div class="form-control-plaintext">@(Model.Gender == "M" ? "Nam" : "Nữ")</div>
+		</div>
+
+		<div class="mb-4">
+			<label asp-for="ResultFile" class="form-label fw-bold">Upload kết quả (PDF hoặc hình ảnh):</label>
+			<input type="file" class="form-control" asp-for="ResultFile" accept=".pdf,image/*" />
+		</div>
+
+		<div class="mb-3">
+			<label asp-for="Note" class="form-label fw-bold">Ghi chú:</label>
+			<textarea class="form-control" asp-for="Note" rows="4" placeholder="Nhập ghi chú (nếu có)..."></textarea>
+		</div>
+
+		<button type="submit" class="btn btn-primary px-4">
+			<i class="fas fa-save me-2"></i> Lưu kết quả
+		</button>
+	</form>
+</div>

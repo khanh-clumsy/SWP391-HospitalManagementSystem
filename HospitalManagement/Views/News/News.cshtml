@@ -1,0 +1,186 @@
+﻿@model X.PagedList.IPagedList<HospitalManagement.ViewModels.NewsViewModel>
+
+@section Styles {
+	<link rel="stylesheet" href="~/css/Package/CreatePackage.css">
+	<link rel="stylesheet" href="~/css/News.css" />
+	<style>
+		#loadingOverlay {
+			display: none !important;
+		}
+	</style>
+}
+
+@{
+	ViewData["Title"] = "Trang Tin Tức";
+}
+
+<div class="container-fluid px-4 py-5">
+	<div class="row justify-content-center">
+		<div class="col-lg-10 col-xl-8">
+			<!-- Header Section -->
+			<div class="text-center mb-4">
+				<h1 class="display-5 fw-bold text-primary mb-2">
+					<i class="fas fa-newspaper me-2"></i>Tin Tức Mới Nhất
+				</h1>
+				<p class="text-muted mb-0">Cập nhật thông tin y tế và hoạt động bệnh viện</p>
+				<hr class="w-25 mx-auto border-primary border-2 mt-3">
+			</div>
+
+			@if (Model != null && Model.Any())
+			{
+				<!-- News Articles -->
+				<div class="row g-3">
+					@foreach (var item in Model)
+					{
+						<div class="col-12">
+							<article class="card shadow-sm border-0 news-card">
+								<div class="row g-0">
+									<!-- Thumbnail Image -->
+									<div class="col-md-3">
+										<div class="news-thumbnail">
+											<img src="@(string.IsNullOrEmpty(item.Thumbnail)
+                                                     ? Url.Content("~/img/logo.jpg")
+                                                     : Url.Content("~/img/"+item.Thumbnail))"
+												 alt="Current Photo"
+												 class="news-image" />
+										</div>
+									</div>
+
+									<!-- Content -->
+									<div class="col-md-9">
+										<div class="card-body p-3 h-100 d-flex flex-column">
+											<!-- Article Header -->
+											<div class="d-flex align-items-start justify-content-between mb-2">
+												<h3 class="card-title h5 fw-bold text-dark mb-1 flex-grow-1 me-2">
+													@item.Title
+												</h3>
+												<span class="badge bg-primary-subtle text-primary px-2 py-1 rounded-pill flex-shrink-0">
+													<i class="far fa-clock me-1"></i>
+													@item.CreatedAt.ToString("dd/MM/yyyy")
+												</span>
+											</div>
+
+											<!-- Author and Date Info -->
+											<div class="d-flex align-items-center gap-3 mb-2 text-muted small">
+												<div class="d-flex align-items-center">
+													<i class="fas fa-user-md me-1 text-primary"></i>
+													<span><strong>@item.AuthorName</strong></span>
+												</div>
+												<div class="d-flex align-items-center">
+													<i class="far fa-calendar-alt me-1 text-primary"></i>
+													<span>@item.CreatedAt.ToString("HH:mm - dd/MM/yyyy")</span>
+												</div>
+											</div>
+
+											<!-- Article Description -->
+											<div class="card-text mb-3 flex-grow-1">
+												<p class="text-muted mb-0 description-text">
+													@(item.Description ?? "Nội dung đang được cập nhật...")
+												</p>
+											</div>
+
+											<!-- Action Button -->
+											<div class="d-flex justify-content-between align-items-center mt-auto">
+												<a asp-action="Detail"
+												   asp-route-id="@item.NewsId"
+												   class="btn btn-primary btn-sm px-3 py-2 rounded-pill">
+													<i class="fas fa-arrow-right me-1"></i>
+													Xem chi tiết
+												</a>
+												<div class="text-muted small">
+													<i class="fas fa-eye me-1"></i>
+													Bài viết #@item.NewsId
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</article>
+						</div>
+					}
+				</div>
+
+				<!-- Pagination Start -->
+				
+					int maxPagesToShow = 5;
+					int startPage = Model.PageNumber - maxPagesToShow / 2;
+					if (startPage < 1) startPage = 1;
+
+					int endPage = startPage + maxPagesToShow - 1;
+					if (endPage > Model.PageCount)
+					{
+						endPage = Model.PageCount;
+						startPage = Math.Max(1, endPage - maxPagesToShow + 1);
+					}
+			
+
+				<div class="d-flex justify-content-center mt-4">
+					<nav aria-label="News pagination">
+						<ul class="pagination pagination-sm">
+							<li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+								<a class="page-link" href="@(Model.HasPreviousPage ? Url.Action("News", new { page = Model.PageNumber - 1 }) : "#")" tabindex="-1">Previous</a>
+							</li>
+
+							@if (startPage > 1)
+							{
+								<li class="page-item">
+									<a class="page-link" href="@Url.Action("News", new { page = 1 })">1</a>
+								</li>
+								@if (startPage > 2)
+								{
+									<li class="page-item disabled"><span class="page-link">...</span></li>
+								}
+							}
+
+							@for (int i = startPage; i <= endPage; i++)
+							{
+								<li class="page-item @(i == Model.PageNumber ? "active" : "")">
+									<a class="page-link" href="@Url.Action("News", new { page = i })">@i</a>
+								</li>
+							}
+
+							@if (endPage < Model.PageCount)
+							{
+								if (endPage < Model.PageCount - 1)
+								{
+									<li class="page-item disabled"><span class="page-link">...</span></li>
+								}
+								<li class="page-item">
+									<a class="page-link" href="@Url.Action("News", new { page = Model.PageCount })">@Model.PageCount</a>
+								</li>
+							}
+
+							<li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+								<a class="page-link" href="@(Model.HasNextPage ? Url.Action("News", new { page = Model.PageNumber + 1 }) : "#")">Next</a>
+							</li>
+						</ul>
+					</nav>
+				</div>
+				<!-- Pagination End -->
+			}
+			else
+			{
+				<!-- Empty State -->
+				<div class="text-center py-4">
+					<div class="mb-3">
+						<i class="fas fa-newspaper fa-4x text-muted opacity-50"></i>
+					</div>
+					<div class="alert alert-light border-0 shadow-sm p-3 mx-auto" style="max-width: 450px;">
+						<h4 class="alert-heading text-muted mb-2 h5">
+							<i class="fas fa-info-circle me-2"></i>
+							Chưa có tin tức
+						</h4>
+						<p class="mb-2 text-muted small">
+							Hiện tại chưa có bài viết tin tức nào được đăng tải.
+							Vui lòng quay lại sau để cập nhật thông tin mới nhất.
+						</p>
+						<a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-sm rounded-pill px-3">
+							<i class="fas fa-home me-2"></i>
+							Về trang chủ
+						</a>
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+</div>

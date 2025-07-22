@@ -1,0 +1,119 @@
+@model HospitalManagement.Models.InvoiceDetail
+@{
+    ViewBag.Title = "Chi Tiết Hóa Đơn";
+    var qrLink = ViewBag.PaymentUrl as string;
+}
+
+<div class="container py-5">
+    <div class="card shadow-lg rounded-4 mx-auto" style="max-width: 650px;">
+        <div class="card-header bg-dark text-white rounded-top-4">
+            <h4 class="mb-0 text-center">
+                <i class="fas fa-file-invoice"></i> Chi Tiết Hóa Đơn
+            </h4>
+        </div>
+        <div class="card-body px-4 py-4">
+
+            <dl class="row mb-4 fs-5">
+                <dt class="col-sm-4">Tên bệnh nhân:</dt>
+                <dd class="col-sm-8 fw-semibold">@Model.Appointment.Patient.FullName</dd>
+
+                <dt class="col-sm-4">Số điện thoại:</dt>
+                <dd class="col-sm-8">@Model.Appointment.Patient.PhoneNumber</dd>
+
+                <dt class="col-sm-4">Ngày tạo:</dt>
+                <dd class="col-sm-8">@Model.CreatedAt?.ToString("dd/MM/yyyy HH:mm:ss")</dd>
+
+                <dt class="col-sm-4">Loại:</dt>
+                <dd class="col-sm-8">
+                    @{
+                        var itemTypeText = Model.ItemType switch
+                        {
+                            "Service" => "Dịch vụ",
+                            "Package" => "Gói khám",
+                            "Test" => "Xét nghiệm",
+                            _ => Model.ItemType
+                        };
+                    }
+                    @itemTypeText
+                </dd>
+
+                <dt class="col-sm-4">Tên:</dt>
+                <dd class="col-sm-8">@Model.ItemName</dd>
+
+                <dt class="col-sm-4">Giá:</dt>
+                <dd class="col-sm-8 text-primary fw-bold">@String.Format("{0:N0}", Model.UnitPrice) ₫</dd>
+
+                <dt class="col-sm-4">Trạng thái:</dt>
+                <dd class="col-sm-8">
+                    @{
+                        var statusText = Model.PaymentStatus switch
+                        {
+                            "Paid" => "Đã thanh toán",
+                            "Unpaid" => "Chưa thanh toán",
+                            _ => Model.PaymentStatus
+                        };
+                    }
+                    @if (Model.PaymentStatus == "Paid")
+                    {
+                        <span class="badge bg-success fs-6 py-2 px-3">@statusText</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger fs-6 py-2 px-3">@statusText</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-4">Phương thức:</dt>
+                <dd class="col-sm-8">
+                    @{
+                        var paymentMethodText = Model.PaymentMethod switch
+                        {
+                            "VNPAY" => "Chuyển khoản",
+                            "Cash" => "Tiền mặt",
+                            _ => Model.PaymentMethod ?? "Chưa rõ"
+                        };
+                    }
+                    <span>@paymentMethodText</span>
+                </dd>
+            </dl>
+
+            @if (Model.PaymentStatus != "Paid" && !string.IsNullOrEmpty(qrLink))
+            {
+                <div class="alert alert-info text-center">
+                    Quét mã QR bên dưới hoặc nhấn để mở VNPay
+                </div>
+
+                <div class="text-center mb-3">
+                    <img src="@Url.Action("GenerateQr", "Payment", new { url = qrLink })"
+                         alt="QR Code VNPAY"
+                         style="width: 250px; height: 250px; border: 6px solid #e5e5e5; border-radius: 20px;" />
+                </div>
+
+                <div class="text-center mb-3">
+                    <a href="@qrLink" class="btn btn-primary btn-lg" target="_blank">
+                        <i class="fas fa-qrcode"></i> Mở VNPay
+                    </a>
+                </div>
+
+                <form asp-action="PayAppointmentConfirmed" method="post" class="text-center">
+                    <input type="hidden" name="invoiceId" value="@Model.InvoiceDetailId" />
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-money-bill-wave"></i> Xác nhận đã thu tiền mặt
+                    </button>
+                </form>
+            }
+            else if (Model.PaymentStatus == "Paid")
+            {
+                <div class="alert alert-success text-center">
+                    Hóa đơn này đã được thanh toán.
+                </div>
+
+            }
+            <div class="text-end mt-4"></div>
+                <a asp-action="ViewInvoiceList" asp-controller="Tracking" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
