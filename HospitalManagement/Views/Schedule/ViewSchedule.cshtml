@@ -33,7 +33,6 @@
 		box-shadow: 0 2px 5px rgba(0, 123, 255, 0.1);
 		transition: background-color 0.2s, box-shadow 0.2s;
 		cursor: pointer;
-
 	}
 
 	.schedule-card {
@@ -41,12 +40,12 @@
 		border-top: 4px solid #007bff;
 		background-color: #f8faff;
 		color: black;
+	}
 
-	}
-	.schedule-card:hover {
-		background-color: #e9f5ff;
-		box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-	}
+		.schedule-card:hover {
+			background-color: #e9f5ff;
+			box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+		}
 
 	.slot-attended {
 		border: 1px solid #28a745;
@@ -54,10 +53,11 @@
 		background-color: #e6f9ea;
 		color: black;
 	}
-	.slot-attended:hover {
-		background-color: #d2f2d9;
-		box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-	}
+
+		.slot-attended:hover {
+			background-color: #d2f2d9;
+			box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+		}
 
 	.slot-absent {
 		border: 1px solid #ff1b1b;
@@ -65,15 +65,16 @@
 		background-color: #ffaa90;
 		color: black;
 	}
-	.slot-absent:hover {
-		background-color: #ff9980;
-		box-shadow: 0 2px 8px rgba(255, 27, 27, 0.3);
-	}
+
+		.slot-absent:hover {
+			background-color: #ff9980;
+			box-shadow: 0 2px 8px rgba(255, 27, 27, 0.3);
+		}
 
 
 	.schedule-card i {
-			color: #007bff;
-		}
+		color: #007bff;
+	}
 
 	.schedule-card .fw-bold {
 		font-size: 1rem;
@@ -82,8 +83,6 @@
 	.bg-light {
 		background-color: #f8f9fa;
 	}
-
-
 
 </style>
 
@@ -113,7 +112,7 @@
 		</div>
 	</div>
 	<!-- Bộ chọn tuần, nút điều hướng -->
-	<div id="scheduleTable" >
+	<div id="scheduleTable">
 		<div class="d-flex justify-content-center align-items-center mb-3 gap-2">
 			<!-- Cụm nút tuần ở giữa -->
 			<div class="d-flex align-items-center gap-2">
@@ -187,15 +186,15 @@
 											@if (item.Status == "Absent")
 											{
 												<div class="slot-absent"
-													data-id="@item.ScheduleId"
-													data-day="@day"
-													data-start="@item.StartTime"
-													data-end="@item.EndTime"
-													data-room="@item.RoomName"
-													data-status="@item.Status"
-													data-istoday="@isToday"
-													onclick="openSlotModal(this)"
-												>
+													 data-id="@item.ScheduleId"
+													 data-day="@day"
+													 data-start="@item.StartTime"
+													 data-end="@item.EndTime"
+													 data-room="@item.RoomName"
+													 data-status="@item.Status"
+													 data-istoday="@isToday"
+													 data-slot="@item.SlotId"
+													 onclick="openSlotModal(this)">
 													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
 													<div><i class="bi bi-x-circle me-1"></i> Absent</div>
@@ -204,15 +203,15 @@
 											else if (item.Status == "Attended")
 											{
 												<div class="slot-attended"
-													data-id="@item.ScheduleId"
-													data-day="@day"
-													data-start="@item.StartTime"
-													data-end="@item.EndTime"
-													data-room="@item.RoomName"
-													data-status="@item.Status"
-													data-istoday="@isToday"
-													onclick="openSlotModal(this)"
-												>
+													 data-id="@item.ScheduleId"
+													 data-day="@day"
+													 data-start="@item.StartTime"
+													 data-end="@item.EndTime"
+													 data-room="@item.RoomName"
+													 data-status="@item.Status"
+													 data-istoday="@isToday"
+													 data-slot="@item.SlotId"
+													 onclick="openSlotModal(this)">
 													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
 													<div><i class="bi bi-check-circle me-1"></i> Attended</div>
@@ -221,15 +220,15 @@
 											else // Not Yet
 											{
 												<div class="schedule-card"
-													data-id="@item.ScheduleId"
-													data-day="@day"
-													data-start="@item.StartTime"
-													data-end="@item.EndTime"
-													data-room="@item.RoomName"
-													data-status="@item.Status"
-													data-istoday="@isToday"
-													onclick="openSlotModal(this)"
-												>
+													 data-id="@item.ScheduleId"
+													 data-day="@day"
+													 data-start="@item.StartTime"
+													 data-end="@item.EndTime"
+													 data-room="@item.RoomName"
+													 data-status="@item.Status"
+													 data-istoday="@isToday"
+													 data-slot="@item.SlotId"
+													 onclick="openSlotModal(this)">
 													<div><i class="bi bi-clock me-1"></i> @item.StartTime - @item.EndTime</div>
 													<div><i class="bi bi-building me-1"></i> @item.RoomName</div>
 													<div><i class="bi bi-check-circle me-1"></i> Not Yet</div>
@@ -263,7 +262,8 @@
 				<p><strong>Slot:</strong> <span id="modalSlot"></span></p>
 				<p><strong>Thời gian:</strong> <span id="modalTime"></span></p>
 				<p><strong>Phòng:</strong> <span id="modalRoom"></span></p>
-				<p><strong>Trạng thái:</strong>
+				<p>
+					<strong>Trạng thái:</strong>
 					<select id="modalStatus" class="form-select">
 						<option value="Not Yet">Not Yet</option>
 						<option value="Attended">Attended</option>
@@ -281,6 +281,6 @@
 
 
 
- @section Scripts { 
- 	<script src="~/js/ViewSchedule.js" asp-append-version="true"></script> 
- } 
+@section Scripts {
+	<script src="~/js/ViewSchedule.js" asp-append-version="true"></script>
+}
