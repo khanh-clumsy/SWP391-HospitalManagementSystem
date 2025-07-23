@@ -3,6 +3,8 @@ namespace HospitalManagement.ViewModels
 {
     public class Register
     {
+        private const int V = 100;
+
         [Required(ErrorMessage = "Email không được để trống")]
         [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         public string Email { get; set; }
@@ -40,7 +42,7 @@ namespace HospitalManagement.ViewModels
         public bool? IsDepartmentHead { get; set; }
 
         [Required(ErrorMessage = "Năm kinh nghiệm không được để trống")]
-        [Range(0, 99)]
+        [Range(0, 60, ErrorMessage = "Vui lòng nhập số từ 0 đến 60.")]
         public int? ExperienceYear { get; set; }
 
         [Required(ErrorMessage = "Bằng cấp không được để trống")]
