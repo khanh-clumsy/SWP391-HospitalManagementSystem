@@ -7,16 +7,25 @@
 }
 function getStartOfCurrentWeek() {
     const today = new Date();
-    const day = today.getDay(); // 0 = CN, 1 = T2, ..., 6 = T7
-    const diff = day === 0 ? -6 : 1 - day; // Quay về thứ 2
+    const day = today.getDay(); // 0 = Sunday, ..., 6 = Saturday
+    const diff = (day + 6) % 7; // days back to Monday
+
     const monday = new Date(today);
-    monday.setDate(today.getDate() + diff);
-    return monday.toISOString().split('T')[0]; // yyyy-MM-dd
+    monday.setDate(today.getDate() - diff);
+
+    // Format yyyy-MM-dd thủ công để tránh lệch UTC
+    const year = monday.getFullYear();
+    const month = String(monday.getMonth() + 1).padStart(2, '0');
+    const date = String(monday.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${date}`; // e.g. "2025-07-21"
 }
+
 
 function loadDoctorSchedule(doctorId) {
     const year = new Date().getFullYear();
     const weekStart = getStartOfCurrentWeek();
+    console.log(weekStart);
     $.ajax({
         url: '/Appointment/GetDoctorScheduleTable',
         type: 'GET',
@@ -58,7 +67,6 @@ function updateSchedule(newyear = null) {
         console.error("Không có bác sĩ được chọn");
         return;
     }
-
     $.ajax({
         url: '/Appointment/GetDoctorScheduleTable',
         type: 'GET',
@@ -122,11 +130,47 @@ function updateDoctorScrollVisibility() {
     prevButton.style.display = container.scrollLeft <= 0 ? 'none' : 'block';
     nextButton.style.display = container.scrollLeft + container.clientWidth >= container.scrollWidth - 1 ? 'none' : 'block';
 }
+function renderDoctorCards(data) {
+    const $list = $('#doctorList');
+    $list.empty();
+    if (!data || data.length === 0) {
+        $list.append('<p class="text-muted text-center my-3">Không có bác sĩ trống trong ngày/khoa này</p>');
+        $('.doctor-section').show();
+        updateDoctorScrollVisibility();
+        return;
+    }
 
+    data.forEach(function (doctor) {
+        const imageUrl = doctor.profileImage
+            ? "/img/" + doctor.profileImage
+            : "/img/logo.jpg";
+        const card = `
+            <div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
+                <div class="card-body">
+                    <img src="${imageUrl}"
+                         class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px;" />
+                    <h6 class="card-title mb-0">${doctor.doctorName}</h6>
+                    <p class="text-muted small mb-0">${doctor.departmentName}</p>
+                </div>
+            </div>`;
+        $list.append(card);
+    });
+    $('.doctor-section').show();
+    updateDoctorScrollVisibility();
+
+    const selectedDoctorId = $('#SelectedDoctorId').val();
+    if (selectedDoctorId) {
+        const card = $(`.doctor-card[data-doctor-id="${selectedDoctorId}"]`);
+        if (card.length > 0) {
+            card.trigger('click');
+        }
+    }
+}
 $(document).ready(function () {
     // Ẩn các khu vực ban đầu
     $('#time-slots-container').hide();
     $('.service-title, .service-dropdown').hide();
+    
 
     // Cập nhật trạng thái nút Đặt Hẹn
     function updateSubmitButton() {
@@ -174,6 +218,16 @@ $(document).ready(function () {
         var departmentName = $(this).val(); // tên khoa
 
         if (!departmentName) {
+            $.ajax({
+                url: '/Appointment/GetAllDoctors', // bạn cần tạo thêm action này
+                type: 'GET',
+                success: function (data) {
+                    renderDoctorCards(data);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi tải danh sách bác sĩ:", status, error);
+                }
+            });
             $('#SelectedDoctorId, #AppointmentDate, #SelectedSlotId').val('');
             $('#serviceDropdown, #packageDropdown').val('');
             $('input[name="ServiceType"]').prop('checked', false);
@@ -194,39 +248,7 @@ $(document).ready(function () {
             type: 'GET',
             data: { department: departmentName }, // hoặc { date: selectedDate }
             success: function (data) {
-                const $list = $('#doctorList');
-                $list.empty();
-                if (!data || data.length === 0) {
-                    $list.append('<p class="text-muted text-center my-3">Không có bác sĩ trống trong ngày/khoa này</p>');
-                    $('.doctor-section').show();
-                    updateDoctorScrollVisibility();
-                    return;
-                }
-
-                data.forEach(function (doctor) {
-                    const imageUrl = doctor.profileImage
-                        ? "/img/" + doctor.profileImage
-                        : "/img/logo.jpg";
-                    const card = `
-                        <div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
-                            <div class="card-body">
-                                <img src="${imageUrl}"
-                                     class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
-                                <h6 class="card-title mb-0">${doctor.doctorName}</h6>
-                                <p class="text-muted small mb-0">${doctor.departmentName}</p>
-                            </div>
-                        </div>`;
-                    $list.append(card);
-                });
-                $('.doctor-section').show();
-                updateDoctorScrollVisibility();
-                const selectedDoctorId = $('#SelectedDoctorId').val();
-                if (selectedDoctorId) {
-                    const card = $(`.doctor-card[data-doctor-id="${selectedDoctorId}"]`);
-                    if (card.length > 0) {
-                        card.trigger('click');
-                    }
-                }
+                renderDoctorCards(data);
             },
             error: function (xhr, status, error) {
                 console.error("Lỗi khi tải bác sĩ:", status, error);

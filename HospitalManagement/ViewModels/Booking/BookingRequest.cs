@@ -1,5 +1,4 @@
 ﻿using System.Security.Claims;
-
 namespace HospitalManagement.ViewModels.Booking
 {
     public class BookingRequest
@@ -7,5 +6,4 @@ namespace HospitalManagement.ViewModels.Booking
         public BookingByDoctorViewModel Model { get; set; }
         public ClaimsPrincipal User { get; set; }
     }
-
 }

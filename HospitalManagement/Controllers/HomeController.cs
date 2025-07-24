@@ -26,7 +26,12 @@ namespace HospitalFETemplate.Controllers
             _patientRepo = patientRepo;
             _feedbackRepo = feedbackRepo;
         }
-
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            TempData["error"] = AppConstants.Messages.General.NoPermission;
+            return View();
+        }
         public async Task<IActionResult> Index()
         {
             var (xetNghiem, doctors) = await _doctorRepo.CountDoctorsByDepartmentAsync();
@@ -189,10 +194,7 @@ namespace HospitalFETemplate.Controllers
         {
             return View();
         }
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
+
         public IActionResult TooMuchAttempt()
         {
             return View();
@@ -205,7 +207,7 @@ namespace HospitalFETemplate.Controllers
         public async Task<IActionResult> ViewDoctors(int? page, string? name, string? department, int? exp, bool? isHead, string? sort)
         {
             name = HomeController.NormalizeName(name);
-            int pageSize = 8;
+            int pageSize = 12;
             int pageNumber = page ?? 1;
 
             bool isDefaultView = string.IsNullOrEmpty(name)

@@ -176,6 +176,8 @@ namespace HospitalManagement.Controllers
             var appointment = await _context.Appointments
                 .Include(a => a.Doctor)
                 .Include(a => a.Patient)
+                .Include(a => a.Service)
+                .Include(a => a.Package)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id && a.Status == AppConstants.AppointmentStatus.Ongoing);
             var doctorIdClaim = User.FindFirst(AppConstants.ClaimTypes.DoctorId)?.Value;
             if (doctorIdClaim == null)

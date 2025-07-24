@@ -90,7 +90,7 @@
 			<!-- Lọc theo trạng thái -->
 			<select name="StatusFilter" class="form-select" style="width: 150px;">
 				<option value="" selected="@(ViewBag.StatusFilter == null ? "selected" : null)">Tất cả trạng thái</option>
-				<option value="Pending" selected="@(ViewBag.StatusFilter == "Pending" ? "selected" : null)">Chờ xử lý</option>
+				<option value="Pending" selected="@(ViewBag.StatusFilter == "Pending" ? "selected" : null)">Chờ xác nhận</option>
 				<option value="Confirmed" selected="@(ViewBag.StatusFilter == "Confirmed" ? "selected" : null)">Đã xác nhận</option>
 				<option value="Ongoing" selected="@(ViewBag.StatusFilter == "Ongoing" ? "selected" : null)">Đang diễn ra</option>
 				<option value="Completed" selected="@(ViewBag.StatusFilter == "Completed" ? "selected" : null)">Hoàn thành</option>
@@ -271,7 +271,7 @@
 					else
 					{
 						<tr>
-							<td colspan="11" class="text-center text-muted">Không có lịch hẹn.</td>
+							<td colspan="14" class="text-center text-muted">Không có lịch hẹn.</td>
 						</tr>
 					}
 				</tbody>

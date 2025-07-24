@@ -12,6 +12,7 @@ using X.PagedList.Extensions;
 
 namespace HospitalManagement.Controllers
 {
+    
     public class TestController : Controller
     {
         private readonly ITestRepository _testRepository;
@@ -24,7 +25,7 @@ namespace HospitalManagement.Controllers
 
         public IActionResult Index(string searchName, string sortOrder, decimal? minPrice, decimal? maxPrice, int? page)
         {
-            int pageSize = 5;
+            int pageSize = 10;
             int pageNumber = page ?? 1;
             var tests = _testRepository.Search(searchName, sortOrder, minPrice, maxPrice).ToPagedList(pageNumber, pageSize);
 
@@ -41,7 +42,7 @@ namespace HospitalManagement.Controllers
             return View(tests);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public IActionResult Create()
         {
             ViewBag.RoomTypes = GetAvailableRoomTypes();
@@ -50,7 +51,7 @@ namespace HospitalManagement.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public IActionResult Create(Test test)
         {
             if (ModelState.IsValid)
@@ -90,7 +91,7 @@ namespace HospitalManagement.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public IActionResult Update(Test test)
         {
             if (ModelState.IsValid)
@@ -143,15 +144,16 @@ namespace HospitalManagement.Controllers
             return View(viewModel);
         }
         // Get available room types for dropdown
+
+
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public List<SelectListItem> GetAvailableRoomTypes()
         {
             return new List<SelectListItem>
                 {
                     new SelectListItem { Value = AppConstants.RoomTypes.Lab, Text = AppConstants.RoomTypes.Lab },
-                    new SelectListItem { Value = AppConstants.RoomTypes.Imaging, Text = AppConstants.RoomTypes.Imaging },
-                    new SelectListItem { Value = AppConstants.RoomTypes.Endoscopy, Text = AppConstants.RoomTypes.Endoscopy },
-                    new SelectListItem { Value = AppConstants.RoomTypes.Ultrasound, Text = AppConstants.RoomTypes.Ultrasound },
                     new SelectListItem { Value = AppConstants.RoomTypes.Imaging, Text = AppConstants.RoomTypes.Imaging }
+                    
                 };
         }
     }

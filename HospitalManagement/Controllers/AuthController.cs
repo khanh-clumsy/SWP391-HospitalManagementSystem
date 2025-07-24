@@ -17,6 +17,7 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using HospitalManagement.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Org.BouncyCastle.Crypto.Generators;
+using HospitalManagement.Helpers;
 
 namespace HospitalManagement.Controllers
 {
@@ -149,8 +150,8 @@ namespace HospitalManagement.Controllers
                 }
                 string roleName = "Doctor";
                 if (user.DepartmentName != null &&
-                (user.DepartmentName.Trim().Equals("Xét nghiệm", StringComparison.OrdinalIgnoreCase)
-                 || user.DepartmentName.Trim().Equals("Chẩn đoán hình ảnh", StringComparison.OrdinalIgnoreCase)))
+                (user.DepartmentName.Trim().Equals(AppConstants.Department.Lab, StringComparison.OrdinalIgnoreCase)
+                 || user.DepartmentName.Trim().Equals(AppConstants.Department.Imaging, StringComparison.OrdinalIgnoreCase)))
                 {
                     roleName = "TestDoctor";
                 }

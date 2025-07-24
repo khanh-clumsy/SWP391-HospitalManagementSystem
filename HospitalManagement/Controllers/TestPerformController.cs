@@ -91,8 +91,8 @@ namespace HospitalManagement.Controllers
                 catch (InvalidOperationException ex)
                 {
                     Console.WriteLine($"[DEBUG] File save error: {ex.Message}");
-                    TempData["Error"] = ex.Message;
-                    return View(model);
+                    TempData["error"] = ex.Message;
+                    return RedirectToAction("TestInput", new { testRecordID = model.TestRecordID });
                 }
             }
 

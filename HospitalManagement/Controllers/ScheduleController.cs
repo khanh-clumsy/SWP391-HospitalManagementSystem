@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using HospitalManagement.Repositories;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace HospitalManagement.Controllers
 {
@@ -53,7 +54,6 @@ namespace HospitalManagement.Controllers
             {
                 selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
             }
-
             DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
 
             var schedules = _context.Schedules

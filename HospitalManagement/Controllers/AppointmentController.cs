@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using HospitalManagement.Data;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Newtonsoft.Json;
 using X.PagedList.Extensions;
@@ -49,6 +51,10 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> BookingByService(int? serviceId, int? packageId)
         {
+            if (!User.IsInRole(AppConstants.Roles.Patient))
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
             var patientIdClaim = User.FindFirst(AppConstants.ClaimTypes.PatientId)?.Value;
             if (patientIdClaim == null)
             {
@@ -90,6 +96,10 @@ namespace HospitalManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BookingByService(BookingByServiceViewModel model)
         {
+            if (!User.IsInRole(AppConstants.Roles.Patient))
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
             ModelState.Remove(nameof(model.ServiceOptions));
             ModelState.Remove(nameof(model.PackageOptions));
             if (!ModelState.IsValid)
@@ -209,12 +219,16 @@ namespace HospitalManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> BookingByDoctor(int? doctorId, string? departmentName)
         {
+            if (!User.IsInRole(AppConstants.Roles.Patient))
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
+
             var patientIdClaim = User.FindFirst(AppConstants.ClaimTypes.PatientId)?.Value;
             if (patientIdClaim == null)
             {
                 return RedirectToAction("Login", "Auth");
             }
-
             int patientId = int.Parse(patientIdClaim);
 
             // Lấy thông tin từ DB
@@ -276,6 +290,10 @@ namespace HospitalManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BookingByDoctor(BookingByDoctorViewModel model)
         {
+            if (!User.IsInRole(AppConstants.Roles.Patient))
+            {
+                return RedirectToAction("AccessDenied", "Home");
+            }
             if (!ModelState.IsValid)
             {
                 // Nạp lại dropdown nếu có lỗi
@@ -348,8 +366,11 @@ namespace HospitalManagement.Controllers
             {
                 selectedWeekStart = GetStartOfWeek(DateOnly.FromDateTime(DateTime.Today));
             }
+            Debug.WriteLine(selectedWeekStart);
+
 
             DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
+            Debug.WriteLine(selectedWeekEnd);
 
             var schedules = await _context.Schedules
                 .Where(s => s.DoctorId == doctorId && s.Day >= selectedWeekStart && s.Day <= selectedWeekEnd)
@@ -887,6 +908,7 @@ namespace HospitalManagement.Controllers
             switch (action)
             {
                 case AppConstants.AppointmentActions.Accept:
+
                     appointment.Status = AppConstants.AppointmentStatus.Confirmed;
                     await _invoiceService.CreateInvoiceForAppointmentAsync(appointment);
                     if (appointment.PackageId != null)
@@ -974,6 +996,11 @@ namespace HospitalManagement.Controllers
 
             var slotId = appointment.Slot.SlotId;
             var dateOnly = DateOnly.FromDateTime(date);
+            var excludedDepartments = new List<string>
+                {
+                    AppConstants.Department.Lab,
+                    AppConstants.Department.Imaging,
+                };
 
             // Lọc các bác sĩ:
             // - Có lịch trực trong khung giờ đó
@@ -989,7 +1016,9 @@ namespace HospitalManagement.Controllers
                         a.Status != AppConstants.AppointmentStatus.Rejected &&
                         a.Status != AppConstants.AppointmentStatus.Expired)
                 )
-                .Where(d => d.IsActive)
+                .Where(d => d.IsActive && !excludedDepartments.Contains(d.DepartmentName))
+                .OrderByDescending(d => d.IsSpecial)
+                .ThenBy(d => d.DepartmentName)
                 .Select(d => new Doctor
                 {
                     DoctorId = d.DoctorId,
@@ -1039,7 +1068,7 @@ namespace HospitalManagement.Controllers
             }
 
             var doctors = await _context.Doctors
-                                        .Where(d => d.DepartmentName == department && d.IsActive)
+                                        .Where(d => d.DepartmentName == department && d.IsActive && d.DepartmentName != AppConstants.Department.Lab && d.DepartmentName != AppConstants.Department.Imaging)
                                         .Select(d => new
                                         {
                                             d.DoctorId,
@@ -1050,6 +1079,24 @@ namespace HospitalManagement.Controllers
                                         .ToListAsync();
 
             Console.WriteLine("Doctors: " + string.Join(", ", doctors.Select(d => d.DoctorName)));
+            return Json(doctors);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetAllDoctors()
+        {
+            var doctors = await _context.Doctors
+                .OrderByDescending(d => d.IsSpecial)
+                .ThenBy(d => d.DepartmentName)
+                .Where(d => d.IsActive && d.DepartmentName != AppConstants.Department.Lab && d.DepartmentName != AppConstants.Department.Imaging)
+                .Select(d => new
+                {
+                    doctorId = d.DoctorId,
+                    doctorName = d.FullName,
+                    departmentName = d.DepartmentName,
+                    profileImage = d.ProfileImage
+                })
+                .ToListAsync();
+
             return Json(doctors);
         }
 
@@ -1196,10 +1243,15 @@ namespace HospitalManagement.Controllers
                 .ToListAsync();
 
             return departmentNames
+
                 .Select(name => new SelectListItem
                 {
                     Value = name,
                     Text = name
+                }).Prepend(new SelectListItem
+                {
+                    Value = "",
+                    Text = "Không chọn chuyên khoa"
                 })
                 .ToList();
         }
@@ -1267,7 +1319,7 @@ namespace HospitalManagement.Controllers
             {
                 TempData["PreviousUrl"] = returnUrl;
             }
-            var appointment = await _context.Appointments
+            var appointment = await _context.Appointments.IgnoreQueryFilters()
                                 .Include(a => a.Patient)
                                 .Include(a => a.Doctor)
                                 .Include(a => a.CreatedByStaff)

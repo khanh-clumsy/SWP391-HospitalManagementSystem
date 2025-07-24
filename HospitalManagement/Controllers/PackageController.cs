@@ -36,7 +36,7 @@ namespace HospitalManagement.Controllers
 
         public async Task<IActionResult> Index(string? CategoryFilter, string? AgeFilter, string? GenderFilter, string? PriceRangeFilter, int? page)
         {
-            int pageSize = 3;
+            int pageSize = 6;
             int pageNumber = page ?? 1;
             ViewBag.CategoryFilter = CategoryFilter ?? "";
             ViewBag.AgeFilter = AgeFilter ?? "";
@@ -66,7 +66,7 @@ namespace HospitalManagement.Controllers
             }
 
             var package = await query.FirstOrDefaultAsync(p => p.PackageId == id);
-            
+
             if (package == null)
             {
                 TempData["error"] = "Không tìm thấy gói khám!";
@@ -96,13 +96,13 @@ namespace HospitalManagement.Controllers
                     PackageCategory = package.PackageCategory
                 },
                 Tests = tests,
-                BookingCount = 100
+                BookingCount = _context.Appointments.Where(a => a.Status == AppConstants.AppointmentStatus.Completed && a.PackageId == package.PackageId).Count()
             };
 
             return View(model);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -115,7 +115,7 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [HttpPost]
         public async Task<IActionResult> Create(CreatePackageViewModel model)
         {
@@ -195,6 +195,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -204,7 +205,6 @@ namespace HospitalManagement.Controllers
                 .ThenInclude(pt => pt.Test)
                 .AsQueryable();
 
-            // Nếu là admin, cho phép chỉnh sửa cả gói khám đã ẩn
             if (User.IsInRole("Admin"))
             {
                 query = query.IgnoreQueryFilters();
@@ -250,6 +250,8 @@ namespace HospitalManagement.Controllers
             };
             return View(model);
         }
+
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditPackageViewModel model)
@@ -273,6 +275,15 @@ namespace HospitalManagement.Controllers
                     TempData["error"] = ex.Message;
                     return View(model);
                 }
+            }
+            else
+            {
+                var existing = await _context.Packages
+                    .IgnoreQueryFilters()
+                    .Where(p => p.PackageId == model.PackageId)
+                    .Select(p => p.Thumbnail)
+                    .FirstOrDefaultAsync();
+                model.CurrentThumbnail = existing;
             }
 
             var query = _context.Packages
@@ -354,6 +365,7 @@ namespace HospitalManagement.Controllers
             return RedirectToAction("Index");
         }
 
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
@@ -408,6 +420,7 @@ namespace HospitalManagement.Controllers
                                 })
                                 .ToListAsync();
         }
+
         private List<SelectListItem> GetAgeRangeOptions(string? selectedValue = null)
         {
             var options = new List<SelectListItem>

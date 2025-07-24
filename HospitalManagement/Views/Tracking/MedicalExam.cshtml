@@ -67,7 +67,10 @@
 			}
 			else if (!string.IsNullOrWhiteSpace(Model.PackageName))
 			{
-				<p><strong>Gói khám:</strong> @Model.PackageName</p>
+				<p>
+					<strong>Gói khám:</strong>
+					<a href="/Package/Detail/@Model.PackageId">@Model.PackageName</a>
+				</p>
 			}
 		</div>
 
@@ -257,7 +260,7 @@
 				</button>
 
 				<button type="submit" name="action" value="submit" class="medical-btn medical-btn-complete"
-				@(ViewBag.AllTestsCompleted == false ? "disabled" : "")>
+						@(ViewBag.AllTestsCompleted == false ? "disabled" : "")>
 					<i class="fas fa-check-circle"></i>Hoàn thành khám bệnh
 				</button>
 			</div>

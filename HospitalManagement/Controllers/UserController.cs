@@ -87,7 +87,7 @@ namespace HospitalManagement.Controllers
         public async Task<IActionResult> ManageRoom(int? page, string? name, string? building, string? floor, string? status, string? roomType)
         {
             name = UserController.NormalizeName(name);
-            int pageSize = 10;
+            int pageSize = 9;
             int pageNumber = page ?? 1;
 
             List<RoomWithDoctorDtoViewModel> rooms = await _roomRepo.SearchAsync(name, building, floor, status, roomType, pageNumber, pageSize);

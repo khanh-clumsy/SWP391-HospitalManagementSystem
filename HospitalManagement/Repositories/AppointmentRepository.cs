@@ -19,6 +19,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<Appointment>> Filter(string RoleKey, int UserID, string? Name, string? slotId, string? Date, string? Status)
         {
             var query = _context.Appointments
+                .IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
@@ -68,6 +69,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<Appointment>> FilterForAdmin(string? Name, string? slotId, string? Date, string? Status)
         {
             var query = _context.Appointments
+                .IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Slot)
@@ -102,6 +104,7 @@ namespace HospitalManagement.Repositories
         public IQueryable<Appointment> FilterApproveAppointment(string? statusFilter, string? searchName, string? timeFilter, string? dateFilter)
         {
             var query = _context.Appointments
+                .IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.Service)
@@ -142,7 +145,7 @@ namespace HospitalManagement.Repositories
 
         public IQueryable<Appointment> GetAppointmentByDoctorID(int DoctorID)
         {
-            return _context.Appointments
+            return _context.Appointments.IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.CreatedByStaff)
@@ -154,7 +157,7 @@ namespace HospitalManagement.Repositories
 
         public IQueryable<Appointment> GetAppointmentByPatientID(int PatientID)
         {
-            return _context.Appointments
+            return _context.Appointments.IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.CreatedByStaff)
@@ -166,7 +169,7 @@ namespace HospitalManagement.Repositories
 
         public IQueryable<Appointment> GetAppointmentBySalesID(int SalesID)
         {
-            return _context.Appointments
+            return _context.Appointments.IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Doctor)
                 .Include(a => a.CreatedByStaff)
@@ -212,6 +215,7 @@ namespace HospitalManagement.Repositories
         public async Task<List<int>> GetAvailableYearsWithCompletedAppointmentsAsync()
         {
             return await _context.Appointments
+                .IgnoreQueryFilters()
                 .Where(a => a.Status == AppConstants.AppointmentStatus.Completed)
                 .Select(a => a.Date.Year)
                 .Distinct()
@@ -254,7 +258,7 @@ namespace HospitalManagement.Repositories
         }
         public async Task<List<Appointment>> GetAppointmentsAsync(string phone)
         {
-            var query = _context.Appointments
+            var query = _context.Appointments.IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Where(a => a.Status == AppConstants.AppointmentStatus.Confirmed);
 
@@ -271,7 +275,7 @@ namespace HospitalManagement.Repositories
         {
             var today = DateOnly.FromDateTime(DateTime.Today);
 
-            var query = _context.Appointments
+            var query = _context.Appointments.IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Slot)
                 .Include(a => a.InvoiceDetails)
@@ -312,7 +316,7 @@ namespace HospitalManagement.Repositories
 
         public async Task<List<Appointment>> GetOngoingAppointmentsByDoctorIdAsync(int doctorId)
         {
-            return await _context.Appointments
+            return await _context.Appointments.IgnoreQueryFilters()
                             .Include(a => a.Patient)
                             .Include(a => a.Slot)
                             .Where(a => a.DoctorId == doctorId
@@ -325,7 +329,7 @@ namespace HospitalManagement.Repositories
 
         public async Task<Appointment> GetAppointmentByIdAsync(int appointmentId)
         {
-            return await _context.Appointments
+            return await _context.Appointments.IgnoreQueryFilters()
                 .Include(a => a.Patient)
                 .Include(a => a.Trackings)
                 .ThenInclude(t => t.Room)

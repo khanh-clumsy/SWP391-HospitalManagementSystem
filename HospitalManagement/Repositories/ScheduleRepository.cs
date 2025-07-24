@@ -131,6 +131,7 @@ namespace HospitalManagement.Repositories
                 .Join(_context.Rooms, sd => sd.s.RoomId, r => r.RoomId,
                     (sd, r) => new {
                         sd.d.FullName,
+                        sd.d.Email,
                         sd.d.DepartmentName,
                         SlotId = sd.s.SlotId,
                         r.RoomName,
@@ -139,13 +140,15 @@ namespace HospitalManagement.Repositories
                 .Join(_context.Slots, x => x.SlotId, sl => sl.SlotId,
                     (x, sl) => new {
                         x.FullName,
+                        x.Email,
                         x.DepartmentName,
                         x.RoomName,
                         x.RoomType,
                         SlotTime = $"{sl.StartTime:hh\\:mm} - {sl.EndTime:hh\\:mm}",
                         x.SlotId
                     })
-                .OrderBy(x => x.FullName)
+                .OrderBy(x => x.DepartmentName)
+                .ThenBy(x => x.FullName)
                 .ThenBy(x => x.SlotId)
                 .ToList();
 
@@ -157,7 +160,7 @@ namespace HospitalManagement.Repositories
                 if (item.FullName != currentDoctor)
                 {
                     currentDoctor = item.FullName;
-                    Console.WriteLine($"👨‍⚕️ {item.FullName} - Khoa: {item.DepartmentName}");
+                    Console.WriteLine($"👨‍⚕️ {item.FullName} - Khoa: {item.DepartmentName} - 📧 Email: {item.Email}");
                 }
 
                 Console.WriteLine($"  🕘 Slot {item.SlotId} ({item.SlotTime}): Phòng {item.RoomName} ({item.RoomType})");
@@ -165,5 +168,7 @@ namespace HospitalManagement.Repositories
 
             Console.WriteLine("\n==============================================\n");
         }
+
+
     }
 }

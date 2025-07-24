@@ -154,6 +154,11 @@ namespace HospitalManagement.Controllers
         {
             if (!ModelState.IsValid)
             {
+                if (model.Reason.Length > 500)
+                {
+                    TempData["error"] = "Lý do phải ít hơn 500 ký tự!";
+                    return RedirectToAction("RequestChangeSchedule");
+                }
                 TempData["error"] = "Vui lòng điền đầy đủ thông tin yêu cầu đổi lịch.";
                 return RedirectToAction("RequestChangeSchedule");
             }

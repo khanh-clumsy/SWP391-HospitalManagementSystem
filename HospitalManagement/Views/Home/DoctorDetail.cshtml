@@ -1,4 +1,5 @@
-﻿@*
+﻿@using HospitalManagement.Helpers
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
@@ -8,7 +9,7 @@
 
 <head>
 	<!-- Template Stylesheet -->
-	<link href="/css/doctorprofile.css" rel="stylesheet"> 
+	<link href="/css/doctorprofile.css" rel="stylesheet">
 </head>
 <body>
 
@@ -44,14 +45,17 @@
 					<div class="profile-card text-center">
 						<div class="profile-image">
 							<img src="@(string.IsNullOrEmpty(Model.ProfileImage)
-										? Url.Content("~/img/logo.jpg")
-										: Url.Content("~/img/" + Model.ProfileImage))" alt="Doctor's Photo">
+													? Url.Content("~/img/logo.jpg")
+													: Url.Content("~/img/" + Model.ProfileImage))" alt="Doctor's Photo">
 						</div>
-						<div class="profile-buttons">
-							<div class="d-flex gap-2 justify-content-center flex-wrap">
-								<a asp-controller="Appointment" asp-action="BookingByDoctor" asp-route-doctorId="@Model.DoctorId" asp-route-departmentName="@Model.DepartmentName" class="btn btn-primary">Tạo cuộc hẹn</a>
+						@if (User.IsInRole(AppConstants.Roles.Patient))
+						{
+							<div class="profile-buttons">
+								<div class="d-flex gap-2 justify-content-center flex-wrap">
+									<a asp-controller="Appointment" asp-action="BookingByDoctor" asp-route-doctorId="@Model.DoctorId" asp-route-departmentName="@Model.DepartmentName" class="btn btn-primary">Tạo cuộc hẹn</a>
+								</div>
 							</div>
-						</div>
+						}
 					</div>
 				</div>
 

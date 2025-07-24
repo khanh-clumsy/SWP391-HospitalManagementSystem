@@ -23,21 +23,21 @@ namespace HospitalManagement.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index(int? page)
         {
-            int pageSize = 6;
+            int pageSize = 15;
             int pageNumber = page ?? 1;
             var services = User.IsInRole("Admin")
                 ? await _context.Services
                     .IgnoreQueryFilters()
-                    .OrderByDescending(s => s.ServiceId)
+                    .OrderBy(s => s.ServiceId)
                     .ToPagedListAsync(pageNumber, pageSize)
                 : await _context.Services
-                    .OrderByDescending(s => s.ServiceId)
+                    .OrderBy(s => s.ServiceId)
                     .ToPagedListAsync(pageNumber, pageSize);
             return View(services);
         }
 
         //  GET: Tạo dịch vụ (Admin-only)
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public IActionResult Create() => View();
 
         //  POST: Tạo dịch vụ
@@ -58,7 +58,7 @@ namespace HospitalManagement.Controllers
         }
 
         //  GET: Cập nhật
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> Update(int id)
         {
             var service = await _context.Services
@@ -74,7 +74,7 @@ namespace HospitalManagement.Controllers
         // POST: Cập nhật
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> Update(Service service)
         {
             if (!ModelState.IsValid)
@@ -88,7 +88,7 @@ namespace HospitalManagement.Controllers
         }
 
         // Ẩn dịch vụ (Soft Delete)
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> SoftDelete(int id)
         {
             var service = await _context.Services.FindAsync(id);
@@ -104,7 +104,7 @@ namespace HospitalManagement.Controllers
         }
 
         //  Khôi phục dịch vụ
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = AppConstants.Roles.Admin)]
         public async Task<IActionResult> Restore(int id)
         {
             var service = await _context.Services

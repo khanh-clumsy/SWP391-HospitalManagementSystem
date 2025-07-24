@@ -5,6 +5,9 @@
 	DateOnly selectedWeekEnd = selectedWeekStart.AddDays(6);
 	DateOnly firstWeekStart = new DateOnly(selectedYear, 1, 1).AddDays(-(int)new DateTime(selectedYear, 1, 1).DayOfWeek + 1);
 	DateOnly lastWeekStart = new DateOnly(selectedYear, 12, 25).AddDays(-(int)new DateTime(selectedYear, 12, 25).DayOfWeek + 1);
+	Console.WriteLine(selectedWeekStart);
+	Console.WriteLine(firstWeekStart);
+	Console.WriteLine(lastWeekStart);
 
 	DateOnly prevWeek = selectedWeekStart.AddDays(-7);
 	DateOnly nextWeek = selectedWeekStart.AddDays(7);
