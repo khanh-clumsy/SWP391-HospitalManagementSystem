@@ -5,7 +5,7 @@
 ## About
 The Hospital Management System (HMS) is a comprehensive web-based application designed to streamline and manage core hospital operations, including patient registration, appointment scheduling, medical records, billing, and administrative control. The system enhances the efficiency and accuracy of healthcare services by allowing patients and administrators to interact with hospital data in a structured and secure environment.
 
-## Team size: 3
+## Team size: 4
 1. **Phạm Gia Khánh - HE190566**
 2. **Trần Việt Hải - HE190610**
 3. **Hoàng Đức Lộc- HE190814**
