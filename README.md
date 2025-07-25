@@ -9,6 +9,7 @@ The Hospital Management System (HMS) is a comprehensive web-based application de
 1. **Phạm Gia Khánh - HE190566**
 2. **Trần Việt Hải - HE190610**
 3. **Hoàng Đức Lộc- HE190814**
+4. **Nguyễn Trường Huy- HE190814**
 
 ### Key functionalities of this Hospital Management System include:
 
