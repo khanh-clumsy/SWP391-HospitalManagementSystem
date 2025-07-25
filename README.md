@@ -3,36 +3,33 @@
 
 
 ## About
-The Hospital Management System (HMS) is a web-based application designed to manage hospital records, enabling efficient creation, retrieval, updating, and deletion of patient, doctor, and appointment information. The system also supports managing hospital departments and patient medical records, providing a streamlined solution for healthcare institutions.
+The Hospital Management System (HMS) is a comprehensive web-based application designed to streamline and manage core hospital operations, including patient registration, appointment scheduling, medical records, billing, and administrative control. The system enhances the efficiency and accuracy of healthcare services by allowing patients and administrators to interact with hospital data in a structured and secure environment.
 
 ### Key functionalities of this Hospital Management System include:
 
-1. **Create Patient**: Users can input a patient's ID, first name, last name, date of birth, and contact information to create a new patient record in the database.
+1. **Book Appointment**: Patients can create a new booking by entering their personal details (patient ID, full name, date of birth, gender, contact information) and selecting a preferred doctor and time slot. The system checks availability and confirms the appointment.
 
-2. **Show Students**: This function retrieves and displays a list of all students stored in the database, including their basic information like name, date of birth, and department ID.
+2. **Manage Schedule**: Administrators have full control over appointments. They can update, reschedule, cancel, or confirm appointments. This ensures flexibility in daily hospital operations and improved communication with patients.
 
-3. **Update Student**: Users can update the information of an existing student by providing their ID and modifying their first name, last name, date of birth, and department ID.
+3. **Appointment Management**: Users can update the information of an existing student by providing their ID and modifying their first name, last name, date of birth, and department ID.
 
-4. **Delete Student**: Allows the removal of a student record by specifying the student's ID.
+4. **Patient Registration and Records**: New patients can be registered into the system, and existing records can be updated. The system stores essential medical information such as allergies, diagnosis history, and treatment plans.
 
-5. **Add Course to Student**: This feature allows users to assign courses to students by selecting a student's ID and a course ID from a list of available courses.
+5. **Assign Doctor to Patient**: Patients can be assigned or referred to specific doctors based on their condition, department, or preference. This helps in maintaining a clear association between patient and caregiver throughout treatment.
 
-6. **Insert Marks and Calculate GPA**: Users can enter marks for a student in a specific course, and the system will automatically calculate the GPA based on the provided marks.
+6. **Diagnosis and Billing**: Doctors can input diagnosis and treatment details, prescribe medications or lab tests, and the system will automatically generate the bill. The billing module supports itemized services, payment tracking, and invoice generation.
 
-7. **Search Student**: This function allows users to search for a specific student by their ID and displays detailed information about the student, including the courses they are enrolled in and their corresponding grades.
+7. **Manage Doctors and Departments**: Admins can add, update, or remove doctor profiles and department details. This ensures an up-to-date structure of hospital departments and specialties.
 
-8. **View Courses and Departments**: Users can view a list of available courses and departments, and they can also insert new courses and departments.
+The application interacts with a SQL Server database using SQL queries for inserting, updating, retrieving, and deleting data. Robust error handling ensures reliable execution of operations and provides users with real-time feedback.
 
-The code interacts with a SQL Server database using SQL commands for data retrieval, insertion, updating, and deletion. It includes error handling to provide feedback on the success or failure of database operations.
-
-Overall, this Student Management System serves as a basic tool for managing student information and academic records, making it useful for educational institutions or organizations that require a straightforward means of handling student data. Further improvements could include enhanced user interface features and additional functionalities like grade reporting, student enrollment management, and data analytics.
+Overall, this Hospital Management System offers a structured and scalable solution for hospitals and clinics seeking to modernize their operations. It improves efficiency, minimizes paperwork, enhances patient care, and allows administrators to make data-driven decisions. Future enhancements may include integration with insurance systems, electronic prescriptions, and mobile accessibility.
 
 ## Dependencies
 
 - ASP.NET core MVC
 - .NET SDK (8.0.403)
 - Microsoft SQL Server (SQL Server 2022)
-
 
 ## How to use
 
@@ -44,32 +41,3 @@ Overall, this Student Management System serves as a basic tool for managing stud
 
 >[!Note]
 >You can also use Visual Studio _or_ your favorite IDE to run this project.
-
-## Error Handling
-
-- Be patient. Wait for all packages to be restored.  
-  All packages will be restored in the project root folder.
-- **Microsoft.Data.SqlClient** _error_  
-  If packages are not restored automatically, then run `dotnet restore` _or_
-  Download the `Microsoft.Data.SqlClient` package from `https://www.nuget.org/packages/Microsoft.Data.SqlClient` _or_ from the `terminal`, run `dotnet add package Microsoft.Data.SqlClient`.
-- **SQL Server** _error_
-  - Check your SQL Server connection.
-  - Configure your SQL Server connection.
-    ```text
-    localhost ip-----OR----enable any existing ip from SQL
-    Server (2022) Configuration manager\SQL Server Network
-    Configuration\protocols For SQLEXPRESS(instance name)\
-    TCP/IP\properties\protocol(enabled)\IP Address
-    ```
-    ```text
-    port = "51609"; // The port, configured in SQL Server Configuration Manager
-    ```
-    _OR_
-    Change `connectionString` in `Program.cs` file.  
-
-    ```cs
-    // connectionString = "Data Source=InstanceName;Initial Catalog=StudentManagementSystem;Integrated Security=True;Encrypt=False";
-    
-    // Database connection string
-    static string connectionString = "Data Source=localhost,51609;Initial Catalog=StudentManagementSystem;Integrated Security=True;Encrypt=False";
-    ```
