@@ -169,6 +169,53 @@ namespace HospitalManagement.Repositories
             Console.WriteLine("\n==============================================\n");
         }
 
+        public void PrintDoctorRoomsNextDay()
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today.AddDays(1));
 
+            var scheduleDetails = _context.Schedules
+                .Where(s => s.Day == today)
+                .Join(_context.Doctors, s => s.DoctorId, d => d.DoctorId,
+                    (s, d) => new { s, d })
+                .Join(_context.Rooms, sd => sd.s.RoomId, r => r.RoomId,
+                    (sd, r) => new {
+                        sd.d.FullName,
+                        sd.d.Email,
+                        sd.d.DepartmentName,
+                        SlotId = sd.s.SlotId,
+                        r.RoomName,
+                        r.RoomType
+                    })
+                .Join(_context.Slots, x => x.SlotId, sl => sl.SlotId,
+                    (x, sl) => new {
+                        x.FullName,
+                        x.Email,
+                        x.DepartmentName,
+                        x.RoomName,
+                        x.RoomType,
+                        SlotTime = $"{sl.StartTime:hh\\:mm} - {sl.EndTime:hh\\:mm}",
+                        x.SlotId
+                    })
+                .OrderBy(x => x.DepartmentName)
+                .ThenBy(x => x.FullName)
+                .ThenBy(x => x.SlotId)
+                .ToList();
+
+            Console.WriteLine("\n===== LỊCH PHÒNG LÀM VIỆC BÁC SĨ HÔM NAY =====\n");
+
+            string currentDoctor = null;
+            foreach (var item in scheduleDetails)
+            {
+                if (item.FullName != currentDoctor)
+                {
+                    currentDoctor = item.FullName;
+                    Console.WriteLine($"👨‍⚕️ {item.FullName} - Khoa: {item.DepartmentName} - 📧 Email: {item.Email}");
+                }
+
+                Console.WriteLine($"  🕘 Slot {item.SlotId} ({item.SlotTime}): Phòng {item.RoomName} ({item.RoomType})");
+            }
+
+            Console.WriteLine("\n==============================================\n");
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using HospitalManagement.Data;
+﻿using System.Diagnostics;
+using HospitalManagement.Data;
 using HospitalManagement.Helpers;
 using HospitalManagement.Models;
 using HospitalManagement.Repositories;
@@ -9,10 +10,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using X.PagedList;
 using X.PagedList.Extensions;
+using static HospitalManagement.Helpers.AppConstants.Messages;
 
 namespace HospitalManagement.Controllers
 {
-    
+
     public class TestController : Controller
     {
         private readonly ITestRepository _testRepository;
@@ -52,7 +54,7 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = AppConstants.Roles.Admin)]
-        public IActionResult Create(Test test)
+        public IActionResult Create(Models.Test test)
         {
             if (ModelState.IsValid)
             {
@@ -92,7 +94,7 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = AppConstants.Roles.Admin)]
-        public IActionResult Update(Test test)
+        public IActionResult Update(Models.Test test)
         {
             if (ModelState.IsValid)
             {
@@ -115,19 +117,70 @@ namespace HospitalManagement.Controllers
             return View(test);
         }
 
-        [Authorize]
+        [Authorize(Roles = AppConstants.Roles.Admin + ", "
+            + AppConstants.Roles.TestDoctor + ", "
+            + AppConstants.Roles.Doctor + ", "
+            + AppConstants.Roles.Patient)]
+        [HttpGet]
         public async Task<IActionResult> ViewTestResult(int id)
         {
+
             var testRecord = await _context.TestRecords
                 .Where(tr => tr.Appointment != null && tr.Appointment.Patient != null && tr.Test != null)
+                .Include(tr => tr.Doctor)
                 .Include(tr => tr.Appointment)
                     .ThenInclude(a => a.Patient)
                 .Include(tr => tr.Test)
                 .FirstOrDefaultAsync(tr => tr.TestRecordId == id);
 
-            if (testRecord == null)
+            Debug.WriteLine(testRecord.TestRecordId);
+            Debug.WriteLine(testRecord.DoctorId);
+
+            if (User.IsInRole(AppConstants.Roles.TestDoctor))
             {
-                return NotFound();
+                var doctorIdClaim = User.FindFirst("DoctorID");
+                Debug.WriteLine(doctorIdClaim);
+
+                if (doctorIdClaim == null || !int.TryParse(doctorIdClaim.Value, out int doctorId))
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+
+                if (testRecord.DoctorId != doctorId)
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+                            
+            }
+
+            if (User.IsInRole(AppConstants.Roles.Doctor)){
+                var doctorIdClaim = User.FindFirst("DoctorID");
+                Debug.WriteLine(doctorIdClaim);
+
+                if (doctorIdClaim == null || !int.TryParse(doctorIdClaim.Value, out int doctorId))
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+
+                if (doctorId != testRecord.Appointment.DoctorId)
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+            }
+
+            if (User.IsInRole(AppConstants.Roles.Patient))
+            {
+                var patientIdClaim = User.FindFirst("PatientID");
+                if (patientIdClaim == null || !int.TryParse(patientIdClaim.Value, out int patientId))
+                {
+                    Debug.WriteLine(patientIdClaim);
+                    return RedirectToAction("AccessDenied", "Home");
+                }
+
+                if (testRecord.Appointment.PatientId != patientId)
+                {
+                    return RedirectToAction("AccessDenied", "Home");
+                }
             }
 
             var viewModel = new TestResultViewModel
@@ -143,9 +196,8 @@ namespace HospitalManagement.Controllers
 
             return View(viewModel);
         }
+
         // Get available room types for dropdown
-
-
         [Authorize(Roles = AppConstants.Roles.Admin)]
         public List<SelectListItem> GetAvailableRoomTypes()
         {
@@ -153,7 +205,7 @@ namespace HospitalManagement.Controllers
                 {
                     new SelectListItem { Value = AppConstants.RoomTypes.Lab, Text = AppConstants.RoomTypes.Lab },
                     new SelectListItem { Value = AppConstants.RoomTypes.Imaging, Text = AppConstants.RoomTypes.Imaging }
-                    
+
                 };
         }
     }

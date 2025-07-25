@@ -12,5 +12,7 @@ namespace HospitalManagement.Repositories
         Task<Schedule?> GetScheduleWithRoomAsync(int doctorId, int slotId, DateOnly day);
 
         void PrintDoctorRoomsToday();
+
+        void PrintDoctorRoomsNextDay();
     }
 }

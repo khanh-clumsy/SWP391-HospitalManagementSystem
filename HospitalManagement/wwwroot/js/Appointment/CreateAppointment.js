@@ -36,7 +36,42 @@ function loadDoctorSchedule(doctorId) {
         }
     });
 }
+function renderDoctorCards(data) {
+    const $list = $('#doctorList');
+    $list.empty();
+    if (!data || data.length === 0) {
+        $list.append('<p class="text-muted text-center my-3">Không có bác sĩ trống trong ngày/khoa này</p>');
+        $('.doctor-section').show();
+        updateDoctorScrollVisibility();
+        return;
+    }
 
+    data.forEach(function (doctor) {
+        const imageUrl = doctor.profileImage
+            ? "/img/" + doctor.profileImage
+            : "/img/logo.jpg";
+        const card = `
+            <div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
+                <div class="card-body">
+                    <img src="${imageUrl}"
+                         class="img-fluid rounded-circle mb-2" style="width: 80px; height: 80px;" />
+                    <h6 class="card-title mb-0">${doctor.doctorName}</h6>
+                    <p class="text-muted small mb-0">${doctor.departmentName}</p>
+                </div>
+            </div>`;
+        $list.append(card);
+    });
+    $('.doctor-section').show();
+    updateDoctorScrollVisibility();
+
+    const selectedDoctorId = $('#SelectedDoctorId').val();
+    if (selectedDoctorId) {
+        const card = $(`.doctor-card[data-doctor-id="${selectedDoctorId}"]`);
+        if (card.length > 0) {
+            card.trigger('click');
+        }
+    }
+}
 function updateSchedule(newyear = null) {
     // Lấy giá trị từ dropdown hoặc giữ nguyên nếu không thay đổi
     let year = newyear || document.getElementById("yearDropdown").value;
@@ -170,6 +205,16 @@ $(document).ready(function () {
         var departmentName = $(this).val(); // tên khoa
 
         if (!departmentName) {
+            $.ajax({
+                url: '/Appointment/GetAllDoctors', // bạn cần tạo thêm action này
+                type: 'GET',
+                success: function (data) {
+                    renderDoctorCards(data);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Lỗi khi tải danh sách bác sĩ:", status, error);
+                }
+            });
             $('#SelectedDoctorId, #AppointmentDate, #SelectedSlotId').val('');
             $('#serviceDropdown, #packageDropdown').val('');
             $('input[name="ServiceType"]').prop('checked', false);
@@ -190,32 +235,7 @@ $(document).ready(function () {
             type: 'GET',
             data: { department: departmentName }, // hoặc { date: selectedDate }
             success: function (data) {
-                const $list = $('#doctorList');
-                $list.empty();
-                if (!data || data.length === 0) {
-                    $list.append('<p class="text-muted text-center my-3">Không có bác sĩ trống trong ngày/khoa này</p>');
-                    $('.doctor-section').show();
-                    updateDoctorScrollVisibility();
-                    return;
-                }
-                data.forEach(function (doctor) {
-                    const imageUrl = doctor.profileImage
-                        ? "/img/" + doctor.profileImage
-                        : "/img/logo.jpg";
-
-                    const card = `
-					<div class="card text-center shadow-sm doctor-card" data-doctor-id="${doctor.doctorId}" style="min-width: 180px; cursor: pointer;">
-						<div class="card-body">
-							<img src="${imageUrl}"
-								class="img-fluid rounded-circle mb-2" style="width: 60px; height: 60px;" />
-							<h6 class="card-title mb-0">${doctor.doctorName}</h6>
-							<p class="text-muted small mb-0">${doctor.departmentName}</p>
-						</div>
-					</div>`;
-                    $list.append(card);
-                });
-                $('.doctor-section').show();
-                updateDoctorScrollVisibility();
+                renderDoctorCards(data);
             },
             error: function (xhr, status, error) {
                 console.error("Lỗi khi tải bác sĩ:", status, error);

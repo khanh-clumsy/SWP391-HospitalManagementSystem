@@ -58,10 +58,17 @@
             {
                 <tr>
                     <td>@item.PatientName</td>
-                    <td>@item.ItemType</td>
+                    <td>
+                        @(item.ItemType == "Service" ? "Dịch vụ" :
+                          item.ItemType == "Package" ? "Gói khám" :
+                          item.ItemType == "Test" ? "Xét nghiệm" :
+                          item.ItemType)
+                    </td>
                     <td>@item.ItemName</td>
                     <td>@String.Format("{0:N0}", item.UnitPrice) VND</td>
-                    <td>@item.PaymentStatus</td>
+                    <td>
+                        @(item.PaymentStatus == "Paid" ? "Đã thanh toán" : "Chưa thanh toán")
+                    </td>                    
                     <td>@item.PaymentTime?.ToString("dd/MM/yyyy")</td>
                 </tr>
             }

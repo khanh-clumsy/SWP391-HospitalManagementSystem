@@ -530,7 +530,7 @@ namespace HospitalManagement.Controllers
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        [Authorize(Roles = AppConstants.Roles.Sales)]
+        [Authorize(Roles = AppConstants.Roles.Sales + ", " + AppConstants.Roles.Receptionist)]
         [HttpGet]
         public async Task<IActionResult> Create(int? doctorId, int? year, string? weekStart)
         {
@@ -583,7 +583,7 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
-        [Authorize(Roles = AppConstants.Roles.Sales)]
+        [Authorize(Roles = AppConstants.Roles.Sales + ", " + AppConstants.Roles.Receptionist)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateAppointmentViewModel model)
@@ -719,7 +719,17 @@ namespace HospitalManagement.Controllers
                 TempData["error"] = $"{AppConstants.Messages.Appointment.CreateFail}: {ex.Message}";
             }
 
-            return RedirectToAction("MyAppointments");
+            if (User.IsInRole(AppConstants.Roles.Sales))
+            {
+                return RedirectToAction("MyAppointments", "Appointment");
+            }
+            if (User.IsInRole(AppConstants.Roles.Receptionist))
+            {
+                return RedirectToAction("StartAppointmentProcess", "Tracking");
+            }
+            return RedirectToAction("Index", "Home");
+
+
         }
 
         [Authorize(Roles = AppConstants.Roles.Admin + "," + AppConstants.Roles.Sales)]

@@ -28,7 +28,7 @@ public class AppointmentExpirationService : BackgroundService
         {
             await CheckExpiredAppointmentsAsync();
             await Task.Delay(TimeSpan.FromMinutes(59), stoppingToken);
-           // await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            // await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
         }
         _logger.LogInformation("AppointmentExpirationService is stopping.");
     }
@@ -46,6 +46,7 @@ public class AppointmentExpirationService : BackgroundService
             .Include(a => a.Service)
             .Include(a => a.Package)
             .Include(a => a.CreatedByStaff)
+            .Include(a => a.InvoiceDetails)
             .Where(a => a.Status == AppConstants.AppointmentStatus.Confirmed)
             .ToListAsync();
 
@@ -54,8 +55,10 @@ public class AppointmentExpirationService : BackgroundService
             {
                 // Ghép DateOnly + TimeOnly thành DateTime
                 var endDateTime = a.Date.ToDateTime(a.Slot.EndTime);
+                bool isPaid = a.InvoiceDetails != null && a.InvoiceDetails
+                    .Any(i => i.PaymentStatus == AppConstants.PaymentStatus.Paid);
 
-                return endDateTime < now;
+                return endDateTime < now && !isPaid;
             }).ToList();
 
         foreach (var appt in expiredAppointments)

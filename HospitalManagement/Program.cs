@@ -144,7 +144,7 @@ using (var scope = app.Services.CreateScope())
 using (var scope = app.Services.CreateScope())
 {
     var repo = scope.ServiceProvider.GetRequiredService<IScheduleRepository>();
-    repo.PrintDoctorRoomsToday();
+    repo.PrintDoctorRoomsNextDay();
 }
 if (!app.Environment.IsDevelopment())
 {
