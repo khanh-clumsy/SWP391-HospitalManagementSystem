@@ -1,5 +1,5 @@
 <h1 align="center">Hospital Management System</h1>
-<h4 align="center">A web-based DBMS project for basic <strong>CRUD</strong> operations in a hospital system.</h4>
+<h4 align="center">A web-based DBMS project for advanced <strong>management</strong> operations in a hospital system.</h4>
 
 
 ## About
